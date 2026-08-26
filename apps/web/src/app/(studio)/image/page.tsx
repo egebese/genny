@@ -24,7 +24,7 @@ export default async function ImageStudioPage() {
           {models.map(({ definition }) => (
             <li
               key={definition.endpointId}
-              className="rounded-[--radius-panel] border border-line bg-surface p-4"
+              className="rounded-(--radius-panel) border border-line bg-surface p-4"
             >
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">{definition.displayName}</span>
@@ -40,7 +40,7 @@ export default async function ImageStudioPage() {
       </main>
 
       <Dock>
-        <div className="rounded-[--radius-panel] border border-line bg-surface px-4 py-3 text-sm text-ink-faint">
+        <div className="rounded-(--radius-panel) border border-line bg-surface px-4 py-3 text-sm text-ink-faint">
           The prompt composer lands in phase 1.
         </div>
       </Dock>

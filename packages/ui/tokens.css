@@ -3,8 +3,9 @@
  * these, never raw hex or arbitrary Tailwind values, because a whitelabel buyer
  * has to be able to rebrand by editing one file.
  *
- * Dark is the default: this is a tool people stare at next to their own images,
- * and a bright chrome fights the work.
+ * Dark first: this is a tool people stare at next to their own images, and a
+ * bright chrome fights the work. A viewer whose system asks for light gets
+ * light, because overriding that is its own kind of rude.
  */
 @theme {
   --color-canvas: oklch(0.16 0.006 264);

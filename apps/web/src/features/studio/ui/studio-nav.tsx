@@ -25,7 +25,7 @@ export function StudioNav() {
           href={section.href}
           aria-current={pathname.startsWith(section.href) ? 'page' : undefined}
           className={cn(
-            'rounded-[--radius-control] px-3 py-1.5 text-sm transition-colors',
+            'rounded-(--radius-control) px-3 py-1.5 text-sm transition-colors',
             pathname.startsWith(section.href)
               ? 'bg-surface text-ink'
               : 'text-ink-muted hover:bg-surface hover:text-ink',

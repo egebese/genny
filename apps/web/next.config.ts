@@ -7,13 +7,19 @@ import type { NextConfig } from 'next'
  * embedded or connected to, which is what keeps an injected script from
  * exfiltrating a prompt or a BYOK key.
  */
+const isDev = process.env.NODE_ENV === 'development'
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  // React's development build needs eval(); the production build does not, and
+  // shipping 'unsafe-eval' to production would hand an injected script the one
+  // primitive the rest of this policy exists to deny.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.fal.media https://v3b.fal.media http://localhost:9100",
   "media-src 'self' blob: https://*.fal.media http://localhost:9100",
-  "connect-src 'self' https://fal.run https://queue.fal.run https://rest.fal.ai http://localhost:9100",
+  // ws: is the dev server's hot-reload socket, absent from production.
+  `connect-src 'self' https://fal.run https://queue.fal.run https://rest.fal.ai http://localhost:9100${isDev ? ' ws://localhost:* ws://127.0.0.1:*' : ''}`,
   "font-src 'self' data:",
   "frame-ancestors 'none'",
   "base-uri 'self'",

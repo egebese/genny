@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "@genny/ui/tokens.css";
 
+/*
+ * Tailwind 4 auto-detects sources under the app only. Without this, every class
+ * written inside packages/ui is silently absent from the stylesheet: the markup
+ * renders, the utilities do not exist, and nothing warns you.
+ */
+@source "../../../../packages/ui/src";
+
 html,
 body {
   background: var(--color-canvas);

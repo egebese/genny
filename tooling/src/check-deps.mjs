@@ -99,7 +99,11 @@ const BOUNDARIES = [
       'This product has no modals, dialogs, sheets or drawers. Use a route, an inline panel or a non-modal popover.',
   },
   {
-    where: (path) => path.startsWith('apps/') && !path.includes('/api/'),
+    // Framework config is evaluated before the app exists, so it cannot import a
+    // validated env. Everything else in the app reads configuration through
+    // @genny/env, which fails loudly at boot instead of quietly at runtime.
+    where: (path) =>
+      path.startsWith('apps/') && !path.includes('/api/') && !path.endsWith('next.config.ts'),
     forbid: /process\.env\./,
     message: 'Read configuration through @genny/env, which validates it.',
   },

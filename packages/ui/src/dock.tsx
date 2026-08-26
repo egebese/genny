@@ -16,7 +16,7 @@ export function Dock({ children, className }: DockProps) {
     <div
       className={cn(
         'sticky bottom-0 z-10 border-t border-line bg-canvas/90 backdrop-blur',
-        'pb-[--spacing-safe-bottom]',
+        'pb-(--spacing-safe-bottom)',
         className,
       )}
     >

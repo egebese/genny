@@ -19,13 +19,19 @@ export function Topbar({ brand, nav, actions, className }: TopbarProps) {
     <header
       className={cn(
         'sticky top-0 z-20 border-b border-line bg-canvas/85 backdrop-blur',
-        'pt-[--spacing-safe-top]',
+        'pt-(--spacing-safe-top)',
         className,
       )}
     >
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4">
         <div className="flex items-center gap-2 font-semibold tracking-tight">{brand}</div>
-        {nav ? <nav className="hidden items-center gap-1 sm:flex">{nav}</nav> : null}
+        {/* Always visible: with no sidebar, hiding this on a phone would leave
+            no navigation at all. It scrolls sideways instead of collapsing. */}
+        {nav ? (
+          <nav className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
+            {nav}
+          </nav>
+        ) : null}
         <div className="ml-auto flex items-center gap-2">{actions}</div>
       </div>
     </header>
