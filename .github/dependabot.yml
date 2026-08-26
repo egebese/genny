@@ -3,14 +3,21 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule: { interval: weekly, day: monday }
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     groups:
-      # One PR for the framework, one for tooling. Fifteen separate PRs a week is
-      # how dependency updates get ignored entirely.
+      # One PR for the framework, one for tooling, one for everything else.
+      # Fifteen separate PRs a week is how dependency updates get ignored, and on
+      # a small Actions quota it also starves the real CI runs of queue slots.
       next:
         patterns: ['next', 'react', 'react-dom', '@types/react*']
       tooling:
         patterns: ['@biomejs/*', 'turbo', 'typescript', 'vitest', '@playwright/*']
+      rest:
+        patterns: ['*']
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns: ['*']
