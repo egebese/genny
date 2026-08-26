@@ -6,6 +6,8 @@ export type JobProgress = {
   status: 'queued' | 'running' | 'completed' | 'failed' | 'canceled' | 'timeout'
   queuePosition?: number | null
   urls?: string[]
+  /** Handles of the ingested assets, so a fresh result can be mentioned at once. */
+  assetLabels?: string[]
   error?: string
 }
 

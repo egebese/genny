@@ -11,7 +11,14 @@ export type IngestedOutput = {
 }
 
 export function ingestedUrls(output: unknown): string[] {
-  const ingested = (output as IngestedOutput | null)?.genny?.assets
-  if (!ingested || ingested.length === 0) return []
-  return ingested.map((asset) => publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey))
+  return ingestedAssets(output).map((asset) => publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey))
+}
+
+/** Handles of the ingested assets, so a past result stays mentionable. */
+export function ingestedLabels(output: unknown): string[] {
+  return ingestedAssets(output).map((asset) => asset.label)
+}
+
+function ingestedAssets(output: unknown) {
+  return (output as IngestedOutput | null)?.genny?.assets ?? []
 }

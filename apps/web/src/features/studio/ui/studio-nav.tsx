@@ -13,6 +13,7 @@ const SECTIONS = [
   { href: '/video', label: 'Video' },
   { href: '/audio', label: 'Audio' },
   { href: '/assets', label: 'Assets' },
+  { href: '/history', label: 'History' },
 ] as const
 
 export function StudioNav() {

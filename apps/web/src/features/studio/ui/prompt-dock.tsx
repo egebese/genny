@@ -2,7 +2,7 @@
 
 import { estimateUnits } from '@genny/models/credits.ts'
 import { Button } from '@genny/ui/button.tsx'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
 import { MentionList } from './mention-list.tsx'
@@ -19,6 +19,9 @@ type PromptDockProps = {
   onSettingChange: (name: string, value: unknown) => void
   pending: boolean
   error: string | null
+  /** Composed text lives in the studio, so a result can append a mention to it. */
+  prompt: string
+  onPromptChange: (next: string) => void
   onSubmit: (prompt: string) => void
 }
 
@@ -32,8 +35,8 @@ function formatCost(usd: number): string {
 }
 
 export function PromptDock(props: PromptDockProps) {
-  const { model, settings, pending, error, onSubmit } = props
-  const [prompt, setPrompt] = useState('')
+  const { model, settings, pending, error, onSubmit, prompt } = props
+  const setPrompt = props.onPromptChange
   const textarea = useRef<HTMLTextAreaElement>(null)
 
   const mentions = useMentions({
@@ -63,7 +66,6 @@ export function PromptDock(props: PromptDockProps) {
     const trimmed = prompt.trim()
     if (!trimmed || pending) return
     onSubmit(trimmed)
-    setPrompt('')
     mentions.close()
     resize()
   }

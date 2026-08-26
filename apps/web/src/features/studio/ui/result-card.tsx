@@ -7,6 +7,8 @@ export type ResultItem = {
   jobId: string
   prompt: string
   modelName: string
+  /** Handles of the assets this generation became, once ingested. */
+  assetLabels: string[]
   // The job statuses, plus 'timeout' which only ever comes from the stream: the
   // job may still finish, so it is not a failure and is not stored as one.
   status: 'queued' | 'running' | 'completed' | 'failed' | 'canceled' | 'timeout'
@@ -17,21 +19,24 @@ export type ResultItem = {
 type ResultCardProps = {
   item: ResultItem
   live: JobProgress | null
+  /** Appends `@label` to the prompt so an output can feed the next generation. */
+  onMention: (label: string) => void
 }
 
-export function ResultCard({ item, live }: ResultCardProps) {
+export function ResultCard({ item, live, onMention }: ResultCardProps) {
   const status = live?.status ?? item.status
   const urls = live?.urls ?? item.urls
   const error = live?.error ?? item.error
+  const labels = live?.assetLabels ?? item.assetLabels
 
   return (
     <li className="overflow-hidden rounded-(--radius-panel) border border-line bg-surface">
       {status === 'completed' && urls.length > 0 ? (
         <ul className={cn('grid gap-1', urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
-          {urls.map((url) => (
+          {urls.map((url, index) => (
             <li key={url} className="group relative">
               <img src={url} alt={item.prompt} loading="lazy" className="w-full object-cover" />
-              <span className="absolute inset-x-0 bottom-0 flex gap-1 p-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+              <span className="absolute inset-x-0 bottom-0 flex gap-1 p-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                 <a
                   href={url}
                   download
@@ -39,6 +44,15 @@ export function ResultCard({ item, live }: ResultCardProps) {
                 >
                   Download
                 </a>
+                {labels[index] ? (
+                  <button
+                    type="button"
+                    onClick={() => onMention(labels[index] as string)}
+                    className="rounded-(--radius-control) bg-canvas/85 px-2 py-1 text-xs backdrop-blur"
+                  >
+                    Use as reference
+                  </button>
+                ) : null}
               </span>
             </li>
           ))}

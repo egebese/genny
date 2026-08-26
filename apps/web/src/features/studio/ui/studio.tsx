@@ -1,6 +1,7 @@
 'use client'
 
 import { mentionedLabels } from '@genny/models/mention.ts'
+import { Button } from '@genny/ui/button.tsx'
 import { Dock } from '@genny/ui/dock.tsx'
 import { useCallback, useEffect, useState, useTransition } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
@@ -14,17 +15,28 @@ import type { ResultItem } from './result-card.tsx'
 type StudioProps = {
   models: PickableModel[]
   history: ResultItem[]
+  /** Cursor for the next page of history, or null when there is no more. */
+  historyCursor: string | null
   mentionables: MentionableView[]
   hasCredentials: boolean
 }
 
 const MODEL_STORAGE_KEY = 'genny:image:model'
 
-export function Studio({ models, history, mentionables, hasCredentials }: StudioProps) {
+export function Studio({
+  models,
+  history,
+  historyCursor,
+  mentionables,
+  hasCredentials,
+}: StudioProps) {
   const [ready, setReady] = useState(hasCredentials)
   const [model, setModel] = useState<PickableModel>(models[0] as PickableModel)
   const [settings, setSettings] = useState<Record<string, unknown>>({})
+  const [prompt, setPrompt] = useState('')
   const [results, setResults] = useState<ResultItem[]>(history)
+  const [cursor, setCursor] = useState(historyCursor)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
@@ -83,10 +95,26 @@ export function Studio({ models, history, mentionables, hasCredentials }: Studio
           status: 'queued',
           urls: [],
           error: null,
+          assetLabels: [],
         },
         ...current,
       ])
+      setPrompt('')
     })
+  }
+
+  async function loadMore() {
+    if (!cursor || loadingMore) return
+    setLoadingMore(true)
+    const response = await fetch(`/api/jobs?before=${encodeURIComponent(cursor)}`).catch(() => null)
+    const page = (await response?.json().catch(() => null)) as {
+      items: ResultItem[]
+      nextCursor: string | null
+    } | null
+    setLoadingMore(false)
+    if (!page) return
+    setResults((current) => [...current, ...page.items])
+    setCursor(page.nextCursor)
   }
 
   return (
@@ -99,10 +127,31 @@ export function Studio({ models, history, mentionables, hasCredentials }: Studio
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {results.map((item) => (
-              <LiveResultCard key={item.jobId} item={item} />
+              <LiveResultCard
+                key={item.jobId}
+                item={item}
+                onMention={(label) =>
+                  setPrompt((current) =>
+                    current.trimEnd() ? `${current.trimEnd()} @${label} ` : `@${label} `,
+                  )
+                }
+              />
             ))}
           </ul>
         )}
+
+        {cursor ? (
+          <div className="mt-6 flex justify-center">
+            <Button
+              type="button"
+              tone="neutral"
+              disabled={loadingMore}
+              onClick={() => void loadMore()}
+            >
+              {loadingMore ? 'Loading' : 'Load older'}
+            </Button>
+          </div>
+        ) : null}
       </main>
 
       <Dock>
@@ -118,6 +167,8 @@ export function Studio({ models, history, mentionables, hasCredentials }: Studio
             }
             pending={pending}
             error={error}
+            prompt={prompt}
+            onPromptChange={setPrompt}
             onSubmit={generate}
           />
         ) : (

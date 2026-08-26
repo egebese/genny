@@ -343,3 +343,34 @@ test.describe('characters', () => {
     await expect(page.locator('main ul li')).toHaveCount(0)
   })
 })
+
+test.describe('history', () => {
+  test('history is a route in the topbar and says so when empty', async ({ page }) => {
+    await page.goto('/image')
+    await expect(page.getByRole('link', { name: 'History' })).toBeVisible()
+
+    await page.goto('/history')
+    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible()
+    await expect(page.getByText(/Nothing yet/)).toBeVisible()
+  })
+
+  test('the jobs page returns an empty page rather than an error without a session', async ({
+    request,
+  }) => {
+    const response = await request.get('/api/jobs')
+    expect(response.status()).toBe(200)
+    const body = (await response.json()) as { items: unknown[]; nextCursor: string | null }
+    expect(Array.isArray(body.items)).toBe(true)
+  })
+
+  test('a malformed cursor is refused rather than silently ignored', async ({ request }) => {
+    const response = await request.get('/api/jobs?before=not-a-date')
+    expect(response.status()).toBe(400)
+  })
+
+  test('the feed offers no load-more button when there is nothing older', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/image')
+    await expect(page.getByRole('button', { name: /Load older/ })).toHaveCount(0)
+  })
+})

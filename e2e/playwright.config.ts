@@ -29,6 +29,13 @@ export default defineConfig({
   // absent option from one explicitly set to undefined, and Playwright's types
   // only accept the former.
   ...(process.env.E2E_LIVE ? {} : { grepInvert: /@live/ }),
+  /*
+   * 10s rather than the 5s default. Against a dev server the first request to a
+   * route pays for compiling it, and on WebKit that pushed hydration past 5s
+   * often enough to make one assertion flaky. Raising the assertion timeout is
+   * the honest fix: the app is not slow, the first paint of a dev build is.
+   */
+  expect: { timeout: 10_000 },
   use: { baseURL, trace: 'on-first-retry', screenshot: 'only-on-failure' },
   projects: [
     { name: `desktop-${mode}`, use: { ...devices['Desktop Chrome'] } },

@@ -16,7 +16,7 @@ import { storage } from './storage.ts'
 
 export type TrackEvent =
   | { status: 'queued' | 'running'; jobId: string; queuePosition: number | null }
-  | { status: 'completed'; jobId: string; urls: string[] }
+  | { status: 'completed'; jobId: string; urls: string[]; assetLabels: string[] }
   | { status: 'failed'; jobId: string; error: string }
   | { status: 'timeout'; jobId: string }
 
@@ -124,7 +124,14 @@ async function finish(context: TrackContext): Promise<TrackEvent> {
       ingested.assets.length > 0
         ? ingested.assets.map((asset) => publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey))
         : outputs.urls
-    return { status: 'completed', jobId: job.id, urls }
+    return {
+      status: 'completed',
+      jobId: job.id,
+      urls,
+      // Empty when ingestion failed: the urls are fal's and expire, so there is
+      // nothing durable to mention.
+      assetLabels: ingested.assets.map((asset) => asset.label),
+    }
   } catch (error) {
     return recordFailure(context, describe(error))
   }
