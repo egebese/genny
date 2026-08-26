@@ -1,0 +1,37 @@
+name: Bug
+description: Something behaves differently than it should
+labels: [type:bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what happened, what you expected instead.
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. GENNY_MODE=byok pnpm dev
+        2. Go to /image
+        3. ...
+    validations: { required: true }
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      description: The two modes differ in who pays and whether credits exist.
+      options: [byok, saas, both, not sure]
+    validations: { required: true }
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: macOS 15, Node 22.11, pnpm 11.1, Chrome 140
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Server log or console output. Redact anything key-shaped.
+      render: shell

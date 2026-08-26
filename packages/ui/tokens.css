@@ -1,0 +1,48 @@
+/*
+ * Every colour, radius and spacing step the product uses. Components reference
+ * these, never raw hex or arbitrary Tailwind values, because a whitelabel buyer
+ * has to be able to rebrand by editing one file.
+ *
+ * Dark is the default: this is a tool people stare at next to their own images,
+ * and a bright chrome fights the work.
+ */
+@theme {
+  --color-canvas: oklch(0.16 0.006 264);
+  --color-surface: oklch(0.2 0.007 264);
+  --color-surface-hover: oklch(0.24 0.008 264);
+  --color-line: oklch(0.29 0.008 264);
+  --color-ink: oklch(0.97 0.002 264);
+  --color-ink-muted: oklch(0.72 0.012 264);
+  --color-ink-faint: oklch(0.55 0.012 264);
+
+  --color-accent: oklch(0.72 0.17 152);
+  --color-accent-ink: oklch(0.16 0.02 152);
+  --color-danger: oklch(0.65 0.2 22);
+  --color-warning: oklch(0.78 0.15 78);
+
+  --radius-control: 0.625rem;
+  --radius-panel: 1rem;
+
+  /* Mobile lives behind a home indicator and a notch. */
+  --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --spacing-safe-top: env(safe-area-inset-top, 0px);
+
+  /* Minimum comfortable touch target. Never shrink a primary action below this. */
+  --size-touch: 2.75rem;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --color-canvas: oklch(0.99 0.002 264);
+    --color-surface: oklch(0.97 0.003 264);
+    --color-surface-hover: oklch(0.94 0.004 264);
+    --color-line: oklch(0.89 0.005 264);
+    --color-ink: oklch(0.22 0.01 264);
+    --color-ink-muted: oklch(0.45 0.012 264);
+    --color-ink-faint: oklch(0.6 0.01 264);
+    --color-accent-ink: oklch(0.99 0.005 152);
+  }
+}

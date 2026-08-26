@@ -1,0 +1,25 @@
+{
+  "name": "@genny/fal",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*.ts": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fal-ai/client": "catalog:",
+    "@genny/env": "workspace:*",
+    "@genny/models": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@genny/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

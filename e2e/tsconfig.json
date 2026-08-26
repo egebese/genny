@@ -1,0 +1,10 @@
+{
+  "extends": "@genny/tsconfig/base.json",
+  "compilerOptions": {
+    // Specs drive a browser and evaluate code inside the page, so they need DOM
+    // types even though they run in Node.
+    "lib": ["ES2023", "DOM"],
+    "types": ["node"]
+  },
+  "include": ["tests/**/*.ts", "playwright.config.ts"]
+}

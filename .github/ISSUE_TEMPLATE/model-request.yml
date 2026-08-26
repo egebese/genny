@@ -1,0 +1,34 @@
+name: Model request
+description: Ask for a fal model to be added to the catalog
+labels: [type:feat, area:models, good first issue]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adding a model is one JSON file and no code. If you want to do it
+        yourself, `.claude/skills/genny-model-catalog/` is the walkthrough and
+        this is a genuinely small first contribution.
+  - type: input
+    id: endpoint
+    attributes:
+      label: fal endpoint id
+      placeholder: fal-ai/nano-banana-2/edit
+    validations: { required: true }
+  - type: dropdown
+    id: modality
+    attributes:
+      label: Modality
+      options: [image, video, audio]
+    validations: { required: true }
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this one
+      description: What it does better than what is already in the catalog.
+    validations: { required: true }
+  - type: input
+    id: price
+    attributes:
+      label: Price from genmedia
+      description: Output of `genmedia pricing <endpoint> --json`
+      placeholder: 0.08 per images

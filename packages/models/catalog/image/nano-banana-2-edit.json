@@ -1,0 +1,38 @@
+{
+  "endpointId": "fal-ai/nano-banana-2/edit",
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "Nano Banana 2 Edit",
+  "description": "Edit and combine reference images with a prompt.",
+  "featured": true,
+  "sortOrder": 20,
+  "pricing": { "unit": "images", "unitPriceUsd": 0.08 },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "resolution",
+      "type": "enum",
+      "label": "Resolution",
+      "default": "1K",
+      "enum": ["0.5K", "1K", "2K", "4K"]
+    },
+    {
+      "name": "num_images",
+      "type": "integer",
+      "label": "Images",
+      "default": 1,
+      "min": 1,
+      "max": 4
+    },
+    {
+      "name": "output_format",
+      "type": "enum",
+      "label": "Format",
+      "default": "png",
+      "enum": ["jpeg", "png", "webp"]
+    }
+  ],
+  "references": [{ "field": "image_urls", "array": true, "maxCount": 8, "token": "keep-label" }],
+  "capabilities": { "maxOutputs": 4 }
+}

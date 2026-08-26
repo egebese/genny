@@ -1,0 +1,30 @@
+{
+  "name": "@genny/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*.ts": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --exclude '**/*.integration.test.ts' --exclude '**/node_modules/**' --passWithNoTests",
+    "test:integration": "vitest run --testTimeout 180000 integration.test",
+    "generate": "drizzle-kit generate",
+    "migrate": "node --experimental-strip-types src/migrate.ts",
+    "studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@genny/env": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "postgres": "catalog:"
+  },
+  "devDependencies": {
+    "@genny/tsconfig": "workspace:*",
+    "@testcontainers/postgresql": "catalog:",
+    "@types/node": "catalog:",
+    "drizzle-kit": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -1,0 +1,12 @@
+# Default owner for everything.
+*                       @egebese
+
+# The parts where a mistake is expensive rather than annoying.
+/packages/db/            @egebese
+/packages/billing/       @egebese
+/packages/fal/           @egebese
+/packages/ratelimit/     @egebese
+/docker/init/            @egebese
+/.github/workflows/      @egebese
+/AGENTS.md               @egebese
+/SECURITY.md             @egebese

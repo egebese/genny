@@ -1,0 +1,4 @@
+{
+  "extends": "@genny/tsconfig/react.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

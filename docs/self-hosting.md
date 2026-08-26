@@ -1,0 +1,74 @@
+# Self-hosting
+
+genny is a Next app and a Postgres database. Everything else is optional.
+
+## Minimum
+
+| Required | Why |
+|---|---|
+| Postgres 16+ | The only stateful dependency |
+| S3-compatible bucket | fal keeps generated media about a week; assets need a permanent home |
+| Node 22+ runtime | Or any container host |
+
+Not required: Vercel, Supabase, Redis, a queue, a second service.
+
+## Roles
+
+Two database roles, created by `docker/init/01-roles.sql` in development. On a
+managed database, create them by hand:
+
+```sql
+CREATE ROLE genny_migrator LOGIN PASSWORD '...';
+CREATE ROLE genny_app LOGIN PASSWORD '...';
+GRANT ALL ON SCHEMA public TO genny_migrator;
+GRANT USAGE ON SCHEMA public TO genny_app;
+GRANT CONNECT, CREATE, TEMPORARY ON DATABASE <db> TO genny_migrator;
+GRANT CONNECT ON DATABASE <db> TO genny_app;
+```
+
+`genny_app` must not have `BYPASSRLS` and must not own the tables. That
+separation is what makes row-level security a boundary rather than a comment.
+`pnpm db:migrate` re-applies grants after every migration, so a new table is
+never accidentally invisible or accidentally writable.
+
+## Using Supabase
+
+Point `DATABASE_URL` at Supabase's pooled connection string and
+`DATABASE_MIGRATION_URL` at the direct one. Nothing in the codebase imports a
+Supabase SDK, so it is a Postgres like any other. Its storage works too: it
+speaks the S3 API, so the same `S3_*` variables apply.
+
+## Choosing a mode
+
+```bash
+GENNY_MODE=byok    # public demo. no credits, no billing, no accounts needed
+GENNY_MODE=saas    # requires FAL_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+```
+
+The app refuses to boot in `saas` mode without those, listing every missing one
+at once. That is deliberate: discovering a missing Stripe secret at the first
+paid generation is worse than discovering it at deploy.
+
+## Pricing and margin
+
+```bash
+CREDIT_PER_USD=1000        # 1 USD of fal spend = 1000 credits sold
+```
+
+Per-model markup lives in each catalog file (`creditMultiplier`) and can be
+overridden per model from the admin panel. Your margin is those two numbers.
+
+## Operational chores
+
+| Chore | Frequency | Why |
+|---|---|---|
+| `pnpm catalog:sync --check` | weekly | fal prices change; a silent change eats your margin |
+| Prune rate-limit buckets | hourly | finished windows are dead weight |
+| Reconcile stuck jobs | every few minutes | releases credits held by a job whose result never arrived |
+
+The first is a CI cron in this repo. The other two are phase 2.
+
+## Backups
+
+Back up Postgres. The bucket holds regenerable media; the database holds the
+ledger, and the ledger is the part you cannot reconstruct.

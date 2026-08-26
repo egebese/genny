@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@import "@genny/ui/tokens.css";
+
+html,
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The studio is a full-height app shell, not a scrolling document. */
+html {
+  height: 100%;
+}
+body {
+  min-height: 100%;
+  overscroll-behavior-y: none;
+}

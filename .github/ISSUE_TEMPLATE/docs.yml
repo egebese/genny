@@ -1,0 +1,16 @@
+name: Documentation
+description: Something is missing, wrong or confusing in the docs
+labels: [type:docs, good first issue]
+body:
+  - type: input
+    id: where
+    attributes:
+      label: Which document
+      placeholder: docs/self-hosting.md, README.md, AGENTS.md
+    validations: { required: true }
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong or missing
+      description: If you got stuck following it, say where exactly.
+    validations: { required: true }

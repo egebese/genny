@@ -1,0 +1,55 @@
+packages:
+  - apps/*
+  - packages/*
+  - tooling
+  - e2e
+
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - '@tailwindcss/oxide'
+  - cpu-features
+  - esbuild
+  - protobufjs
+  - sharp
+  - ssh2
+  - unrs-resolver
+
+# One source of truth for every version. Packages reference `catalog:`.
+catalog:
+  '@aws-sdk/client-s3': 3.1118.0
+  '@aws-sdk/s3-request-presigner': 3.1118.0
+  '@fal-ai/client': 1.10.1
+  '@fal-ai/server-proxy': 1.2.1
+  '@playwright/test': 1.62.1
+  '@testcontainers/postgresql': 12.1.0
+  '@types/node': 26.3.0
+  '@types/react': 19.2.18
+  '@types/react-dom': 19.2.5
+  '@vitest/coverage-v8': 4.1.11
+  'class-variance-authority': 0.7.1
+  clsx: 2.1.1
+  'drizzle-kit': 0.31.10
+  'drizzle-orm': 0.45.2
+  'lucide-react': 1.34.0
+  # `next build` currently fails on every 16.3.x and on 16.4 canary while
+  # prerendering Next's own error page. See docs/adr/0009. We stay on the
+  # security-patched release because no version avoids it. Run `pnpm build`
+  # before bumping: that is the only signal.
+  next: 16.3.3
+  'next-auth': 5.0.0-beta.32
+  postgres: 3.4.9
+  react: 19.2.0
+  'react-dom': 19.2.0
+  stripe: 22.5.0
+  'tailwind-merge': 3.6.0
+  tailwindcss: 4.3.3
+  typescript: 7.0.2
+  vitest: 4.1.11
+  zod: 4.4.3
+
+allowBuilds:
+  cpu-features: true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  ssh2: true

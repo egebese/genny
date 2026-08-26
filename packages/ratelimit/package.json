@@ -1,0 +1,24 @@
+{
+  "name": "@genny/ratelimit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*.ts": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --exclude '**/*.integration.test.ts' --exclude '**/node_modules/**' --passWithNoTests",
+    "test:integration": "vitest run --testTimeout 180000 integration.test"
+  },
+  "dependencies": {
+    "@genny/db": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@genny/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

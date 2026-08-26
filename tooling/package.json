@@ -1,0 +1,21 @@
+{
+  "name": "@genny/tooling",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "seed:models": "node --experimental-strip-types src/seed-models.ts",
+    "catalog:sync": "node src/catalog-sync.mjs"
+  },
+  "dependencies": {
+    "@genny/db": "workspace:*",
+    "@genny/models": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@genny/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,38 @@
+name: Feature
+description: Propose something the product should do
+labels: [type:feat]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Who is stuck, and on what. Not the solution yet.
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+    validations: { required: true }
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Which phase does this belong to
+      description: See docs/phases/. Guessing is fine.
+      options:
+        - 1 - image studio
+        - 2 - saas layer
+        - 3 - video and audio
+        - 4 - admin
+        - 5 - landing, blog, seo
+        - 6 - hardening
+        - 7+ - workflows, agents, later
+        - not sure
+    validations: { required: true }
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints you have checked
+      options:
+        - label: This needs no modal, dialog, sheet or drawer
+        - label: This works at 375px wide
+        - label: I have read docs/prd/ and this is not already described there

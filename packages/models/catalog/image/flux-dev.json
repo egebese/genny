@@ -1,0 +1,61 @@
+{
+  "endpointId": "fal-ai/flux/dev",
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "FLUX.1 [dev]",
+  "description": "12B flow transformer with strong prompt adherence.",
+  "sortOrder": 30,
+  "pricing": { "unit": "megapixels", "unitPriceUsd": 0.025 },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "image_size",
+      "type": "enum",
+      "label": "Size",
+      "default": "landscape_4_3",
+      "enum": [
+        "square_hd",
+        "square",
+        "portrait_4_3",
+        "portrait_16_9",
+        "landscape_4_3",
+        "landscape_16_9"
+      ]
+    },
+    {
+      "name": "num_inference_steps",
+      "type": "integer",
+      "label": "Steps",
+      "default": 28,
+      "min": 1,
+      "max": 50
+    },
+    {
+      "name": "guidance_scale",
+      "type": "number",
+      "label": "Guidance",
+      "default": 3.5,
+      "min": 1,
+      "max": 20
+    },
+    {
+      "name": "num_images",
+      "type": "integer",
+      "label": "Images",
+      "default": 1,
+      "min": 1,
+      "max": 4
+    },
+    { "name": "seed", "type": "integer", "label": "Seed" },
+    {
+      "name": "enable_safety_checker",
+      "type": "boolean",
+      "label": "Safety checker",
+      "default": true,
+      "hidden": true
+    }
+  ],
+  "references": [],
+  "capabilities": { "supportsSeed": true, "maxOutputs": 4 }
+}

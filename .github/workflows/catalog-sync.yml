@@ -1,0 +1,45 @@
+name: catalog sync
+
+on:
+  schedule:
+    # Weekly. fal prices change, and a silent change eats margin for weeks.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: refresh catalog from fal
+        env:
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+        run: pnpm catalog:sync
+
+      - name: validate what came back
+        run: pnpm --filter @genny/models test
+
+      # A price change is never applied automatically. It arrives as a diff a
+      # human approves, because getting this wrong is invisible and expensive.
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/catalog-sync
+          title: 'chore: sync model catalog from fal'
+          commit-message: 'chore: sync model catalog from fal'
+          labels: area:models,type:chore
+          body: |
+            Automated catalog refresh from the fal API.
+
+            **Review the price diff before merging.** A changed `unitPriceUsd`
+            changes what every generation on that model costs, and the margin
+            with it.

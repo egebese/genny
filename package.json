@@ -1,0 +1,34 @@
+{
+  "name": "genny",
+  "private": true,
+  "packageManager": "pnpm@11.1.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "check": "biome check . && turbo run typecheck && pnpm deps:check",
+    "fix": "biome check --write .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration",
+    "e2e": "pnpm --filter @genny/e2e e2e",
+    "deps:check": "node tooling/src/check-deps.mjs",
+    "db:generate": "pnpm --filter @genny/db generate",
+    "db:migrate": "pnpm --filter @genny/db migrate",
+    "db:seed:models": "pnpm --filter @genny/tooling seed:models",
+    "catalog:sync": "pnpm --filter @genny/tooling catalog:sync",
+    "changeset": "changeset",
+    "up": "docker compose -f docker/compose.yml up -d",
+    "down": "docker compose -f docker/compose.yml down",
+    "env:link": "node tooling/src/link-env.mjs",
+    "postinstall": "node tooling/src/link-env.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.10",
+    "@changesets/cli": "3.0.1",
+    "turbo": "2.10.12",
+    "typescript": "7.0.2"
+  }
+}

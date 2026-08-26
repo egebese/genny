@@ -1,0 +1,71 @@
+name: e2e
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: e2e (${{ matrix.mode }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      # Both modes, always. A change that works in only one of them is the
+      # failure this architecture is most exposed to.
+      matrix:
+        mode: [byok, saas]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: genny
+        ports: ['55432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d genny"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      GENNY_MODE: ${{ matrix.mode }}
+      APP_URL: http://127.0.0.1:3100
+      AUTH_SECRET: Y2ktc2VjcmV0LWZvci10ZXN0aW5nLW9ubHktMzJieXRlcw==
+      GENNY_ENCRYPTION_KEY: Y2ktZW5jcnlwdGlvbi1rZXktdGVzdGluZy1vbmx5LTMyYg==
+      DATABASE_URL: postgresql://genny_app:genny@127.0.0.1:55432/genny
+      DATABASE_MIGRATION_URL: postgresql://genny_migrator:genny@127.0.0.1:55432/genny
+      S3_ENDPOINT: http://127.0.0.1:9100
+      S3_REGION: us-east-1
+      S3_BUCKET: genny
+      S3_ACCESS_KEY_ID: genny
+      S3_SECRET_ACCESS_KEY: gennygenny
+      S3_PUBLIC_URL: http://127.0.0.1:9100/genny
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # The service container has no roles yet: the init script only runs for a
+      # container this workflow started itself, so apply it by hand.
+      - name: create database roles
+        run: psql "postgresql://postgres:postgres@127.0.0.1:55432/genny" -f docker/init/01-roles.sql
+
+      - run: pnpm db:migrate
+      - run: pnpm db:seed:models
+
+      - run: pnpm --filter @genny/e2e exec playwright install --with-deps chromium webkit
+      - run: pnpm e2e
+
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.mode }}
+          path: e2e/playwright-report/
+          retention-days: 7
