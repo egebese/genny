@@ -495,6 +495,39 @@ test.describe('billing page', () => {
   })
 })
 
+test.describe('reconcile route', () => {
+  test('refuses a request without the shared secret', async ({ request }) => {
+    test.skip(mode !== 'saas', 'the suite only configures a cron secret in saas')
+    const response = await request.post('/api/cron/reconcile')
+    expect(response.status()).toBe(401)
+  })
+
+  test('refuses a wrong secret, and a longer one, without throwing', async ({ request }) => {
+    test.skip(mode !== 'saas', 'the suite only configures a cron secret in saas')
+    for (const token of ['nope', 'e2e_cron_secret_and_then_some']) {
+      const response = await request.post('/api/cron/reconcile', {
+        headers: { authorization: `Bearer ${token}` },
+      })
+      expect(response.status()).toBe(401)
+    }
+  })
+
+  test('sweeps when the secret matches', async ({ request }) => {
+    test.skip(mode !== 'saas', 'the suite only configures a cron secret in saas')
+    const response = await request.post('/api/cron/reconcile', {
+      headers: { authorization: 'Bearer e2e_cron_secret' },
+    })
+    expect(response.status()).toBe(200)
+    expect(await response.json()).toMatchObject({ checked: expect.any(Number) })
+  })
+
+  test('does not exist when no secret is configured', async ({ request }) => {
+    test.skip(mode !== 'byok', 'byok is the mode the suite leaves unconfigured')
+    const response = await request.post('/api/cron/reconcile')
+    expect(response.status()).toBe(404)
+  })
+})
+
 test.describe('stripe webhook', () => {
   test('an unsigned webhook is refused', async ({ request }) => {
     test.skip(mode !== 'saas', 'billing only exists in saas mode')

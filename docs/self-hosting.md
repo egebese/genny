@@ -90,7 +90,31 @@ localhost:3000/api/webhooks/stripe` prints a signing secret for
 | Prune rate-limit buckets | hourly | finished windows are dead weight |
 | Reconcile stuck jobs | every few minutes | releases credits held by a job whose result never arrived |
 
-The first is a CI cron in this repo. The other two are phase 2.
+The first is a CI cron in this repo. Pruning rate-limit buckets is still phase 2.
+
+### Reconciling stuck jobs
+
+A generation is driven by the stream the browser holds open. Close the tab and
+the row stays `queued` with its credits reserved, because nothing else ever
+revisits it. `POST /api/cron/reconcile` is what revisits it.
+
+```bash
+CRON_SECRET=$(openssl rand -hex 32)   # leave it unset and the route 404s
+```
+
+```
+* * * * * curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" \
+  https://your-host/api/cron/reconcile
+```
+
+GET works too, since most hosted schedulers only send GET. Every minute is
+plenty; every hour still beats never.
+
+Where the deployment owns the fal key the sweep settles the job for real,
+ingesting the outputs and capturing what the run actually cost. In byok it can
+only expire: the key belonged to the visitor and left with them. Either way, a
+job with nothing to show for it an hour later has its credits returned, because
+neither finished nor refunded is the one outcome a user cannot recover from.
 
 ## Backups
 

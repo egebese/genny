@@ -3,9 +3,10 @@ import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { findJob } from '@genny/db/repositories/jobs.ts'
 import { env } from '@genny/env/env.ts'
+import { trackJob } from '@genny/jobs/track.ts'
 import { readActorId } from '@/features/session/actor.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
-import { trackJob } from '@/features/studio/server/track-job.ts'
+import { storage } from '@/features/studio/server/storage.ts'
 
 const POLL_INTERVAL_MS = 2500
 const MAX_DURATION_MS = 5 * 60 * 1000
@@ -53,6 +54,7 @@ export async function GET(
         job: { ...job, falRequestId: job.falRequestId as string },
         credentials,
         billing: createBilling(env().GENNY_MODE, db),
+        storage: storage(),
         pollIntervalMs: POLL_INTERVAL_MS,
         deadline: Date.now() + MAX_DURATION_MS,
       })) {

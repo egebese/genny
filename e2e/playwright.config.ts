@@ -73,6 +73,8 @@ export default defineConfig({
             // Trial credits, so the suite can exercise the credit paths without
             // a payment provider.
             CREDIT_SIGNUP_GRANT: process.env.CREDIT_SIGNUP_GRANT || '500',
+            // Turns the reconcile route on so the suite can check who it lets in.
+            CRON_SECRET: 'e2e_cron_secret',
           }
         : {}),
     },

@@ -17,6 +17,7 @@
     "@genny/db": "workspace:*",
     "@genny/env": "workspace:*",
     "@genny/fal": "workspace:*",
+    "@genny/jobs": "workspace:*",
     "@genny/models": "workspace:*",
     "@genny/ratelimit": "workspace:*",
     "@genny/ui": "workspace:*",

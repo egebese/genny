@@ -11,6 +11,7 @@ const SECRET_KEYS = [
   'FAL_KEY',
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
+  'CRON_SECRET',
   'AUTH_GOOGLE_SECRET',
   'falKey',
   'apiKey',

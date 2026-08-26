@@ -49,6 +49,9 @@ const base = z.object({
   AUTH_GOOGLE_ID: optionalText,
   AUTH_GOOGLE_SECRET: optionalText,
 
+  /** Bearer token the reconcile sweep requires. Unset means the route is off. */
+  CRON_SECRET: optionalText,
+
   REDIS_URL: optionalUrl,
 })
 
