@@ -46,3 +46,36 @@ export async function findActor(db: Database, id: string): Promise<Actor | null>
 export async function setActorPlan(db: Database, id: string, planId: string | null): Promise<void> {
   await db.update(users).set({ planId }).where(eq(users.id, id))
 }
+
+export type Credentials = {
+  id: string
+  email: string
+  name: string | null
+  passwordHash: string | null
+}
+
+/**
+ * Looks someone up by email for a password sign-in.
+ *
+ * Elevated connection: there is no actor yet, which is the whole point. Emails
+ * are matched case-insensitively because people do not remember how they typed
+ * theirs, and stored lowercased so this stays an index lookup.
+ */
+export async function findCredentials(db: Database, email: string): Promise<Credentials | null> {
+  const [row] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      passwordHash: users.passwordHash,
+    })
+    .from(users)
+    .where(eq(users.email, email.trim().toLowerCase()))
+    .limit(1)
+  return row?.email ? { ...row, email: row.email } : null
+}
+
+/** Writes a new hash. Used by registration and, later, by a password change. */
+export async function setPasswordHash(db: Database, id: string, hash: string): Promise<void> {
+  await db.update(users).set({ passwordHash: hash }).where(eq(users.id, id))
+}

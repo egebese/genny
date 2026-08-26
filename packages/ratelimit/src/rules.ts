@@ -10,6 +10,9 @@ export const LIMITS = {
   upload: { limit: 60, windowSeconds: 3600 },
   read: { limit: 600, windowSeconds: 60 },
   keyAttempt: { limit: 10, windowSeconds: 900 },
+  // Per email, which is what protects one account from being guessed at. Ten in
+  // a quarter of an hour is generous for a person and useless for a script.
+  signIn: { limit: 10, windowSeconds: 900 },
 } as const
 
 export type LimitName = keyof typeof LIMITS

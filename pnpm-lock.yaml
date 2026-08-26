@@ -229,6 +229,9 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(postgres@3.4.9)
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
     devDependencies:
       '@genny/tsconfig':
         specifier: workspace:*

@@ -540,6 +540,83 @@ test.describe('credits', () => {
   })
 })
 
+test.describe('accounts', () => {
+  // A fresh address per run: the suite shares one database across projects.
+  const address = () => `ada-${Math.random().toString(36).slice(2, 10)}@example.com`
+  const PASSWORD = 'a decent passphrase'
+
+  async function signUp(page: Page, email: string) {
+    await page.goto('/signup')
+    await page.getByLabel('Email').fill(email)
+    await page.getByLabel('Password').fill(PASSWORD)
+    await page.getByRole('button', { name: 'Create account' }).click()
+  }
+
+  test('what you made before signing up is still yours after', async ({ page }) => {
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    await signUp(page, address())
+    await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
+
+    await page.goto('/assets')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+  })
+
+  test('signing back in finds the same work, which is the whole point', async ({ page }) => {
+    const email = address()
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+    await signUp(page, email)
+
+    await page.getByRole('button', { name: 'Sign out' }).click()
+    await expect(page.getByRole('link', { name: 'Sign in' })).toBeVisible()
+
+    // Signed out, this browser is back to being a stranger.
+    await page.goto('/assets')
+    await expect(page.locator('ul.grid li')).toHaveCount(0)
+
+    await page.goto('/signin')
+    await page.getByLabel('Email').fill(email)
+    await page.getByLabel('Password').fill(PASSWORD)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
+
+    await page.goto('/assets')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+  })
+
+  test('a wrong password says the same thing as an unknown email', async ({ page }) => {
+    const email = address()
+    await signUp(page, email)
+    await page.getByRole('button', { name: 'Sign out' }).click()
+
+    const messages: string[] = []
+    for (const attempt of [
+      { email, password: 'the wrong passphrase' },
+      { email: address(), password: PASSWORD },
+    ]) {
+      await page.goto('/signin')
+      await page.getByLabel('Email').fill(attempt.email)
+      await page.getByLabel('Password').fill(attempt.password)
+      await page.getByRole('button', { name: 'Sign in' }).click()
+      messages.push(await page.locator('main [role=alert]').innerText())
+    }
+    expect(new Set(messages).size).toBe(1)
+  })
+
+  test('an email that already has an account cannot take it twice', async ({ page }) => {
+    const email = address()
+    await signUp(page, email)
+    await page.getByRole('button', { name: 'Sign out' }).click()
+
+    await signUp(page, email)
+    await expect(page.locator('main [role=alert]')).toContainText('already has an account')
+  })
+})
+
 test.describe('billing page', () => {
   test('saas offers plans and a top-up, without a modal in sight', async ({ page }) => {
     test.skip(mode !== 'saas', 'billing only exists in saas mode')

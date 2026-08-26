@@ -1,12 +1,11 @@
 import { Button } from '@genny/ui/button.tsx'
-import { auth, signIn, signInAvailable, signOut } from '../config.ts'
+import Link from 'next/link'
+import { auth, signInAvailable } from '../config.ts'
+import { signOutToHome } from '../server/actions.ts'
 
 /**
  * Sign-in lives in the topbar and nowhere else. A server component, so the
  * session is read once during render rather than fetched by the browser.
- *
- * Renders nothing when the deployment has no OAuth credentials, which is the
- * byok demo's situation: there is nothing to sign into.
  */
 export async function AccountMenu() {
   if (!signInAvailable()) return null
@@ -14,27 +13,17 @@ export async function AccountMenu() {
   const session = await auth()
   if (!session?.user) {
     return (
-      <form
-        action={async () => {
-          'use server'
-          await signIn('google')
-        }}
+      <Link
+        href="/signin"
+        className="rounded-(--radius-control) px-2 py-1 text-ink-muted text-sm hover:bg-surface hover:text-ink"
       >
-        <Button type="submit" tone="neutral" size="sm">
-          Sign in
-        </Button>
-      </form>
+        Sign in
+      </Link>
     )
   }
 
   return (
-    <form
-      className="flex items-center gap-2"
-      action={async () => {
-        'use server'
-        await signOut()
-      }}
-    >
+    <form className="flex items-center gap-2" action={signOutToHome}>
       {session.user.image ? (
         <img src={session.user.image} alt="" className="size-7 rounded-full" />
       ) : null}

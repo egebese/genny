@@ -8,16 +8,27 @@ import { ownerDb } from '@genny/db/connection.ts'
 import { createAnonymousActor } from '@genny/db/repositories/actors.ts'
 import { env } from '@genny/env/env.ts'
 import { cookies } from 'next/headers'
+import { auth } from '@/features/auth/config.ts'
 import { secureCookies } from './cookie-flags.ts'
 
 const YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
 /**
- * Reads the actor from its signed cookie. Returns null rather than creating one,
- * because a server component cannot set a cookie: only an action or a route
- * handler can, and pretending otherwise fails at runtime in a confusing way.
+ * Who this request is acting as.
+ *
+ * The signed-in account wins over the anonymous cookie, and that is the whole
+ * point of signing in: the same person on a second browser has a different
+ * anonymous actor there, so without this they would sign in and still see none
+ * of their own work.
+ *
+ * Returns null rather than creating an actor, because a server component cannot
+ * set a cookie: only an action or a route handler can, and pretending otherwise
+ * fails at runtime in a confusing way.
  */
 export async function readActorId(): Promise<string | null> {
+  const session = await auth().catch(() => null)
+  if (session?.user?.id) return session.user.id
+
   const jar = await cookies()
   return verifyAnonymousActor(jar.get(ANONYMOUS_COOKIE)?.value, env().AUTH_SECRET)
 }
@@ -68,4 +79,18 @@ async function grantSignupCredits(db: ReturnType<typeof ownerDb>, actorId: strin
     idempotencyKey: `signup:${actorId}`,
     note: 'trial credits',
   })
+}
+
+/**
+ * Drops the anonymous cookie.
+ *
+ * Promotion keeps the actor id, so after signing up the anonymous cookie still
+ * names the account: leaving it in place means signing out does not sign you
+ * out, and the next person at the machine is you. Clearing it makes the browser
+ * a stranger again, and the middleware issues it a fresh actor on the next
+ * request.
+ */
+export async function forgetAnonymousActor(): Promise<void> {
+  const jar = await cookies()
+  jar.delete(ANONYMOUS_COOKIE)
 }

@@ -31,6 +31,11 @@ export const users = pgTable(
     name: text('name'),
     email: text('email').unique(),
     emailVerified: timestamp('email_verified', { withTimezone: true }),
+    /**
+     * scrypt, from packages/auth. Null for an anonymous actor and for anyone who
+     * only ever signed in through an OAuth provider.
+     */
+    passwordHash: text('password_hash'),
     image: text('image'),
     /**
      * The plan this actor pays for, or null for anonymous and free actors. Set
