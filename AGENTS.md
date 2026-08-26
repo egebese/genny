@@ -131,5 +131,7 @@ pnpm catalog:sync        # refresh model catalog from fal via genmedia
 
 ## One PR, one subject
 
-A changeset is required whenever behaviour changes (`pnpm changeset`). If you
-noticed unrelated dead code, say so in the PR body; do not delete it here.
+If you noticed unrelated dead code, say so in the PR body; do not delete it here.
+
+Changesets are optional: nothing here is published to npm, so add one only when
+the change deserves a changelog line.

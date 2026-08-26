@@ -7,14 +7,16 @@ description: Use when cutting a release of genny, applying migrations to a deplo
 
 ## Versioning
 
-Changesets, not commit parsing. Every behaviour change carries one:
+Changesets, and they are optional. Every package here is private, so nothing is
+published to npm and a changeset's only job is a changelog line:
 
 ```bash
 pnpm changeset          # pick packages, pick bump, write one human sentence
 ```
 
-The sentence goes in the changelog. Write it for someone deciding whether to
-upgrade, not for someone reading the diff.
+Write the sentence for someone deciding whether to upgrade, not for someone
+reading the diff. The release workflow is triggered by hand from the Actions tab
+once there are changesets worth cutting.
 
 ## Deploy order
 

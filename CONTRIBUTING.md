@@ -26,7 +26,7 @@ pnpm check               # biome + types + architecture rules
 pnpm test                # unit
 pnpm test:integration    # needs docker
 pnpm e2e                 # needs a dev server, starts one if absent
-pnpm changeset           # describe the change, if behaviour changed
+pnpm changeset           # only for a release-worthy change; see below
 ```
 
 CI runs all of it, in both modes. It will not tell you anything `pnpm check` did
@@ -64,8 +64,11 @@ entry, so a malformed file fails before it reaches anyone's studio.
 ## Commit and PR shape
 
 One PR, one subject. Conventional commit prefixes (`feat:`, `fix:`, `docs:`,
-`test:`, `chore:`) are appreciated but versioning comes from changesets, so a
-missing prefix is not a blocker.
+`test:`) are appreciated but not enforced.
+
+Changesets are optional. Every package here is private and nothing is published
+to npm, so a changeset only earns its keep when the change is worth a line in the
+changelog. The release workflow is triggered by hand when there are some.
 
 ## Reporting a security issue
 

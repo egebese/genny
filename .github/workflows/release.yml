@@ -1,8 +1,11 @@
 name: release
 
+# Manual on purpose. Every package here is private, so this never publishes to
+# npm: its only job is to turn pending changesets into a version bump and a
+# changelog. Running that on every push produced a failing job on every commit
+# and no value, so it is a button now.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency: release
 
@@ -22,9 +25,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Opens or updates a version PR while changesets are pending, so the
-      # changelog is reviewed like anything else.
-      - uses: changesets/action@v1
+      - uses: changesets/action@v2
         with:
           version: pnpm changeset version
           commit: 'chore: version packages'

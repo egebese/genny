@@ -13,7 +13,7 @@ Closes #
 - [ ] `pnpm check` passes (lint, types, architecture rules)
 - [ ] `pnpm test` and, if the change touches Postgres, `pnpm test:integration`
 - [ ] `pnpm e2e` in both modes, if the change is user-visible
-- [ ] A changeset, if behaviour changed
+- [ ] A changeset, if the change deserves a changelog line
 
 ## If this touches user data
 
