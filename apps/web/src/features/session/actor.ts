@@ -8,6 +8,7 @@ import { ownerDb } from '@genny/db/connection.ts'
 import { createAnonymousActor } from '@genny/db/repositories/actors.ts'
 import { env } from '@genny/env/env.ts'
 import { cookies } from 'next/headers'
+import { secureCookies } from './cookie-flags.ts'
 
 const YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
@@ -41,7 +42,7 @@ export async function ensureActorId(): Promise<string> {
   jar.set(ANONYMOUS_COOKIE, cookieValue, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: env().NODE_ENV === 'production',
+    secure: secureCookies(),
     path: '/',
     maxAge: YEAR_IN_SECONDS,
   })

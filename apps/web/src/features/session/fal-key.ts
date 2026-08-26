@@ -2,6 +2,7 @@ import { env } from '@genny/env/env.ts'
 import { type FalCredentials, resolveCredentials } from '@genny/fal/credentials.ts'
 import { sealKey } from '@genny/fal/key-cipher.ts'
 import { cookies } from 'next/headers'
+import { secureCookies } from './cookie-flags.ts'
 
 export const FAL_KEY_COOKIE = 'genny_fal'
 const TTL_SECONDS = 60 * 60 * 12
@@ -16,7 +17,7 @@ export async function storeFalKey(falKey: string): Promise<void> {
   jar.set(FAL_KEY_COOKIE, sealKey(falKey, env().GENNY_ENCRYPTION_KEY, TTL_SECONDS), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: env().NODE_ENV === 'production',
+    secure: secureCookies(),
     path: '/',
     maxAge: TTL_SECONDS,
   })

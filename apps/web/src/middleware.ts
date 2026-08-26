@@ -8,6 +8,7 @@ import { ownerDb } from '@genny/db/connection.ts'
 import { createAnonymousActor } from '@genny/db/repositories/actors.ts'
 import { env } from '@genny/env/env.ts'
 import { type NextRequest, NextResponse } from 'next/server'
+import { secureCookies } from '@/features/session/cookie-flags.ts'
 
 const YEAR_IN_SECONDS = 60 * 60 * 24 * 365
 
@@ -46,7 +47,7 @@ export async function middleware(request: NextRequest) {
   response.cookies.set(ANONYMOUS_COOKIE, cookieValue, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: env().NODE_ENV === 'production',
+    secure: secureCookies(),
     path: '/',
     maxAge: YEAR_IN_SECONDS,
   })
