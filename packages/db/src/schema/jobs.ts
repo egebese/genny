@@ -41,6 +41,14 @@ export const jobs = pgTable(
     creditsCharged: numeric('credits_charged', { precision: 14, scale: 4 }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     startedAt: timestamp('started_at', { withTimezone: true }),
+    /**
+     * Claimed by whoever is settling this job right now. Two things can notice a
+     * generation finished at the same moment (the browser's stream and fal's
+     * webhook) and both would ingest the outputs; the claim decides which one
+     * does. Stale claims are reclaimable, so a settler that died mid-way does
+     * not wedge the job forever.
+     */
+    settlingAt: timestamp('settling_at', { withTimezone: true }),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
   },
   (t) => [

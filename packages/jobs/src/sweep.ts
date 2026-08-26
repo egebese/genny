@@ -1,7 +1,7 @@
 import type { Storage } from '@genny/assets/storage.ts'
 import type { Billing } from '@genny/billing/provider.ts'
 import type { Database } from '@genny/db/client.ts'
-import { listStrandedJobs, type StrandedJob } from '@genny/db/repositories/jobs.ts'
+import { listStrandedJobs, type StrandedJob } from '@genny/db/repositories/jobs-settlement.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
 import { releaseAndFail } from './settle.ts'
 import { settleOnce } from './track.ts'

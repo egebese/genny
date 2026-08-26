@@ -2,6 +2,7 @@ import { recordChange } from '@genny/billing/ledger.ts'
 import { createBilling } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { createJob, findJob } from '@genny/db/repositories/jobs.ts'
+import { claimJobSettlement } from '@genny/db/repositories/jobs-settlement.ts'
 import { users } from '@genny/db/schema/auth.ts'
 import { models } from '@genny/db/schema/models.ts'
 import { startTestDatabase, type TestDatabase } from '@genny/db/testing/container.ts'
@@ -150,4 +151,39 @@ describe('sweepStrandedJobs', () => {
     const row = await withActor(database.app, owner, (tx) => findJob(tx, job.id))
     expect(row?.status).toBe('failed')
   })
+})
+
+describe('claimJobSettlement', () => {
+  const FIVE_MINUTES = 5 * 60 * 1000
+
+  it('lets exactly one settler through', async () => {
+    const job = await strandedJob(10, '100')
+    const claims = await Promise.all(
+      [1, 2, 3].map(() =>
+        withActor(database.app, owner, (tx) => claimJobSettlement(tx, job.id, FIVE_MINUTES)),
+      ),
+    )
+    expect(claims.filter(Boolean)).toHaveLength(1)
+  })
+
+  it('hands the job to someone else once a claim goes stale', async () => {
+    const job = await strandedJob(10, '100')
+    expect(await claim(job.id)).toBe(true)
+    expect(await claim(job.id)).toBe(false)
+
+    await database.owner.execute(
+      sql`update jobs set settling_at = now() - interval '10 minutes' where id = ${job.id}`,
+    )
+    expect(await claim(job.id)).toBe(true)
+  })
+
+  it('refuses a job that is already finished', async () => {
+    const job = await strandedJob(10, '100')
+    await database.owner.execute(sql`update jobs set status = 'completed' where id = ${job.id}`)
+    expect(await claim(job.id)).toBe(false)
+  })
+
+  function claim(jobId: string) {
+    return withActor(database.app, owner, (tx) => claimJobSettlement(tx, jobId, FIVE_MINUTES))
+  }
 })

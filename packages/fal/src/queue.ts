@@ -29,9 +29,14 @@ export async function submitJob(
   credentials: FalCredentials,
   endpointId: string,
   input: Record<string, unknown>,
+  /** Where fal should report the result. Omitted when nothing public can receive it. */
+  webhookUrl?: string | undefined,
 ): Promise<{ requestId: string }> {
   try {
-    const queued = await clientFor(credentials).queue.submit(endpointId, { input })
+    const queued = await clientFor(credentials).queue.submit(endpointId, {
+      input,
+      ...(webhookUrl ? { webhookUrl } : {}),
+    })
     return { requestId: queued.request_id }
   } catch (error) {
     throw classifyFalError(error)

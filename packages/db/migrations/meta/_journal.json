@@ -15,6 +15,13 @@
       "when": 1787759999322,
       "tag": "0001_character_asset_owner_fk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787767410015,
+      "tag": "0002_job_settlement_claim",
+      "breakpoints": true
     }
   ]
 }

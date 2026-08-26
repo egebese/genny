@@ -4,7 +4,8 @@ import type { Storage } from '@genny/assets/storage.ts'
 import type { Billing } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { Database } from '@genny/db/client.ts'
-import { completeJob, failJob, type JobRecord } from '@genny/db/repositories/jobs.ts'
+import { completeJob, failJob, findJob, type JobRecord } from '@genny/db/repositories/jobs.ts'
+import { claimJobSettlement } from '@genny/db/repositories/jobs-settlement.ts'
 import { env } from '@genny/env/env.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
@@ -27,8 +28,20 @@ export type TrackContext = {
   storage: Storage
 }
 
+/** Long enough that no honest settler is still working, short enough to retry. */
+const CLAIM_STALE_AFTER_MS = 5 * 60 * 1000
+
 export async function finish(context: TrackContext): Promise<TrackEvent> {
   const { db, actorId, job, credentials, billing } = context
+
+  // Whoever claims it ingests it. Without this, a webhook and a stream that
+  // notice the same completion both download the outputs and the user ends up
+  // with two copies of one generation.
+  const claimed = await withActor(db, actorId, (tx) =>
+    claimJobSettlement(tx, job.id, CLAIM_STALE_AFTER_MS),
+  )
+  if (!claimed) return await report(context)
+
   try {
     const outputs = await readJobResult(credentials, job.endpointId, job.falRequestId)
 
@@ -128,4 +141,42 @@ export async function recordFailure(context: TrackContext, message: string): Pro
 
 export function describe(error: unknown): string {
   return error instanceof FalFailure ? error.userMessage : 'Lost track of this generation.'
+}
+
+/**
+ * What to say about a job someone else is settling. Terminal once the winner has
+ * written its outcome; until then the caller keeps polling, which is what it was
+ * doing anyway.
+ */
+async function report(context: TrackContext): Promise<TrackEvent> {
+  const row = await withActor(context.db, context.actorId, (tx) => findJob(tx, context.job.id))
+
+  if (row?.status === 'failed') {
+    return {
+      status: 'failed',
+      jobId: context.job.id,
+      error: row.error ?? 'The model could not finish this generation.',
+    }
+  }
+  if (row?.status !== 'completed') {
+    return { status: 'running', jobId: context.job.id, queuePosition: null }
+  }
+
+  const assets = storedAssets(row.output)
+  return {
+    status: 'completed',
+    jobId: context.job.id,
+    urls: assets.map((asset) => publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey)),
+    assetLabels: assets.map((asset) => asset.label),
+  }
+}
+
+function storedAssets(output: unknown): { label: string; storageKey: string }[] {
+  const genny = (output as { genny?: { assets?: unknown } } | null)?.genny
+  if (!Array.isArray(genny?.assets)) return []
+  return genny.assets.filter(
+    (asset): asset is { label: string; storageKey: string } =>
+      typeof (asset as { label?: unknown }).label === 'string' &&
+      typeof (asset as { storageKey?: unknown }).storageKey === 'string',
+  )
 }

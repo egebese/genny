@@ -92,6 +92,23 @@ localhost:3000/api/webhooks/stripe` prints a signing secret for
 
 The first is a CI cron in this repo. Pruning rate-limit buckets is still phase 2.
 
+### fal webhooks
+
+Nothing to configure. When `APP_URL` is a public https address and the mode is
+saas, each submission registers `POST /api/webhooks/fal` and the result lands
+the moment fal has it, whether or not a browser is still watching. Locally, or
+on a private host, the URL is not registered at all: fal dials in from the
+internet, and a callback address it cannot reach is worse than none.
+
+Deliveries are verified as ED25519 against fal's published keys
+(`rest.fal.ai/.well-known/jwks.json`, cached for a day) with a five minute
+timestamp window. Every rejection answers the same way, since a verifier that
+explains itself is a tool for finding a valid signature.
+
+The webhook, the browser's stream and the sweep can all reach the same finished
+job. The first to claim it in `jobs.settling_at` is the one that ingests the
+outputs; the others report what it wrote.
+
 ### Reconciling stuck jobs
 
 A generation is driven by the stream the browser holds open. Close the tab and

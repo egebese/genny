@@ -495,6 +495,24 @@ test.describe('billing page', () => {
   })
 })
 
+test.describe('fal webhook', () => {
+  test('refuses an unsigned delivery', async ({ request }) => {
+    test.skip(mode !== 'saas', 'the callback settles with our key, which byok has not got')
+    const response = await request.post('/api/webhooks/fal', {
+      data: { request_id: 'whatever', status: 'OK' },
+    })
+    expect(response.status()).toBe(401)
+  })
+
+  test('does not exist in byok, where the visitor holds the key', async ({ request }) => {
+    test.skip(mode !== 'byok', 'saas is the mode that registers callbacks')
+    const response = await request.post('/api/webhooks/fal', {
+      data: { request_id: 'whatever', status: 'OK' },
+    })
+    expect(response.status()).toBe(404)
+  })
+})
+
 test.describe('reconcile route', () => {
   test('refuses a request without the shared secret', async ({ request }) => {
     test.skip(mode !== 'saas', 'the suite only configures a cron secret in saas')

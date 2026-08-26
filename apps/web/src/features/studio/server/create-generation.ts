@@ -7,6 +7,7 @@ import { attachFalRequest, createJob, failJob } from '@genny/db/repositories/job
 import { env } from '@genny/env/env.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
 import { submitJob } from '@genny/fal/queue.ts'
+import { falWebhookUrl } from '@genny/fal/webhook-url.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
 import { creditsFor, estimateUnits } from '@genny/models/credits.ts'
 import { buildInputSchema } from '@genny/models/input.ts'
@@ -119,7 +120,14 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
   )
 
   try {
-    const { requestId } = await submitJob(credentials, model.endpointId, payload)
+    const { requestId } = await submitJob(
+      credentials,
+      model.endpointId,
+      payload,
+      // Undefined unless this deployment is somewhere fal can call back to, in
+      // which case the result lands even if the browser goes away.
+      falWebhookUrl({ mode: env().GENNY_MODE, appUrl: env().APP_URL }),
+    )
     await withActor(db, actorId, (tx) => attachFalRequest(tx, job.id, requestId))
     return prepared.dropped.length > 0
       ? { ok: true, jobId: job.id, dropped: prepared.dropped }

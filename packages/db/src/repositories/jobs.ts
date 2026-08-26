@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, sql } from 'drizzle-orm'
+import { and, desc, eq, lt, sql } from 'drizzle-orm'
 import type { Database } from '../client.ts'
 import { jobs } from '../schema/jobs.ts'
 
@@ -24,7 +24,7 @@ export type JobRecord = {
   finishedAt: Date | null
 }
 
-const columns = {
+export const columns = {
   id: jobs.id,
   endpointId: jobs.endpointId,
   status: jobs.status,
@@ -128,28 +128,4 @@ export async function listJobs(
     .orderBy(desc(jobs.createdAt))
     .limit(Math.min(options.limit, 50))
   return rows as JobRecord[]
-}
-
-export type StrandedJob = JobRecord & { ownerId: string }
-
-/**
- * Jobs that stopped being watched. The browser holding the stream is the only
- * thing that finishes a job, so a closed tab leaves the row queued and, in saas
- * mode, its credits reserved forever.
- *
- * Owner-agnostic on purpose, which means the caller has to be the owner
- * connection: there is no actor to scope this to. `inArray` on the status uses
- * the partial index that covers exactly these two states.
- */
-export async function listStrandedJobs(
-  tx: Database,
-  options: { olderThan: Date; limit: number },
-): Promise<StrandedJob[]> {
-  const rows = await tx
-    .select({ ...columns, ownerId: jobs.ownerId })
-    .from(jobs)
-    .where(and(inArray(jobs.status, ['queued', 'running']), lt(jobs.createdAt, options.olderThan)))
-    .orderBy(jobs.createdAt)
-    .limit(Math.min(options.limit, 200))
-  return rows as StrandedJob[]
 }
