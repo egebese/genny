@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isWithinSizeLimit, MAX_BYTES, sniffMediaType } from './media.ts'
+import { isWithinSizeLimit, MAX_BYTES, mediaKindFromUrl, sniffMediaType } from './media.ts'
 
 const bytes = (...values: number[]) => new Uint8Array([...values, ...Array(16).fill(0)])
 const withAscii = (offset: number, text: string, prefix: number[] = []) => {
@@ -69,5 +69,27 @@ describe('isWithinSizeLimit', () => {
 
   it('allows video to be far larger than an image', () => {
     expect(MAX_BYTES.video).toBeGreaterThan(MAX_BYTES.image)
+  })
+})
+
+describe('mediaKindFromUrl', () => {
+  it.each([
+    ['https://x/y/a.png', 'image'],
+    ['https://x/y/a.JPG', 'image'],
+    ['https://x/y/a.mp4', 'video'],
+    ['https://x/y/a.webm', 'video'],
+    ['https://x/y/a.mp3', 'audio'],
+    ['https://x/y/a.wav', 'audio'],
+  ])('reads %s as %s', (url, kind) => {
+    expect(mediaKindFromUrl(url)).toBe(kind)
+  })
+
+  it('ignores a query string, which presigned urls always have', () => {
+    expect(mediaKindFromUrl('https://x/y/a.mp4?X-Amz-Signature=abc')).toBe('video')
+  })
+
+  it('falls back to image, which fails visibly rather than playing nothing', () => {
+    expect(mediaKindFromUrl('https://x/y/a')).toBe('image')
+    expect(mediaKindFromUrl('https://x/y/a.bin')).toBe('image')
   })
 })

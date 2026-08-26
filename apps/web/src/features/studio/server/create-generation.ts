@@ -44,7 +44,7 @@ async function prepare(raw: unknown): Promise<Prepared | GenerationResult> {
   const request = parsed.data
 
   const entry = (await loadCatalog()).find((item) => item.definition.endpointId === request.modelId)
-  if (entry?.definition.modality !== 'image') return refuse('That model is not available.', false)
+  if (!entry) return refuse('That model is not available.', false)
   const model = entry.definition
 
   const actorId = await ensureActorId()
@@ -86,7 +86,8 @@ async function prepare(raw: unknown): Promise<Prepared | GenerationResult> {
   const resolved = resolvePrompt(model, request.prompt, references)
   const payload = buildInputSchema(model).safeParse({
     ...request.settings,
-    prompt: resolved.text,
+    // Text to speech calls it `text`; every model names its own field.
+    [model.promptField]: resolved.text,
     ...resolved.patch,
   })
   if (!payload.success) return refuse('The model rejected these settings.', false)

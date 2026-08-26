@@ -9,7 +9,13 @@ import { readCredentials } from '@/features/session/fal-key.ts'
 import { storage } from '@/features/studio/server/storage.ts'
 
 const POLL_INTERVAL_MS = 2500
-const MAX_DURATION_MS = 5 * 60 * 1000
+/*
+ * Ten minutes, because a video is not an image: Kling takes minutes, not seconds.
+ * Nothing is lost when it runs out, either. The row is the truth, the browser is
+ * told to come back, and the webhook and the reconcile sweep both still finish
+ * the job.
+ */
+const MAX_DURATION_MS = 10 * 60 * 1000
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export const dynamic = 'force-dynamic'

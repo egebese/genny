@@ -4,10 +4,13 @@ import { listJobs } from '@genny/db/repositories/jobs.ts'
 import { env } from '@genny/env/env.ts'
 import { collectMediaUrls } from '@genny/fal/outputs.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
+import type { ModelDefinition } from '@genny/models/schema.ts'
 import type { ResultItem } from '@/features/studio/ui/result-card.tsx'
 import { ingestedLabels, ingestedUrls } from './outputs.ts'
 
 export const HISTORY_PAGE_SIZE = 24
+
+type Modality = ModelDefinition['modality']
 
 export type HistoryPage = {
   items: ResultItem[]
@@ -22,16 +25,25 @@ export type HistoryPage = {
  * generation finishing while someone reads page two shifts every row and they see
  * a duplicate.
  */
-export async function historyPage(actorId: string, before?: Date): Promise<HistoryPage> {
+export async function historyPage(
+  actorId: string,
+  options: { modality?: Modality | undefined; before?: Date | undefined } = {},
+): Promise<HistoryPage> {
+  const catalog = await loadCatalog()
   const names = new Map(
-    (await loadCatalog()).map((entry) => [
-      entry.definition.endpointId,
-      entry.definition.displayName,
-    ]),
+    catalog.map((entry) => [entry.definition.endpointId, entry.definition.displayName]),
   )
 
+  // Each studio shows its own work. A video feed full of stills is not history,
+  // it is somebody else's page.
+  const endpointIds = options.modality
+    ? catalog
+        .filter((entry) => entry.definition.modality === options.modality)
+        .map((entry) => entry.definition.endpointId)
+    : undefined
+
   const jobs = await withActor(appDb(env().DATABASE_URL), actorId, (tx) =>
-    listJobs(tx, { limit: HISTORY_PAGE_SIZE + 1, before }),
+    listJobs(tx, { limit: HISTORY_PAGE_SIZE + 1, before: options.before, endpointIds }),
   )
 
   const page = jobs.slice(0, HISTORY_PAGE_SIZE)

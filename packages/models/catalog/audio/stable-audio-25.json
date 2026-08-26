@@ -1,0 +1,38 @@
+{
+  "endpointId": "fal-ai/stable-audio-25/text-to-audio",
+  "modality": "audio",
+  "group": "Text to Audio",
+  "displayName": "Stable Audio 2.5",
+  "description": "Music and sound design from a description. One flat price whatever the length.",
+  "sortOrder": 2,
+  "pricing": {
+    "unit": "requests",
+    "unitPriceUsd": 0.2
+  },
+  "creditMultiplier": 1.2,
+  "inputs": [
+    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "seconds_total",
+      "type": "integer",
+      "label": "Length (seconds)",
+      "default": 30,
+      "min": 1,
+      "max": 190
+    },
+    {
+      "name": "num_inference_steps",
+      "type": "integer",
+      "label": "Steps",
+      "default": 8,
+      "min": 4,
+      "max": 16
+    },
+    { "name": "seed", "type": "integer", "label": "Seed" }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 1
+  }
+}

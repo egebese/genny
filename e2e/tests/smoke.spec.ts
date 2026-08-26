@@ -17,7 +17,8 @@ const TINY_PNG = Buffer.from(
  * that was not listening yet, so it types again.
  */
 async function fillPrompt(page: Page, text: string): Promise<Locator> {
-  const prompt = page.getByLabel('Prompt')
+  // Exact: a model control called "Prompt strength" would otherwise match too.
+  const prompt = page.getByLabel('Prompt', { exact: true })
   await expect(async () => {
     await prompt.fill(text)
     await expect(prompt).toHaveValue(text)
@@ -353,6 +354,56 @@ test.describe('characters', () => {
     await prompt.press('Enter')
     await expect(prompt).toHaveValue('a portrait of @nothingmatchesthis')
     await expect(page.locator('main ul li')).toHaveCount(0)
+  })
+})
+
+test.describe('the other modalities', () => {
+  test('video is a studio of its own, offering only video models', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/video')
+    await page.getByRole('button', { name: /^Model:/ }).click()
+
+    const options = page.getByRole('option')
+    await expect(options.filter({ hasText: 'Kling' }).first()).toBeVisible()
+    // Nothing from the image catalogue leaks in.
+    await expect(options.filter({ hasText: 'FLUX' })).toHaveCount(0)
+    await expect(options.filter({ hasText: 'Nano Banana' })).toHaveCount(0)
+  })
+
+  test('audio is its own studio too, and text to speech calls the prompt a script', async ({
+    page,
+  }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/audio')
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page
+      .getByRole('option', { name: /ElevenLabs/ })
+      .first()
+      .click()
+    await expect(page.getByLabel('Voice')).toBeVisible()
+  })
+
+  test('each studio keeps its own controls, because a video is not a still', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/video')
+    await expect(page.getByLabel('Length')).toBeVisible()
+
+    await page.goto('/image')
+    await expect(page.getByLabel('Length')).toHaveCount(0)
+  })
+
+  test('the topbar links to all three and none of them is a dead end', async ({ page }) => {
+    await page.goto('/image')
+    for (const name of ['Video', 'Audio']) {
+      const response = await page.goto(`/${name.toLowerCase()}`)
+      expect(response?.status(), `${name} is a dead link`).toBe(200)
+      await expect(page.getByRole('link', { name })).toHaveAttribute('aria-current', 'page')
+    }
+  })
+
+  test('a page of history is refused an unknown modality', async ({ request }) => {
+    const response = await request.get('/api/jobs?modality=holograms')
+    expect(response.status()).toBe(400)
   })
 })
 

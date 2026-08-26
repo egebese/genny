@@ -1,0 +1,50 @@
+{
+  "endpointId": "fal-ai/kling-video/v2.5-turbo/pro/text-to-video",
+  "modality": "video",
+  "group": "Text to Video",
+  "displayName": "Kling 2.5 Turbo Pro",
+  "description": "Kling 2.5 Turbo Pro turns a prompt into five or ten seconds of video, with strong motion and camera control.",
+  "featured": true,
+  "sortOrder": 1,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.07
+  },
+  "creditMultiplier": 1.2,
+  "inputs": [
+    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "duration",
+      "type": "enum",
+      "label": "Length",
+      "default": "5",
+      "enum": ["5", "10"]
+    },
+    {
+      "name": "aspect_ratio",
+      "type": "enum",
+      "label": "Aspect",
+      "default": "16:9",
+      "enum": ["16:9", "9:16", "1:1"]
+    },
+    {
+      "name": "negative_prompt",
+      "type": "string",
+      "label": "Avoid",
+      "default": "blur, distort, and low quality"
+    },
+    {
+      "name": "cfg_scale",
+      "type": "number",
+      "label": "Guidance",
+      "default": 0.5,
+      "min": 0,
+      "max": 1
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "maxOutputs": 1
+  }
+}

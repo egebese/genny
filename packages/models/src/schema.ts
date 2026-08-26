@@ -1,7 +1,14 @@
 import { z } from 'zod'
 
 /** How fal bills the endpoint. Drives both the estimate and the final charge. */
-export const pricingUnit = z.enum(['images', 'seconds', 'megapixels', 'requests', 'minutes'])
+export const pricingUnit = z.enum([
+  'images',
+  'seconds',
+  'megapixels',
+  'requests',
+  'minutes',
+  'characters',
+])
 
 /**
  * Where an @mention lands in the model payload. Each model decides this for
@@ -56,6 +63,11 @@ export const modelDefinition = z.object({
   pricing: z.object({ unit: pricingUnit, unitPriceUsd: z.number().nonnegative() }),
   /** Multiplier applied on top of the fal price. 1 means we resell at cost. */
   creditMultiplier: z.number().positive().default(1),
+  /**
+   * Which input carries the prompt. Text-to-speech calls it `text`, everything
+   * else so far calls it `prompt`, and the studio should not have to know which.
+   */
+  promptField: z.string().min(1).default('prompt'),
   inputs: z.array(modelInput).min(1),
   references: z.array(referenceMapping).default([]),
   capabilities: z

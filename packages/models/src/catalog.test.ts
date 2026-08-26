@@ -12,10 +12,13 @@ describe('loadCatalog', () => {
     }
   })
 
-  it('gives every entry a prompt input, since the studio always sends one', async () => {
+  it('gives every entry the prompt input it names, since the studio always sends one', async () => {
     for (const { definition } of await loadCatalog()) {
-      const prompt = definition.inputs.find((i) => i.name === 'prompt')
-      expect(prompt, `${definition.endpointId} has no prompt input`).toBeDefined()
+      const prompt = definition.inputs.find((i) => i.name === definition.promptField)
+      expect(
+        prompt,
+        `${definition.endpointId} has no ${definition.promptField} input`,
+      ).toBeDefined()
       expect(prompt?.required).toBe(true)
     }
   })

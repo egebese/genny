@@ -1,5 +1,6 @@
 'use client'
 
+import { mediaKindFromUrl } from '@genny/assets/media.ts'
 import { cn } from '@genny/ui/cn.ts'
 import type { JobProgress } from './use-job-stream.ts'
 
@@ -35,7 +36,7 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
         <ul className={cn('grid gap-1', urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
           {urls.map((url, index) => (
             <li key={url} className="group relative">
-              <img src={url} alt={item.prompt} loading="lazy" className="w-full object-cover" />
+              <Media url={url} alt={item.prompt} />
               <span className="absolute inset-x-0 bottom-0 flex gap-1 p-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                 <a
                   href={url}
@@ -67,6 +68,39 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
       </div>
     </li>
   )
+}
+
+/**
+ * The output, however it plays. Controls but no autoplay: a grid of results that
+ * all start talking at once is unusable, and on a phone it is expensive.
+ */
+function Media({ url, alt }: { url: string; alt: string }) {
+  const kind = mediaKindFromUrl(url)
+
+  if (kind === 'video') {
+    return (
+      // biome-ignore lint/a11y/useMediaCaption: generated video has no caption track
+      <video
+        src={url}
+        controls
+        playsInline
+        preload="metadata"
+        aria-label={alt}
+        className="w-full bg-canvas object-cover"
+      />
+    )
+  }
+
+  if (kind === 'audio') {
+    return (
+      <span className="flex aspect-video items-center justify-center bg-canvas p-4">
+        {/* biome-ignore lint/a11y/useMediaCaption: generated audio has no caption track */}
+        <audio src={url} controls preload="metadata" aria-label={alt} className="w-full" />
+      </span>
+    )
+  }
+
+  return <img src={url} alt={alt} loading="lazy" className="w-full object-cover" />
 }
 
 function Placeholder({

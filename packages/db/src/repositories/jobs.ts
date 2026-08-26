@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, lt, sql } from 'drizzle-orm'
 import type { Database } from '../client.ts'
 import { jobs } from '../schema/jobs.ts'
 
@@ -118,9 +118,14 @@ export async function findJob(tx: Database, jobId: string): Promise<JobRecord | 
 /** Keyset pagination: `before` is the createdAt of the last row already shown. */
 export async function listJobs(
   tx: Database,
-  options: { limit: number; before?: Date | undefined },
+  options: { limit: number; before?: Date | undefined; endpointIds?: string[] | undefined },
 ): Promise<JobRecord[]> {
-  const where = options.before ? lt(jobs.createdAt, options.before) : undefined
+  // Filtered in SQL rather than after the fact: post-filtering a keyset page
+  // returns short pages and a cursor that skips rows.
+  const where = and(
+    options.before ? lt(jobs.createdAt, options.before) : undefined,
+    options.endpointIds ? inArray(jobs.endpointId, options.endpointIds) : undefined,
+  )
   const rows = await tx
     .select(columns)
     .from(jobs)

@@ -48,6 +48,9 @@ export function estimateUnits(model: PricedModel, input: Record<string, unknown>
       return positiveNumber(input.duration ?? input.duration_seconds, 5) * count
     case 'minutes':
       return positiveNumber(input.duration, 60) / 60
+    case 'characters':
+      // Exact rather than estimated: the text being read is the text we hold for.
+      return Math.max(1, String(input.text ?? input.prompt ?? '').length)
   }
 }
 

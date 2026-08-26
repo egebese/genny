@@ -71,3 +71,31 @@ function starts(bytes: Uint8Array, prefix: number[]): boolean {
 function ascii(bytes: Uint8Array, offset: number, text: string): boolean {
   return [...text].every((char, index) => bytes[offset + index] === char.charCodeAt(0))
 }
+
+const EXTENSION_KINDS: Record<string, MediaKind> = {
+  png: 'image',
+  jpg: 'image',
+  jpeg: 'image',
+  webp: 'image',
+  gif: 'image',
+  mp4: 'video',
+  webm: 'video',
+  mov: 'video',
+  mp3: 'audio',
+  wav: 'audio',
+  ogg: 'audio',
+  m4a: 'audio',
+}
+
+/**
+ * What to render a url as, by its extension.
+ *
+ * The bytes are the authority when we ingest, but the browser only has a url,
+ * and our own storage keys always carry the extension the sniffer chose. An
+ * unknown extension renders as an image, which fails visibly rather than
+ * silently playing nothing.
+ */
+export function mediaKindFromUrl(url: string): MediaKind {
+  const extension = url.split('?')[0]?.split('.').pop()?.toLowerCase() ?? ''
+  return EXTENSION_KINDS[extension] ?? 'image'
+}

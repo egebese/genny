@@ -27,7 +27,10 @@ export function toPickable(model: ModelDefinition): PickableModel {
     thumbnailUrl: model.thumbnailUrl ?? null,
     priceLabel: `$${model.pricing.unitPriceUsd} / ${model.pricing.unit}`,
     pricing: model.pricing,
-    inputs: model.inputs.filter((input) => !input.hidden && input.name !== 'prompt'),
+    // The prompt has the dock's textarea; rendering it again as a setting gives
+    // the model two places to read the same thing from and the person one too
+    // many to fill in.
+    inputs: model.inputs.filter((input) => !input.hidden && input.name !== model.promptField),
     acceptsReferences: model.references.length > 0,
     requiresReference: model.references.some((mapping) => mapping.required),
     featured: model.featured,
