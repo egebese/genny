@@ -29,6 +29,16 @@ Someone else's key is someone else's money.
 - `packages/env/src/redact.ts` masks key-shaped strings even when they turn up
   under an innocent field name.
 
+## 2b. Secrets must not travel as server action arguments
+
+Next's development logger prints server action arguments. A fal key passed as an
+action argument therefore lands in the terminal in plain text, which is how
+somebody else's credential ends up in a screen share or a CI log.
+
+Anything secret enters the server through a route handler instead, where the
+request body is not logged. `POST /api/session/fal-key` exists for exactly this
+reason. Found by watching the dev log during an end-to-end run, not by review.
+
 ## 3. Spending credits without paying
 
 - Append-only ledger. `genny_app` has no UPDATE or DELETE on `credit_ledger`, by
@@ -82,3 +92,4 @@ analytics host, no font host. `frame-ancestors 'none'`, `nosniff`, HSTS, and a
 - [ ] Any new external host is added to the CSP, deliberately
 - [ ] New secret-shaped field is added to `redact.ts`
 - [ ] Route that spends money has a rate limit rule
+- [ ] Nothing secret is passed as a server action argument

@@ -41,6 +41,31 @@ trivial route tree. That matches the upstream reports
 a minimal reproduction rather than because a fix landed. This repo is a smaller
 reproduction than any of them: five routes and no Sentry, next-themes or tRPC.
 
+## What the failing chunk shows
+
+Reading the emitted SSR chunk, the call that throws is inside `next/link`:
+
+```js
+let J = h.default.useContext(j.AppRouterContext)
+```
+
+`h` is the React module and `h.default` is null. React 19 ships a `react-server`
+conditional export whose build deliberately omits the client hooks, so a null
+here means a **client component was bundled into the server layer**: `next/link`
+resolved against React's server build, where `useContext` does not exist.
+
+That points at Next's client-boundary resolution for its internal error route,
+not at a version, a bundler or a duplicate copy of React. It also explains why
+the failure hops between `/_global-error` and `/_not-found`: both are internal
+routes that pull in `next/link`.
+
+Things that did not fix it, tried after this finding:
+
+| Attempt | Result |
+|---|---|
+| `experimental: { esmExternals: false }` | no change |
+| `'use client'` on every `packages/ui` component | no change |
+
 ## Decision
 
 1. Stay on `next@16.3.3`, the security-patched release. Since every version

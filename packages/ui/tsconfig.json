@@ -1,4 +1,9 @@
 {
   "extends": "@genny/tsconfig/react.json",
+  "compilerOptions": {
+    "paths": {
+      "@genny/ui/*": ["./src/*"]
+    }
+  },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

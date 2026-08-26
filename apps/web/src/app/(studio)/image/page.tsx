@@ -1,49 +1,49 @@
+import { withActor } from '@genny/db/actor.ts'
+import { appDb } from '@genny/db/connection.ts'
+import { listJobs } from '@genny/db/repositories/jobs.ts'
+import { env } from '@genny/env/env.ts'
+import { collectMediaUrls } from '@genny/fal/outputs.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
-import { Dock } from '@genny/ui/dock.tsx'
 import type { Metadata } from 'next'
+import { readActorId } from '@/features/session/actor.ts'
+import { hasUsableCredentials } from '@/features/session/fal-key.ts'
+import { toPickable } from '@/features/studio/model-list.ts'
+import type { ResultItem } from '@/features/studio/ui/result-card.tsx'
+import { Studio } from '@/features/studio/ui/studio.tsx'
 
 export const metadata: Metadata = { title: 'Image' }
 
 /**
- * Phase 0 shell: it proves the catalog loads, the layout holds on a phone, and
- * the prompt dock sits where it belongs. The composer, model picker and mention
- * input arrive in phase 1.
+ * Loads what the studio needs on the server: the catalog, whether a key is
+ * usable, and the actor's recent jobs. History comes from the job rows, so a
+ * refresh mid-generation resumes rather than losing the work.
  */
 export default async function ImageStudioPage() {
-  const models = (await loadCatalog()).filter((entry) => entry.definition.modality === 'image')
+  const models = (await loadCatalog())
+    .filter((entry) => entry.definition.modality === 'image')
+    .map((entry) => toPickable(entry.definition))
 
-  return (
-    <>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Image</h1>
-        <p className="mt-1 text-sm text-ink-muted">
-          {models.length} model{models.length === 1 ? '' : 's'} available.
-        </p>
+  const names = new Map(models.map((model) => [model.endpointId, model.displayName]))
+  const [ready, history] = await Promise.all([hasUsableCredentials(), recentJobs(names)])
 
-        <ul className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {models.map(({ definition }) => (
-            <li
-              key={definition.endpointId}
-              className="rounded-(--radius-panel) border border-line bg-surface p-4"
-            >
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="font-medium">{definition.displayName}</span>
-                <span className="text-xs text-ink-faint">{definition.group}</span>
-              </div>
-              <p className="mt-1 text-sm text-ink-muted">{definition.description}</p>
-              <p className="mt-3 font-mono text-xs text-ink-faint">
-                ${definition.pricing.unitPriceUsd} / {definition.pricing.unit}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </main>
+  return <Studio models={models} history={history} hasCredentials={ready} />
+}
 
-      <Dock>
-        <div className="rounded-(--radius-panel) border border-line bg-surface px-4 py-3 text-sm text-ink-faint">
-          The prompt composer lands in phase 1.
-        </div>
-      </Dock>
-    </>
+async function recentJobs(names: Map<string, string>): Promise<ResultItem[]> {
+  const actorId = await readActorId()
+  if (!actorId) return []
+
+  const jobs = await withActor(appDb(env().DATABASE_URL), actorId, (tx) =>
+    listJobs(tx, { limit: 24 }),
   )
+
+  return jobs.map((job) => ({
+    jobId: job.id,
+    prompt: job.prompt.text,
+    // Fall back to the endpoint id only for a model since removed from the catalog.
+    modelName: names.get(job.endpointId) ?? job.endpointId,
+    status: job.status,
+    urls: job.status === 'completed' ? collectMediaUrls(job.output) : [],
+    error: job.error,
+  }))
 }

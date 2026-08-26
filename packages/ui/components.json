@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "iconLibrary": "lucide",
+  "tailwind": {
+    "config": "",
+    "css": "tokens.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@genny/ui/vendor",
+    "ui": "@genny/ui/vendor/ui",
+    "utils": "@genny/ui/cn.ts",
+    "lib": "@genny/ui",
+    "hooks": "@genny/ui/vendor/hooks"
+  },
+  "registries": {
+    "@blocks-so": "https://blocks.so/r/{name}.json"
+  }
+}

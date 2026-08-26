@@ -54,6 +54,19 @@ returns nothing, which is the correct direction to fail.
 - Add the field name to `packages/env/src/redact.ts`
 - Compare secrets with `secretsMatch`, never `===`
 
+## 3b. Never put a secret in a server action argument
+
+Next's dev logger prints action arguments, so a key passed that way is written to
+the terminal in plain text.
+
+```ts
+// wrong: the key is logged by the framework
+await saveFalKey({ key })
+
+// right: a request body is not logged
+await fetch('/api/session/fal-key', { method: 'POST', body: JSON.stringify({ key }) })
+```
+
 ## 4. A route that costs money
 
 ```ts
@@ -99,6 +112,7 @@ pnpm check                 # boundary rules
 - [ ] Entry points parse with zod
 - [ ] New tenant table has owner, policy, RLS, and an isolation test
 - [ ] No secret in logs or responses; new secret field added to `redact.ts`
+- [ ] No secret passed as a server action argument
 - [ ] Money path has an idempotency key
 - [ ] Money-spending route has a rate limit rule
 - [ ] Webhook verifies before it parses

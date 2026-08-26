@@ -34,6 +34,27 @@ the phase that makes the project worth linking to.
 | 1.9 | A `@live` smoke test generates against real fal for under a cent |
 | 1.10 | The demo is deployed and linked from the README |
 
+## Progress
+
+Done, verified against real fal with a real generation:
+
+- BYOK key entry, sealed into a cookie, entered through a route handler
+- Model picker: category rail, thumbnail grid, search, non-modal
+- Prompt dock: per-model controls from the catalog, cost preview on the button
+- Job pipeline: submit, SSE progress, fal queue polling, status written to the row
+- Results feed with download, and history that survives a refresh
+
+Still open: `@mention` input (#12), asset upload (#13), characters (#14), output
+ingestion into our own bucket (#16), demo deployment (#18, blocked on the build).
+
+Two findings from driving it for real, both now fixed and documented:
+
+- A fal key is not `id:secret`. The one on this machine was three colon-separated
+  parts and 134 characters, so shape validation rejected a valid key. Validation
+  now only rejects what cannot be a key at all.
+- Next's dev logger prints server action arguments, so the key was written to the
+  terminal in plain text. Key entry moved to a route handler.
+
 ## Out of scope
 
 Credits, accounts, Stripe, video, audio, admin, blog.

@@ -1,5 +1,8 @@
 import type { ModelDefinition } from './schema.ts'
 
+/** Everything the estimate needs. Keeps the browser from importing the catalog. */
+export type PricedModel = Pick<ModelDefinition, 'pricing'>
+
 export type UsageEstimate = {
   /** Number of billed units: images produced, seconds of video, megapixels. */
   units: number
@@ -30,7 +33,7 @@ export function megapixelsFor(width: number, height: number, count: number): num
  * front, so the estimate is usually exact; where it is not, the capture step
  * settles the difference against real usage.
  */
-export function estimateUnits(model: ModelDefinition, input: Record<string, unknown>): number {
+export function estimateUnits(model: PricedModel, input: Record<string, unknown>): number {
   const count = positiveNumber(input.num_images, 1)
 
   switch (model.pricing.unit) {
