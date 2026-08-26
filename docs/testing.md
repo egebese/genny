@@ -58,3 +58,14 @@ The tests worth copying as examples:
 
 `lint + typecheck` → `unit` → `integration` → `e2e` (sharded, both modes). Turbo
 runs only what changed: `turbo run --filter=...[origin/main]`.
+
+## A local flake that is not a flake
+
+`reuseExistingServer` is on outside CI, so `pnpm e2e` reuses whatever dev server
+is already running. Edit a file while the suite runs and Next recompiles
+underneath it: the run stretches from about eight seconds to eighteen and a
+different assertion times out each time. It reads exactly like a race in the
+product.
+
+If a run suddenly gets slow and fails somewhere new, check whether something
+touched the source first. `pnpm fix` counts.

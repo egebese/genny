@@ -29,11 +29,14 @@ export default defineConfig({
   // absent option from one explicitly set to undefined, and Playwright's types
   // only accept the former.
   ...(process.env.E2E_LIVE ? {} : { grepInvert: /@live/ }),
+  // Compiles every route once before the workers start. Without it the first
+  // worker to reach a cold route waits behind `next dev` building it, which
+  // surfaced as a different WebKit assertion timing out on each run.
+  globalSetup: './global-setup.ts',
   /*
-   * 10s rather than the 5s default. Against a dev server the first request to a
-   * route pays for compiling it, and on WebKit that pushed hydration past 5s
-   * often enough to make one assertion flaky. Raising the assertion timeout is
-   * the honest fix: the app is not slow, the first paint of a dev build is.
+   * 10s rather than the 5s default, on top of the warm-up. A dev build's first
+   * paint is slow even once compiled, and WebKit at a phone viewport is the
+   * slowest combination the suite runs.
    */
   expect: { timeout: 10_000 },
   use: { baseURL, trace: 'on-first-retry', screenshot: 'only-on-failure' },

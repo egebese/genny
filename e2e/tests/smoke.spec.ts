@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, type Locator, type Page, test } from '@playwright/test'
 
 const mode = process.env.GENNY_MODE ?? 'byok'
 
@@ -7,6 +7,23 @@ const TINY_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=',
   'base64',
 )
+
+/**
+ * Fills the prompt and makes sure the value survived.
+ *
+ * A dev build under nine parallel workers can hydrate slowly enough that a fill
+ * lands on the server-rendered textarea before React attaches, and React's first
+ * render then wipes it. The product is fine; the test was typing into a page
+ * that was not listening yet, so it types again.
+ */
+async function fillPrompt(page: Page, text: string): Promise<Locator> {
+  const prompt = page.getByLabel('Prompt')
+  await expect(async () => {
+    await prompt.fill(text)
+    await expect(prompt).toHaveValue(text)
+  }).toPass({ timeout: 15_000 })
+  return prompt
+}
 
 test.describe('shell', () => {
   test('health endpoint reports every dependency', async ({ request }) => {
@@ -133,7 +150,7 @@ test.describe('image studio', () => {
     await page.goto('/image')
     const generate = page.getByRole('button', { name: 'Generate' })
     await expect(generate).toBeDisabled()
-    await page.getByLabel('Prompt').fill('a quiet street at dawn')
+    await fillPrompt(page, 'a quiet street at dawn')
     await expect(generate).toBeEnabled()
   })
 
@@ -193,8 +210,7 @@ test.describe('assets and mentions', () => {
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await page.goto('/image')
-    const prompt = page.getByLabel('Prompt')
-    await prompt.fill('make it a sketch of @')
+    const prompt = await fillPrompt(page, 'make it a sketch of @')
     await expect(page.locator('#mention-list')).toBeVisible()
 
     const option = page.locator('#mention-list [role=option]').first()
@@ -214,8 +230,7 @@ test.describe('assets and mentions', () => {
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await page.goto('/image')
-    const prompt = page.getByLabel('Prompt')
-    await prompt.fill('@')
+    const prompt = await fillPrompt(page, '@')
     await expect(page.locator('#mention-list')).toHaveAttribute('role', 'listbox')
     await expect(prompt).toHaveAttribute('aria-expanded', 'true')
     await expect(prompt).toHaveAttribute('aria-activedescendant', /mention-option-/)
@@ -228,8 +243,7 @@ test.describe('assets and mentions', () => {
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await page.goto('/image')
-    const prompt = page.getByLabel('Prompt')
-    await prompt.fill('a sketch of @')
+    const prompt = await fillPrompt(page, 'a sketch of @')
     await expect(page.locator('#mention-list')).toBeVisible()
     await prompt.press('ArrowDown')
     await prompt.press('Enter')
@@ -245,8 +259,7 @@ test.describe('assets and mentions', () => {
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await page.goto('/image')
-    const prompt = page.getByLabel('Prompt')
-    await prompt.fill('a sketch of @ti')
+    const prompt = await fillPrompt(page, 'a sketch of @ti')
     await expect(page.locator('#mention-list')).toBeVisible()
     await prompt.press('Escape')
 
@@ -257,7 +270,7 @@ test.describe('assets and mentions', () => {
   test('an email address does not open the mention list', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/image')
-    await page.getByLabel('Prompt').fill('mail ege@fal.ai about it')
+    await fillPrompt(page, 'mail ege@fal.ai about it')
     await expect(page.locator('#mention-list')).toHaveCount(0)
   })
 })
@@ -324,7 +337,7 @@ test.describe('characters', () => {
     await expect(page.locator('section li').first()).toContainText('@ayse')
 
     await page.goto('/image')
-    await page.getByLabel('Prompt').fill('a portrait of @')
+    await fillPrompt(page, 'a portrait of @')
     await expect(page.locator('#mention-list')).toBeVisible()
 
     const first = page.locator('#mention-list [role=option]').first()
@@ -335,8 +348,7 @@ test.describe('characters', () => {
   test('Enter does not start a generation while an unmatched mention is open', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/image')
-    const prompt = page.getByLabel('Prompt')
-    await prompt.fill('a portrait of @nothingmatchesthis')
+    const prompt = await fillPrompt(page, 'a portrait of @nothingmatchesthis')
     // Enter here used to fall through and start a paid generation.
     await prompt.press('Enter')
     await expect(prompt).toHaveValue('a portrait of @nothingmatchesthis')
@@ -387,7 +399,7 @@ test.describe('models that require a reference', () => {
       .first()
       .click()
 
-    await page.getByLabel('Prompt').fill('make it a pencil sketch')
+    await fillPrompt(page, 'make it a pencil sketch')
     await expect(page.getByText(/Mention one with/)).toBeVisible()
     await expect(page.getByRole('button', { name: /^Generate/ })).toBeDisabled()
   })
@@ -410,8 +422,7 @@ test.describe('models that require a reference', () => {
       .first()
       .click()
 
-    const prompt = page.getByLabel('Prompt')
-    await prompt.fill('make it a pencil sketch of @')
+    const prompt = await fillPrompt(page, 'make it a pencil sketch of @')
     await expect(page.locator('#mention-list')).toBeVisible()
     await prompt.press('Enter')
 
@@ -422,7 +433,7 @@ test.describe('models that require a reference', () => {
   test('a text-to-image model needs no reference', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/image')
-    await page.getByLabel('Prompt').fill('a quiet street at dawn')
+    await fillPrompt(page, 'a quiet street at dawn')
     await expect(page.getByText(/Mention one with/)).toHaveCount(0)
     await expect(page.getByRole('button', { name: /^Generate/ })).toBeEnabled()
   })
@@ -464,7 +475,7 @@ test.describe('credits', () => {
   test('saas prices the button in credits, not dollars', async ({ page }) => {
     test.skip(mode !== 'saas', 'byok has no credits')
     await page.goto('/image')
-    await page.getByLabel('Prompt').fill('a quiet street at dawn')
+    await fillPrompt(page, 'a quiet street at dawn')
 
     const generate = page.getByRole('button', { name: /^Generate/ })
     await expect(generate).toContainText(/\d+ cr$/)
