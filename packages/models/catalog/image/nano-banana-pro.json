@@ -3,13 +3,21 @@
   "modality": "image",
   "group": "Text to Image",
   "displayName": "Nano Banana Pro",
-  "description": "Google's higher tier. Slower and dearer than Nano Banana 2, and better at long prompts.",
+  "description": "Nano Banana Pro is Google's new state-of-the-art image generation and editing model",
   "featured": true,
   "sortOrder": 15,
-  "pricing": { "unit": "images", "unitPriceUsd": 0.15 },
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.15
+  },
   "creditMultiplier": 1.25,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "resolution",
       "type": "enum",
@@ -39,8 +47,16 @@
       "default": "png",
       "enum": ["jpeg", "png", "webp"]
     },
-    { "name": "seed", "type": "integer", "label": "Seed" }
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
   ],
   "references": [],
-  "capabilities": { "supportsSeed": true, "maxOutputs": 4 }
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 4
+  },
+  "thumbnailUrl": "https://v3b.fal.media/files/b/0a8691ce/SR0_u1zPJbx8jCIO6bJR0_8c83f0d66bbd48f3b55f825117941f84.jpg"
 }

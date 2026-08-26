@@ -3,12 +3,20 @@
   "modality": "image",
   "group": "Text to Image",
   "displayName": "FLUX.1 [dev]",
-  "description": "12B flow transformer with strong prompt adherence.",
+  "description": "FLUX.1 [dev] is a 12 billion parameter flow transformer that generates high-quality images from text. It is suitable for personal and commercial use.",
   "sortOrder": 30,
-  "pricing": { "unit": "megapixels", "unitPriceUsd": 0.025 },
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.025
+  },
   "creditMultiplier": 1.25,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "image_size",
       "type": "enum",
@@ -47,7 +55,11 @@
       "min": 1,
       "max": 4
     },
-    { "name": "seed", "type": "integer", "label": "Seed" },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    },
     {
       "name": "enable_safety_checker",
       "type": "boolean",
@@ -57,5 +69,9 @@
     }
   ],
   "references": [],
-  "capabilities": { "supportsSeed": true, "maxOutputs": 4 }
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 4
+  },
+  "thumbnailUrl": "https://storage.googleapis.com/fal_cdn/fal/Upscale-1.jpeg"
 }

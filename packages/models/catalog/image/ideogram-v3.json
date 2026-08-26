@@ -2,13 +2,21 @@
   "endpointId": "fal-ai/ideogram/v3",
   "modality": "image",
   "group": "Text to Image",
-  "displayName": "Ideogram v3",
-  "description": "The one that can actually spell. Reach for it when the image contains words.",
+  "displayName": "Ideogram Text to Image",
+  "description": "Generate high-quality images, posters, and logos with Ideogram V3. Features exceptional typography handling and realistic outputs optimized for commercial and creative use.",
   "sortOrder": 35,
-  "pricing": { "unit": "images", "unitPriceUsd": 0.03 },
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.03
+  },
   "creditMultiplier": 1.25,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "image_size",
       "type": "enum",
@@ -30,7 +38,11 @@
       "default": "BALANCED",
       "enum": ["TURBO", "BALANCED", "QUALITY"]
     },
-    { "name": "negative_prompt", "type": "string", "label": "Negative" },
+    {
+      "name": "negative_prompt",
+      "type": "string",
+      "label": "Negative"
+    },
     {
       "name": "num_images",
       "type": "integer",
@@ -39,7 +51,11 @@
       "min": 1,
       "max": 4
     },
-    { "name": "seed", "type": "integer", "label": "Seed" },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    },
     {
       "name": "expand_prompt",
       "type": "boolean",
@@ -57,5 +73,10 @@
       "required": false
     }
   ],
-  "capabilities": { "supportsNegativePrompt": true, "supportsSeed": true, "maxOutputs": 4 }
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "supportsSeed": true,
+    "maxOutputs": 4
+  },
+  "thumbnailUrl": "https://v3b.fal.media/files/b/0a9f91a8/JsTVqtZydplqvV_XGPvTV_5FOy6fcj.png"
 }

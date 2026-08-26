@@ -3,12 +3,20 @@
   "modality": "image",
   "group": "Text to Image",
   "displayName": "FLUX.1 [schnell]",
-  "description": "Four steps, cents per image. The one to reach for while iterating on a prompt.",
+  "description": "FLUX.1 [schnell] is a 12 billion parameter flow transformer that generates high-quality images from text in 1 to 4 steps, suitable for personal and commercial use.",
   "sortOrder": 5,
-  "pricing": { "unit": "megapixels", "unitPriceUsd": 0.003 },
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.003
+  },
   "creditMultiplier": 1.25,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "image_size",
       "type": "enum",
@@ -46,7 +54,11 @@
       "default": "jpeg",
       "enum": ["jpeg", "png"]
     },
-    { "name": "seed", "type": "integer", "label": "Seed" },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    },
     {
       "name": "enable_safety_checker",
       "type": "boolean",
@@ -56,5 +68,9 @@
     }
   ],
   "references": [],
-  "capabilities": { "supportsSeed": true, "maxOutputs": 4 }
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 4
+  },
+  "thumbnailUrl": "https://v3b.fal.media/files/b/0a9af64d/GxvCUPd3gO-MSYcy06g0x_1641cfe028c2429b8e12e4fc320eb0a8.jpg"
 }

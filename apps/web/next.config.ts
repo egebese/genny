@@ -44,7 +44,13 @@ const csp = [
   // primitive the rest of this policy exists to deny.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: https://*.fal.media ${bucketOrigin}`,
+  /*
+   * Two fal hosts, not one: generated media comes from fal.media, but model
+   * thumbnails in the catalog are served from a Google bucket. The path prefix
+   * keeps that permission to fal's own folder rather than to every public bucket
+   * on storage.googleapis.com.
+   */
+  `img-src 'self' data: blob: https://*.fal.media https://storage.googleapis.com/fal_cdn/ ${bucketOrigin}`,
   `media-src 'self' blob: https://*.fal.media ${bucketOrigin}`,
   // ws: is the dev server's hot-reload socket, absent from production.
   `connect-src 'self' https://fal.run https://queue.fal.run https://rest.fal.ai ${bucketOrigin}${isDev ? ' ws://localhost:* ws://127.0.0.1:*' : ''}`,

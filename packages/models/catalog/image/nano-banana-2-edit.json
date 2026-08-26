@@ -2,14 +2,22 @@
   "endpointId": "fal-ai/nano-banana-2/edit",
   "modality": "image",
   "group": "Editing",
-  "displayName": "Nano Banana 2 Edit",
-  "description": "Edit and combine reference images with a prompt.",
+  "displayName": "Nano Banana 2",
+  "description": "Nano Banana 2 is Google's new state-of-the-art image generation and editing model",
   "featured": true,
   "sortOrder": 20,
-  "pricing": { "unit": "images", "unitPriceUsd": 0.08 },
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.08
+  },
   "creditMultiplier": 1.25,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "resolution",
       "type": "enum",
@@ -33,6 +41,16 @@
       "enum": ["jpeg", "png", "webp"]
     }
   ],
-  "references": [{ "field": "image_urls", "array": true, "maxCount": 8, "token": "keep-label" }],
-  "capabilities": { "maxOutputs": 4 }
+  "references": [
+    {
+      "field": "image_urls",
+      "array": true,
+      "maxCount": 8,
+      "token": "keep-label"
+    }
+  ],
+  "capabilities": {
+    "maxOutputs": 4
+  },
+  "thumbnailUrl": "https://v3b.fal.media/files/b/0a900b75/DHb_RgXoXsYLdvzQz6mdn_95e87a44239c43448939b4c382dd957c.jpg"
 }

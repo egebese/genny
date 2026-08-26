@@ -3,13 +3,21 @@
   "modality": "image",
   "group": "Text to Image",
   "displayName": "Nano Banana 2",
-  "description": "Google's fast state-of-the-art image generation model.",
+  "description": "Nano Banana 2 is Google's new state-of-the-art fast image generation and editing model",
   "featured": true,
   "sortOrder": 10,
-  "pricing": { "unit": "images", "unitPriceUsd": 0.08 },
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.08
+  },
   "creditMultiplier": 1.25,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "resolution",
       "type": "enum",
@@ -39,8 +47,16 @@
       "default": "png",
       "enum": ["jpeg", "png", "webp"]
     },
-    { "name": "seed", "type": "integer", "label": "Seed" }
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
   ],
   "references": [],
-  "capabilities": { "supportsSeed": true, "maxOutputs": 4 }
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 4
+  },
+  "thumbnailUrl": "https://v3b.fal.media/files/b/0a900b9e/ptbZcVWIQ_fXGGHfv8Zez_0ea5ca41bdf143a29e21e30a53120672.jpg"
 }

@@ -3,12 +3,20 @@
   "modality": "image",
   "group": "Editing",
   "displayName": "FLUX.1 Kontext [pro]",
-  "description": "Edits one image from an instruction while holding on to what was there.",
+  "description": "FLUX.1 Kontext [pro] handles both text and reference images as inputs, seamlessly enabling targeted, local edits and complex transformations of entire scenes.",
   "sortOrder": 25,
-  "pricing": { "unit": "images", "unitPriceUsd": 0.04 },
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.04
+  },
   "creditMultiplier": 1.25,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Instruction", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Instruction",
+      "required": true
+    },
     {
       "name": "aspect_ratio",
       "type": "enum",
@@ -39,10 +47,24 @@
       "default": "jpeg",
       "enum": ["jpeg", "png"]
     },
-    { "name": "seed", "type": "integer", "label": "Seed" }
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
   ],
   "references": [
-    { "field": "image_url", "array": false, "maxCount": 1, "token": "strip", "required": true }
+    {
+      "field": "image_url",
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "required": true
+    }
   ],
-  "capabilities": { "supportsSeed": true, "maxOutputs": 4 }
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 4
+  },
+  "thumbnailUrl": "https://storage.googleapis.com/fal_cdn/fal/Training-2.jpg"
 }
