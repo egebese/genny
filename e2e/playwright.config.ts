@@ -29,14 +29,12 @@ export default defineConfig({
   // absent option from one explicitly set to undefined, and Playwright's types
   // only accept the former.
   ...(process.env.E2E_LIVE ? {} : { grepInvert: /@live/ }),
-  // Compiles every route once before the workers start. Without it the first
-  // worker to reach a cold route waits behind `next dev` building it, which
-  // surfaced as a different WebKit assertion timing out on each run.
+  // Warms every route once before the workers start. Cheap insurance either way,
+  // and it still matters when someone points the suite at their own dev server.
   globalSetup: './global-setup.ts',
   /*
-   * 10s rather than the 5s default, on top of the warm-up. A dev build's first
-   * paint is slow even once compiled, and WebKit at a phone viewport is the
-   * slowest combination the suite runs.
+   * 10s rather than the 5s default. WebKit at a phone viewport is the slowest
+   * combination the suite runs, and nine workers share one server.
    */
   expect: { timeout: 10_000 },
   use: { baseURL, trace: 'on-first-retry', screenshot: 'only-on-failure' },
@@ -50,8 +48,20 @@ export default defineConfig({
     // things an app-like layout leans on.
     { name: `ios-${mode}`, use: { ...devices['iPhone 15'] } },
   ],
+  /*
+   * A production build, not `next dev`.
+   *
+   * Nine workers against one dev server meant a different assertion timed out on
+   * roughly every third run: dev compiles per request, renders slower, and has
+   * no output caching, so the suite was measuring the dev server rather than the
+   * app. Building first costs a few seconds and makes the whole matrix faster.
+   *
+   * `E2E_DEV=1` puts the dev server back, for debugging a failure with HMR.
+   */
   webServer: {
-    command: 'pnpm --filter @genny/web dev',
+    command: process.env.E2E_DEV
+      ? 'pnpm --filter @genny/web dev'
+      : 'pnpm --filter @genny/web build && pnpm --filter @genny/web start',
     url: `${baseURL}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
@@ -63,6 +73,9 @@ export default defineConfig({
       ...inheritedEnv(),
       GENNY_MODE: mode,
       PORT: String(port),
+      // The origin the suite actually uses. Cookies take their Secure flag from
+      // this, and a Secure cookie over plain http is a cookie the browser drops.
+      APP_URL: baseURL,
       // saas mode refuses to boot without these, by design. The suite mocks fal
       // and Stripe, so placeholders are correct here: a real key in a test
       // environment is a key that eventually gets spent by accident.

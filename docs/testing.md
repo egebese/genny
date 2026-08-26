@@ -59,13 +59,25 @@ The tests worth copying as examples:
 `lint + typecheck` → `unit` → `integration` → `e2e` (sharded, both modes). Turbo
 runs only what changed: `turbo run --filter=...[origin/main]`.
 
+## The suite runs against a production build
+
+`pnpm e2e` builds and starts the app rather than running `next dev`. Nine workers
+against one dev server meant a different assertion timed out on roughly every
+third run: dev compiles per request and renders slower, so the suite was
+measuring the dev server. `E2E_DEV=1` puts the dev server back when you want HMR
+to debug a failure.
+
+That change surfaced a real bug on the way. Cookies took their Secure flag from
+`NODE_ENV`, so a production build served over http marked them Secure and the
+browser dropped every one. Chrome exempts localhost and hid it; WebKit does not,
+so only the iOS project failed, and only in the production build. The flag now
+comes from `APP_URL`, which is the thing that actually decides.
+
 ## A local flake that is not a flake
 
-`reuseExistingServer` is on outside CI, so `pnpm e2e` reuses whatever dev server
-is already running. Edit a file while the suite runs and Next recompiles
-underneath it: the run stretches from about eight seconds to eighteen and a
-different assertion times out each time. It reads exactly like a race in the
-product.
+`reuseExistingServer` is on outside CI, so `pnpm e2e` reuses whatever server is
+already running. Edit a file while the suite runs and it is serving a build that
+no longer matches the tests.
 
-If a run suddenly gets slow and fails somewhere new, check whether something
-touched the source first. `pnpm fix` counts.
+If a run suddenly fails somewhere new, check whether something touched the source
+first. `pnpm fix` counts.
