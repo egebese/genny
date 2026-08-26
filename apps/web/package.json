@@ -12,6 +12,7 @@
   "dependencies": {
     "@genny/assets": "workspace:*",
     "@genny/auth": "workspace:*",
+    "@genny/billing": "workspace:*",
     "@genny/db": "workspace:*",
     "@genny/env": "workspace:*",
     "@genny/fal": "workspace:*",

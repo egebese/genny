@@ -2,6 +2,7 @@
 
 import { findCharactersByIds } from '@genny/assets/characters.ts'
 import { findAssetsByIds } from '@genny/assets/repository.ts'
+import { createBilling } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { attachFalRequest, createJob, failJob } from '@genny/db/repositories/jobs.ts'
@@ -10,6 +11,7 @@ import { FalFailure } from '@genny/fal/errors.ts'
 import { submitJob } from '@genny/fal/queue.ts'
 import { uploadReference } from '@genny/fal/upload.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
+import { creditsFor, estimateUnits } from '@genny/models/credits.ts'
 import { buildInputSchema } from '@genny/models/input.ts'
 import {
   missingRequiredReferences,
@@ -72,6 +74,19 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
   })
   if (!payload.success) return refuse('The model rejected these settings.', false)
 
+  /*
+   * Hold before submitting, so two tabs cannot spend the same credits. In byok
+   * mode this is a no-op: the visitor is spending their own fal balance.
+   */
+  const billing = createBilling(env().GENNY_MODE, db)
+  const estimate = creditsFor(
+    model,
+    { units: estimateUnits(model, payload.data) },
+    env().CREDIT_PER_USD,
+  )
+  const held = await billing.hold(actorId, String(estimate))
+  if (!held.ok) return refuse(held.reason, false)
+
   // The row exists before the submit: if the submit succeeds and the insert then
   // fails, we have paid for a generation nobody can see.
   const job = await withActor(db, actorId, (tx) =>
@@ -80,6 +95,7 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
       endpointId: model.endpointId,
       prompt: { text: request.prompt, references: request.references },
       input: payload.data,
+      creditsHeld: billing.tracksCredits ? held.held : undefined,
     }),
   )
 
@@ -92,6 +108,8 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
   } catch (error) {
     const failure = error instanceof FalFailure ? error : null
     const message = failure?.userMessage ?? 'The generation could not be started.'
+    // Nothing ran, so nothing is owed.
+    await billing.release(actorId, held.held)
     await withActor(db, actorId, (tx) => failJob(tx, job.id, message))
     return refuse(message, failure?.retryable ?? true)
   }

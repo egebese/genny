@@ -18,6 +18,8 @@ type StudioProps = {
   /** Cursor for the next page of history, or null when there is no more. */
   historyCursor: string | null
   mentionables: MentionableView[]
+  /** Null in byok mode, where the visitor spends their own fal balance. */
+  credits: { balance: string; holdBalance: string; perUsd: number } | null
   hasCredentials: boolean
 }
 
@@ -28,6 +30,7 @@ export function Studio({
   history,
   historyCursor,
   mentionables,
+  credits,
   hasCredentials,
 }: StudioProps) {
   const [ready, setReady] = useState(hasCredentials)
@@ -122,6 +125,19 @@ export function Studio({
   return (
     <>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+        {credits ? (
+          <p className="mb-4 text-ink-muted text-sm">
+            <span className="font-mono text-ink">{Math.floor(Number(credits.balance))}</span>{' '}
+            credits
+            {Number(credits.holdBalance) > 0 ? (
+              <span className="text-ink-faint">
+                {' '}
+                · {Math.ceil(Number(credits.holdBalance))} reserved
+              </span>
+            ) : null}
+          </p>
+        ) : null}
+
         {results.length === 0 ? (
           <p className="py-20 text-center text-ink-faint">
             Nothing generated yet. Write a prompt below.
@@ -169,6 +185,7 @@ export function Studio({
             }
             pending={pending}
             error={error}
+            credits={credits ? { enabled: true, perUsd: credits.perUsd } : null}
             prompt={prompt}
             onPromptChange={setPrompt}
             onSubmit={generate}

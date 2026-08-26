@@ -1,5 +1,6 @@
 import { ingestOutputs } from '@genny/assets/ingest.ts'
 import { publicUrlFor } from '@genny/assets/keys.ts'
+import type { Billing } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { Database } from '@genny/db/client.ts'
 import {
@@ -27,6 +28,7 @@ type TrackContext = {
   actorId: string
   job: TrackedJob
   credentials: FalCredentials
+  billing: Billing
 }
 
 type TrackOptions = TrackContext & { pollIntervalMs: number; deadline: number }
@@ -86,7 +88,7 @@ async function pollOnce(context: TrackContext, announcedRunning: boolean): Promi
 }
 
 async function finish(context: TrackContext): Promise<TrackEvent> {
-  const { db, actorId, job, credentials } = context
+  const { db, actorId, job, credentials, billing } = context
   try {
     const outputs = await readJobResult(credentials, job.endpointId, job.falRequestId)
 
@@ -118,7 +120,18 @@ async function finish(context: TrackContext): Promise<TrackEvent> {
         ingestFailures: ingested.failures,
       },
     }
-    await withActor(db, actorId, (tx) => completeJob(tx, job.id, stored))
+    /*
+     * Settle at what the run actually produced. A model asked for four images and
+     * returning three has cost three, so the hold is captured in proportion and
+     * the rest goes back. Without this, the estimate silently becomes the price.
+     */
+    const expected = Number(job.input.num_images ?? 1) || 1
+    const produced = Math.max(1, Math.min(outputs.urls.length || expected, expected))
+    const heldCredits = job.creditsHeld ?? '0'
+    const actual = ((Number(heldCredits) * produced) / expected).toFixed(4)
+
+    await billing.capture({ actorId, held: heldCredits, actual, jobId: job.id })
+    await withActor(db, actorId, (tx) => completeJob(tx, job.id, stored, actual))
 
     const urls =
       ingested.assets.length > 0
@@ -138,6 +151,10 @@ async function finish(context: TrackContext): Promise<TrackEvent> {
 }
 
 async function recordFailure(context: TrackContext, message: string): Promise<TrackEvent> {
+  // A generation that failed costs nothing, so the hold goes back before the row
+  // is marked. Releasing first means a crash here leaves credits returned rather
+  // than stranded.
+  await context.billing.release(context.actorId, context.job.creditsHeld ?? '0').catch(() => {})
   await withActor(context.db, context.actorId, (tx) => failJob(tx, context.job.id, message)).catch(
     () => {},
   )

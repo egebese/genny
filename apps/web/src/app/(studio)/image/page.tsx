@@ -1,3 +1,6 @@
+import { createBilling } from '@genny/billing/provider.ts'
+import { appDb } from '@genny/db/connection.ts'
+import { env } from '@genny/env/env.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
 import type { Metadata } from 'next'
 import { listMentionablesFor } from '@/features/assets/server/list.ts'
@@ -20,10 +23,13 @@ export default async function ImageStudioPage() {
     .map((entry) => toPickable(entry.definition))
 
   const actorId = await readActorId()
-  const [ready, history, mentionables] = await Promise.all([
+  const billing = createBilling(env().GENNY_MODE, appDb(env().DATABASE_URL))
+
+  const [ready, history, mentionables, balance] = await Promise.all([
     hasUsableCredentials(),
     actorId ? historyPage(actorId) : Promise.resolve({ items: [], nextCursor: null }),
     actorId ? listMentionablesFor(actorId) : Promise.resolve([]),
+    actorId ? billing.balance(actorId) : Promise.resolve(null),
   ])
 
   return (
@@ -32,6 +38,7 @@ export default async function ImageStudioPage() {
       history={history.items}
       historyCursor={history.nextCursor}
       mentionables={mentionables}
+      credits={balance ? { ...balance, perUsd: env().CREDIT_PER_USD } : null}
       hasCredentials={ready}
     />
   )

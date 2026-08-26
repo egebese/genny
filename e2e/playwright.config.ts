@@ -70,6 +70,9 @@ export default defineConfig({
             FAL_KEY: process.env.FAL_KEY || 'e2e-placeholder:not-a-real-key',
             STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'sk_test_e2e_placeholder',
             STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_e2e_placeholder',
+            // Trial credits, so the suite can exercise the credit paths without
+            // a payment provider.
+            CREDIT_SIGNUP_GRANT: process.env.CREDIT_SIGNUP_GRANT || '500',
           }
         : {}),
     },

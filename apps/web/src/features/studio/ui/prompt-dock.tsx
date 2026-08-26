@@ -20,6 +20,8 @@ type PromptDockProps = {
   onSettingChange: (name: string, value: unknown) => void
   pending: boolean
   error: string | null
+  /** Credits when saas mode is on, dollars otherwise: the same number, priced. */
+  credits: { enabled: boolean; perUsd: number } | null
   /** Composed text lives in the studio, so a result can append a mention to it. */
   prompt: string
   onPromptChange: (next: string) => void
@@ -62,6 +64,10 @@ export function PromptDock(props: PromptDockProps) {
     () => estimateUnits(model, settings) * model.pricing.unitPriceUsd,
     [model, settings],
   )
+
+  const priced = props.credits?.enabled
+    ? `${Math.ceil(cost * props.credits.perUsd)} cr`
+    : formatCost(cost)
 
   function submit() {
     const trimmed = prompt.trim()
@@ -155,7 +161,7 @@ export function PromptDock(props: PromptDockProps) {
           disabled={pending || prompt.trim().length === 0 || needsReference}
           onClick={submit}
         >
-          {pending ? 'Sending' : `Generate · ${formatCost(cost)}`}
+          {pending ? 'Sending' : `Generate · ${priced}`}
         </Button>
       </div>
 

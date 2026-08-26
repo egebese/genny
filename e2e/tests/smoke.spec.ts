@@ -437,3 +437,42 @@ test.describe('models that require a reference', () => {
     expect(await options.count()).toBeGreaterThanOrEqual(7)
   })
 })
+
+test.describe('credits', () => {
+  test('byok shows no credit balance, because there is nothing of ours to spend', async ({
+    page,
+  }) => {
+    test.skip(mode !== 'byok', 'credits only exist in saas mode')
+    await page.goto('/image')
+    await expect(page.getByText(/credits/)).toHaveCount(0)
+  })
+
+  test('byok prices the button in dollars', async ({ page }) => {
+    test.skip(mode !== 'byok', 'credits only exist in saas mode')
+    await page.goto('/image')
+    // The key gate stands in front of the dock, so check what it says instead.
+    await expect(page.getByLabel('Paste your fal key to start')).toBeVisible()
+  })
+
+  test('saas grants trial credits to a new visitor and shows them', async ({ page }) => {
+    test.skip(mode !== 'saas', 'byok has no credits')
+    await page.goto('/image')
+    await expect(page.getByText(/credits/)).toBeVisible()
+  })
+
+  test('saas prices the button in credits, not dollars', async ({ page }) => {
+    test.skip(mode !== 'saas', 'byok has no credits')
+    await page.goto('/image')
+    await page.getByLabel('Prompt').fill('a quiet street at dawn')
+
+    const generate = page.getByRole('button', { name: /^Generate/ })
+    await expect(generate).toContainText(/\d+ cr$/)
+    await expect(generate).not.toContainText('$')
+  })
+
+  test('the reserved amount only appears when something is held', async ({ page }) => {
+    test.skip(mode !== 'saas', 'byok has no credits')
+    await page.goto('/image')
+    await expect(page.getByText(/reserved/)).toHaveCount(0)
+  })
+})

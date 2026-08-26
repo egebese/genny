@@ -1,3 +1,4 @@
+import { createBilling } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { findJob } from '@genny/db/repositories/jobs.ts'
@@ -51,6 +52,7 @@ export async function GET(
         actorId,
         job: { ...job, falRequestId: job.falRequestId as string },
         credentials,
+        billing: createBilling(env().GENNY_MODE, db),
         pollIntervalMs: POLL_INTERVAL_MS,
         deadline: Date.now() + MAX_DURATION_MS,
       })) {

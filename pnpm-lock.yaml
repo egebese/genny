@@ -104,6 +104,9 @@ importers:
       '@genny/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@genny/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
       '@genny/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -205,6 +208,34 @@ importers:
       '@genny/db':
         specifier: workspace:*
         version: link:../db
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(postgres@3.4.9)
+    devDependencies:
+      '@genny/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.3.0
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@types/node@26.3.0)(vite@8.2.2(@types/node@26.3.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0))
+
+  packages/billing:
+    dependencies:
+      '@genny/db':
+        specifier: workspace:*
+        version: link:../db
+      '@genny/env':
+        specifier: workspace:*
+        version: link:../env
+      '@genny/models':
+        specifier: workspace:*
+        version: link:../models
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(postgres@3.4.9)
