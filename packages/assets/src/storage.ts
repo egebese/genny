@@ -18,6 +18,8 @@ export type StorageConfig = {
 export type Storage = {
   /** Uploads bytes we already have and trust, such as an ingested generation. */
   put: (key: string, body: Uint8Array, mime: string) => Promise<void>
+  /** Reads an object back, for handing a reference to a model provider. */
+  get: (key: string) => Promise<Uint8Array>
   /** A url the browser can PUT to directly, so large files skip our server. */
   presignUpload: (key: string, mime: string, expiresIn?: number) => Promise<string>
   presignDownload: (key: string, expiresIn?: number) => Promise<string>
@@ -54,6 +56,12 @@ export function createStorage(config: StorageConfig): Storage {
   return {
     async put(key, body, mime) {
       await client.send(new PutObjectCommand({ Bucket, Key: key, Body: body, ContentType: mime }))
+    },
+    async get(key) {
+      const response = await client.send(new GetObjectCommand({ Bucket, Key: key }))
+      const body = await response.Body?.transformToByteArray()
+      if (!body) throw new Error(`storage object ${key} had no body`)
+      return body
     },
     presignUpload(key, mime, expiresIn = 600) {
       // ContentType is part of the signature, so the browser cannot upload a

@@ -141,3 +141,117 @@ test.describe('image studio', () => {
     expect([400, 401]).toContain(response.status())
   })
 })
+
+test.describe('assets and mentions', () => {
+  test('the assets page offers an inline upload, not a modal', async ({ page }) => {
+    await page.goto('/assets')
+    await expect(page.getByRole('heading', { name: 'Assets' })).toBeVisible()
+    await expect(page.getByText(/Drop files here, or click to choose/)).toBeVisible()
+    await expect(page.locator('[aria-modal="true"]')).toHaveCount(0)
+  })
+
+  test('an uploaded file appears in the library with a mentionable handle', async ({ page }) => {
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    const card = page.locator('main ul li').first()
+    await expect(card).toBeVisible()
+    await expect(card.locator('p').first()).toHaveText(/^@[a-z0-9-]+$/)
+  })
+
+  test('a file that is not media is refused whatever it is called', async ({ page }) => {
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'pretend.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('<!DOCTYPE html><html>not an image at all</html>'),
+    })
+    // Scoped to the page: Next's own route announcer is also role="alert".
+    await expect(page.locator('main [role=alert]')).toContainText(/images, video and audio/i)
+  })
+
+  test('an empty file is refused', async ({ page }) => {
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'empty.png',
+      mimeType: 'image/png',
+      buffer: Buffer.alloc(0),
+    })
+    await expect(page.locator('main [role=alert]')).toBeVisible()
+  })
+
+  test('typing @ opens the mention list and choosing inserts the handle', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('main ul li').first()).toBeVisible()
+
+    await page.goto('/image')
+    const prompt = page.getByLabel('Prompt')
+    await prompt.fill('make it a sketch of @')
+    await expect(page.locator('#mention-list')).toBeVisible()
+
+    const option = page.locator('#mention-list [role=option]').first()
+    const handle = (await option.locator('span.font-mono').innerText()).trim()
+    await option.click()
+
+    await expect(prompt).toHaveValue(`make it a sketch of ${handle} `)
+    // The caret stays in the textarea: that is the whole point of the design.
+    await expect(prompt).toBeFocused()
+    await expect(page.locator('#mention-list')).toHaveCount(0)
+  })
+
+  test('the mention list is a listbox the textarea points at', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('main ul li').first()).toBeVisible()
+
+    await page.goto('/image')
+    const prompt = page.getByLabel('Prompt')
+    await prompt.fill('@')
+    await expect(page.locator('#mention-list')).toHaveAttribute('role', 'listbox')
+    await expect(prompt).toHaveAttribute('aria-expanded', 'true')
+    await expect(prompt).toHaveAttribute('aria-activedescendant', /mention-option-/)
+  })
+
+  test('arrow keys and Enter choose a mention without leaving the textarea', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('main ul li').first()).toBeVisible()
+
+    await page.goto('/image')
+    const prompt = page.getByLabel('Prompt')
+    await prompt.fill('a sketch of @')
+    await expect(page.locator('#mention-list')).toBeVisible()
+    await prompt.press('ArrowDown')
+    await prompt.press('Enter')
+
+    await expect(prompt).toHaveValue(/@[a-z0-9-]+\s$/)
+    await expect(prompt).toBeFocused()
+  })
+
+  test('Escape closes the list and keeps what was typed', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('main ul li').first()).toBeVisible()
+
+    await page.goto('/image')
+    const prompt = page.getByLabel('Prompt')
+    await prompt.fill('a sketch of @ti')
+    await expect(page.locator('#mention-list')).toBeVisible()
+    await prompt.press('Escape')
+
+    await expect(page.locator('#mention-list')).toHaveCount(0)
+    await expect(prompt).toHaveValue('a sketch of @ti')
+  })
+
+  test('an email address does not open the mention list', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/image')
+    await page.getByLabel('Prompt').fill('mail ege@fal.ai about it')
+    await expect(page.locator('#mention-list')).toHaveCount(0)
+  })
+})

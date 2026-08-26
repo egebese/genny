@@ -22,6 +22,9 @@ function fakeStorage(): Storage & { written: { key: string; mime: string; bytes:
     async put(key, body, mime) {
       written.push({ key, mime, bytes: body.byteLength })
     },
+    async get() {
+      return new Uint8Array()
+    },
     async presignUpload() {
       return 'https://example.invalid/upload'
     },

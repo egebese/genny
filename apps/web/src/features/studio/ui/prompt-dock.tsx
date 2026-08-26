@@ -3,14 +3,18 @@
 import { estimateUnits } from '@genny/models/credits.ts'
 import { Button } from '@genny/ui/button.tsx'
 import { useMemo, useRef, useState } from 'react'
+import type { AssetView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
+import { MentionList } from './mention-list.tsx'
 import { ModelPicker } from './model-picker.tsx'
 import { SettingField } from './setting-field.tsx'
+import { useMentions } from './use-mentions.ts'
 
 type PromptDockProps = {
   models: PickableModel[]
   model: PickableModel
   onModelChange: (model: PickableModel) => void
+  assets: AssetView[]
   settings: Record<string, unknown>
   onSettingChange: (name: string, value: unknown) => void
   pending: boolean
@@ -27,34 +31,40 @@ function formatCost(usd: number): string {
   return `$${usd.toFixed(4)}`
 }
 
-export function PromptDock({
-  models,
-  model,
-  onModelChange,
-  settings,
-  onSettingChange,
-  pending,
-  error,
-  onSubmit,
-}: PromptDockProps) {
+export function PromptDock(props: PromptDockProps) {
+  const { model, settings, pending, error, onSubmit } = props
   const [prompt, setPrompt] = useState('')
   const textarea = useRef<HTMLTextAreaElement>(null)
 
+  const mentions = useMentions({
+    assets: props.assets,
+    text: prompt,
+    onReplace: (next) => {
+      setPrompt(next.text)
+      // Restore the caret after React has written the new value, or the browser
+      // puts it at the end of the text and typing continues in the wrong place.
+      requestAnimationFrame(() => {
+        textarea.current?.setSelectionRange(next.caret, next.caret)
+        textarea.current?.focus()
+      })
+    },
+  })
+
   /*
    * What this will cost, before committing to it. In byok mode that is fal's own
-   * price; in saas mode the same number becomes credits. Shown on the button
-   * because that is where the decision happens.
+   * price; in saas mode the same number becomes credits.
    */
-  const cost = useMemo(() => {
-    const units = estimateUnits(model, settings)
-    return units * model.pricing.unitPriceUsd
-  }, [model, settings])
+  const cost = useMemo(
+    () => estimateUnits(model, settings) * model.pricing.unitPriceUsd,
+    [model, settings],
+  )
 
   function submit() {
     const trimmed = prompt.trim()
     if (!trimmed || pending) return
     onSubmit(trimmed)
     setPrompt('')
+    mentions.close()
     resize()
   }
 
@@ -67,8 +77,19 @@ export function PromptDock({
     node.style.height = `${Math.min(node.scrollHeight, lineHeight * MAX_ROWS)}px`
   }
 
+  const activeOption = mentions.active ? mentions.candidates[mentions.highlighted] : undefined
+
   return (
     <div className="rounded-(--radius-panel) border border-line bg-surface">
+      {mentions.active ? (
+        <MentionList
+          candidates={mentions.candidates}
+          highlighted={mentions.highlighted}
+          query={mentions.active.query}
+          onChoose={mentions.choose}
+        />
+      ) : null}
+
       <label htmlFor="prompt" className="sr-only">
         Prompt
       </label>
@@ -77,12 +98,26 @@ export function PromptDock({
         ref={textarea}
         rows={2}
         value={prompt}
-        placeholder="Describe the image you want"
+        placeholder="Describe the image you want, or @mention an asset"
+        role="combobox"
+        aria-expanded={mentions.active !== null}
+        aria-controls="mention-list"
+        aria-autocomplete="list"
+        aria-activedescendant={activeOption ? `mention-option-${activeOption.id}` : undefined}
         onChange={(event) => {
           setPrompt(event.target.value)
+          mentions.sync(event.target.value, event.target.selectionStart)
           resize()
         }}
+        onSelect={(event) => {
+          const node = event.currentTarget
+          mentions.sync(node.value, node.selectionStart)
+        }}
         onKeyDown={(event) => {
+          if (mentions.handleKey(event.key)) {
+            event.preventDefault()
+            return
+          }
           // Enter sends, Shift+Enter breaks the line. On a phone the button is
           // the only sane target, so it stays visible either way.
           if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
@@ -94,13 +129,13 @@ export function PromptDock({
       />
 
       <div className="flex flex-wrap items-center gap-2 border-line border-t px-3 py-2">
-        <ModelPicker models={models} selected={model} onSelect={onModelChange} />
+        <ModelPicker models={props.models} selected={model} onSelect={props.onModelChange} />
         {model.inputs.map((input) => (
           <SettingField
             key={input.name}
             input={input}
             value={settings[input.name]}
-            onChange={(value) => onSettingChange(input.name, value)}
+            onChange={(value) => props.onSettingChange(input.name, value)}
           />
         ))}
         <Button

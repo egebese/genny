@@ -1,7 +1,9 @@
 'use client'
 
+import { mentionedLabels } from '@genny/models/mention.ts'
 import { Dock } from '@genny/ui/dock.tsx'
 import { useCallback, useEffect, useState, useTransition } from 'react'
+import type { AssetView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
 import { createGeneration } from '../server/create-generation.ts'
 import { KeyGate } from './key-gate.tsx'
@@ -12,12 +14,13 @@ import type { ResultItem } from './result-card.tsx'
 type StudioProps = {
   models: PickableModel[]
   history: ResultItem[]
+  assets: AssetView[]
   hasCredentials: boolean
 }
 
 const MODEL_STORAGE_KEY = 'genny:image:model'
 
-export function Studio({ models, history, hasCredentials }: StudioProps) {
+export function Studio({ models, history, assets, hasCredentials }: StudioProps) {
   const [ready, setReady] = useState(hasCredentials)
   const [model, setModel] = useState<PickableModel>(models[0] as PickableModel)
   const [settings, setSettings] = useState<Record<string, unknown>>({})
@@ -42,11 +45,40 @@ export function Studio({ models, history, hasCredentials }: StudioProps) {
 
   function generate(prompt: string) {
     setError(null)
+
+    /*
+     * References are derived from the prompt text rather than tracked in state.
+     * Deleting a mention then deletes its reference, which is what the person
+     * clearly meant, and there is no second source of truth to drift.
+     */
+    const byLabel = new Map(assets.map((asset) => [asset.label, asset]))
+    const references = mentionedLabels(prompt)
+      .map((label) => byLabel.get(label))
+      .filter((asset): asset is AssetView => asset !== undefined)
+      .map((asset) => ({
+        token: `@${asset.label}`,
+        label: asset.label,
+        kind: 'asset' as const,
+        id: asset.id,
+      }))
+
     startTransition(async () => {
-      const result = await createGeneration({ modelId: model.endpointId, prompt, settings })
+      const result = await createGeneration({
+        modelId: model.endpointId,
+        prompt,
+        settings,
+        references,
+      })
       if (!result.ok) {
         setError(result.reason)
         return
+      }
+      if (result.dropped && result.dropped.length > 0) {
+        // Not an error: the generation is running, it just could not take every
+        // reference. Saying so beats silently ignoring half the input.
+        setError(
+          `${model.displayName} could not take ${result.dropped.map((l) => `@${l}`).join(', ')}.`,
+        )
       }
       setResults((current) => [
         {
@@ -83,6 +115,7 @@ export function Studio({ models, history, hasCredentials }: StudioProps) {
           <PromptDock
             models={models}
             model={model}
+            assets={assets}
             onModelChange={chooseModel}
             settings={settings}
             onSettingChange={(name, value) =>

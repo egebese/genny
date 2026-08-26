@@ -5,6 +5,7 @@ import { env } from '@genny/env/env.ts'
 import { collectMediaUrls } from '@genny/fal/outputs.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
 import type { Metadata } from 'next'
+import { listAssetsFor } from '@/features/assets/server/list.ts'
 import { readActorId } from '@/features/session/actor.ts'
 import { hasUsableCredentials } from '@/features/session/fal-key.ts'
 import { toPickable } from '@/features/studio/model-list.ts'
@@ -25,9 +26,14 @@ export default async function ImageStudioPage() {
     .map((entry) => toPickable(entry.definition))
 
   const names = new Map(models.map((model) => [model.endpointId, model.displayName]))
-  const [ready, history] = await Promise.all([hasUsableCredentials(), recentJobs(names)])
+  const actorId = await readActorId()
+  const [ready, history, assets] = await Promise.all([
+    hasUsableCredentials(),
+    recentJobs(names),
+    actorId ? listAssetsFor(actorId, { kind: 'image' }) : Promise.resolve([]),
+  ])
 
-  return <Studio models={models} history={history} hasCredentials={ready} />
+  return <Studio models={models} history={history} assets={assets} hasCredentials={ready} />
 }
 
 async function recentJobs(names: Map<string, string>): Promise<ResultItem[]> {
