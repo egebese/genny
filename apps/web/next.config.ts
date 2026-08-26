@@ -7,6 +7,22 @@ import type { NextConfig } from 'next'
  * embedded or connected to, which is what keeps an injected script from
  * exfiltrating a prompt or a BYOK key.
  */
+/*
+ * `next build` with NODE_ENV=development set produces a production bundle that
+ * resolves React's development build, and prerendering then fails inside Next's
+ * own error page with "Cannot read properties of null (reading 'useContext')".
+ *
+ * The error names neither NODE_ENV nor our code, so it reads as a framework bug.
+ * It cost hours once. Fail here instead, saying what to do.
+ */
+if (process.argv.includes('build') && process.env.NODE_ENV === 'development') {
+  throw new Error(
+    'NODE_ENV=development is set while running `next build`.\n' +
+      'That makes React resolve its development build and prerendering fails with a\n' +
+      'null dispatcher. Unset NODE_ENV; the tool decides it. See docs/adr/0009.',
+  )
+}
+
 const isDev = process.env.NODE_ENV === 'development'
 
 const csp = [

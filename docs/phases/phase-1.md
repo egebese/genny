@@ -45,7 +45,7 @@ Done, verified against real fal with a real generation:
 - Results feed with download, and history that survives a refresh
 
 Still open: `@mention` input (#12), asset upload (#13), characters (#14), output
-ingestion into our own bucket (#16), demo deployment (#18, blocked on the build).
+ingestion into our own bucket (#16), demo deployment (#18).
 
 Two findings from driving it for real, both now fixed and documented:
 

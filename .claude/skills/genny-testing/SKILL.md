@@ -71,6 +71,23 @@ test.skip(process.env.GENNY_MODE !== 'saas', 'credits only exist in saas mode')
 Tag `@live`. They are excluded unless `E2E_LIVE=1`, so a contributor never spends
 a cent. The nightly job runs them against `flux/schnell`.
 
+## Measuring a build or a command
+
+**Judge it by its exit code.** Grepping the output for a specific error only tells
+you whether that error was reached:
+
+```bash
+# wrong: reports 0 when the build died earlier, at types or at resolution
+next build | grep -c "Error occurred prerendering"
+
+# right
+next build > log 2>&1; echo "exit=$?"
+```
+
+This exact mistake turned a one-line configuration bug into hours of bisecting
+the wrong things, and produced four confident wrong conclusions along the way.
+See `docs/adr/0009`.
+
 ## Do not write
 
 A test asserting a constant. A snapshot of markup. A test for a one-line

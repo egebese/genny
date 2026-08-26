@@ -1,10 +1,10 @@
 import { appDb } from '@genny/db/connection.ts'
 import { env } from '@genny/env/env.ts'
+import { falKeyInput } from '@genny/fal/key-input.ts'
 import { createPostgresLimiter } from '@genny/ratelimit/postgres-limiter.ts'
 import { ruleFor } from '@genny/ratelimit/rules.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 import { clearFalKey, storeFalKey } from '@/features/session/fal-key.ts'
-import { falKeyInput } from '@/features/studio/schema.ts'
 
 /*
  * A route handler rather than a server action, on purpose.

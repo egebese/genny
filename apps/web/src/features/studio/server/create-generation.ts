@@ -9,11 +9,12 @@ import { submitJob } from '@genny/fal/queue.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
 import { buildInputSchema } from '@genny/models/input.ts'
 import { resolvePrompt } from '@genny/models/references.ts'
+import { generationRequest } from '@genny/models/request.ts'
 import { createPostgresLimiter } from '@genny/ratelimit/postgres-limiter.ts'
 import { ruleFor } from '@genny/ratelimit/rules.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
-import { type GenerationResult, generationRequest } from '../schema.ts'
+import type { GenerationResult } from '../schema.ts'
 
 export async function createGeneration(raw: unknown): Promise<GenerationResult> {
   const parsed = generationRequest.safeParse(raw)

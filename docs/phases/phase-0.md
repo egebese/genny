@@ -35,14 +35,7 @@ security boundary that everything else leans on is proven rather than asserted.
 | 0.6 | No horizontal scroll at 375px | `pnpm e2e` |
 | 0.7 | CSP, nosniff, HSTS, no `x-powered-by` | `pnpm e2e` |
 | 0.8 | Full typecheck clean | `pnpm check` |
-
-## Known broken
-
-`next build` fails inside Next's own error-page prerender on every 16.3.x and on
-16.4 canary. `next dev` and the whole test suite are unaffected. Fully
-investigated and written up in [ADR 0009](../adr/0009-next-version-pinned-to-16-2.md);
-it is the first issue of M1 because phase 1 ships a public demo and a demo needs
-a build.
+| 0.9 | Production build works | `pnpm build` |
 
 ## Deliberately not here
 

@@ -73,13 +73,9 @@ jobs:
       - run: pnpm test:integration
 
   build:
-    name: production build (known broken upstream, see ADR 0009)
+    name: production build
     runs-on: ubuntu-latest
     needs: static
-    # Not a gate: `next build` fails inside Next's own error-page prerender on
-    # every 16.3.x and 16.4 canary. Kept visible so it turns green on its own the
-    # day upstream fixes it, without blocking contributors meanwhile.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
