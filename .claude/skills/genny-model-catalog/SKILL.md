@@ -20,6 +20,12 @@ genmedia pricing <endpoint-id> --json                 # real price and unit
 The pricing `unit` matters: `images`, `seconds`, `megapixels`, `requests` or
 `minutes`. It decides how cost is estimated, so copy it exactly.
 
+**fal's units are not a closed set.** `recraft/v3` bills in `compute seconds` and
+`gpt-image-2/edit` in `units`, neither of which can be estimated before the run.
+A model whose cost cannot be shown before the button is pressed does not belong
+in the catalog yet: in byok mode the person cannot see what they are about to
+spend, and in saas mode there is nothing to hold. Skip it and say why in the PR.
+
 ## 2. Write one file
 
 `packages/models/catalog/<modality>/<slug>.json`:
@@ -67,6 +73,11 @@ This is what keeps `@mentions` out of UI code.
 | `array` | true when the field takes a list |
 | `maxCount` | the model's own limit; extra references are reported as dropped |
 | `token` | `strip` removes `@label` from the prompt, `keep-label` leaves the bare name |
+| `required` | true when the endpoint refuses to run without it, as editing models do |
+
+Get `required` wrong in the permissive direction and fal answers 422 with a
+reason nobody can see. With it set, the studio disables Generate and says what to
+mention.
 
 Use `keep-label` when the model reads names as subject cues (most editing models
 do). Use `strip` when the name would just be noise.

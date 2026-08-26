@@ -1,0 +1,46 @@
+{
+  "endpointId": "fal-ai/nano-banana-pro",
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Nano Banana Pro",
+  "description": "Google's higher tier. Slower and dearer than Nano Banana 2, and better at long prompts.",
+  "featured": true,
+  "sortOrder": 15,
+  "pricing": { "unit": "images", "unitPriceUsd": 0.15 },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "resolution",
+      "type": "enum",
+      "label": "Resolution",
+      "default": "1K",
+      "enum": ["1K", "2K", "4K"]
+    },
+    {
+      "name": "aspect_ratio",
+      "type": "enum",
+      "label": "Aspect ratio",
+      "default": "1:1",
+      "enum": ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"]
+    },
+    {
+      "name": "num_images",
+      "type": "integer",
+      "label": "Images",
+      "default": 1,
+      "min": 1,
+      "max": 4
+    },
+    {
+      "name": "output_format",
+      "type": "enum",
+      "label": "Format",
+      "default": "png",
+      "enum": ["jpeg", "png", "webp"]
+    },
+    { "name": "seed", "type": "integer", "label": "Seed" }
+  ],
+  "references": [],
+  "capabilities": { "supportsSeed": true, "maxOutputs": 4 }
+}

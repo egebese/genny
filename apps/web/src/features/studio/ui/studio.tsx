@@ -31,7 +31,9 @@ export function Studio({
   hasCredentials,
 }: StudioProps) {
   const [ready, setReady] = useState(hasCredentials)
-  const [model, setModel] = useState<PickableModel>(models[0] as PickableModel)
+  const [model, setModel] = useState<PickableModel>(
+    (models.find((candidate) => candidate.featured) ?? models[0]) as PickableModel,
+  )
   const [settings, setSettings] = useState<Record<string, unknown>>({})
   const [prompt, setPrompt] = useState('')
   const [results, setResults] = useState<ResultItem[]>(history)

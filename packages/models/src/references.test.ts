@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type PromptReference, resolvePrompt } from './references.ts'
+import { missingRequiredReferences, type PromptReference, resolvePrompt } from './references.ts'
 import type { ModelDefinition } from './schema.ts'
 
 const ref = (label: string, url: string): PromptReference => ({ token: `@${label}`, label, url })
@@ -23,7 +23,7 @@ const withMapping = (references: ModelDefinition['references']): ModelDefinition
 describe('resolvePrompt', () => {
   it('maps references into an array field and keeps the label as a subject cue', () => {
     const model = withMapping([
-      { field: 'image_urls', array: true, maxCount: 8, token: 'keep-label' },
+      { field: 'image_urls', array: true, maxCount: 8, token: 'keep-label', required: false },
     ])
     const result = resolvePrompt(model, '@ayse standing in @room1', [
       ref('ayse', 'https://cdn/a.png'),
@@ -35,14 +35,18 @@ describe('resolvePrompt', () => {
   })
 
   it('maps a single reference into a scalar field and strips the token', () => {
-    const model = withMapping([{ field: 'image_url', array: false, maxCount: 1, token: 'strip' }])
+    const model = withMapping([
+      { field: 'image_url', array: false, maxCount: 1, token: 'strip', required: false },
+    ])
     const result = resolvePrompt(model, 'make @hero cinematic', [ref('hero', 'https://cdn/h.png')])
     expect(result.patch).toEqual({ image_url: 'https://cdn/h.png' })
     expect(result.text).toBe('make cinematic')
   })
 
   it('reports references the model cannot accept instead of dropping them silently', () => {
-    const model = withMapping([{ field: 'image_urls', array: true, maxCount: 1, token: 'strip' }])
+    const model = withMapping([
+      { field: 'image_urls', array: true, maxCount: 1, token: 'strip', required: false },
+    ])
     const result = resolvePrompt(model, '@a and @b', [
       ref('a', 'https://cdn/a.png'),
       ref('b', 'https://cdn/b.png'),
@@ -61,7 +65,9 @@ describe('resolvePrompt', () => {
   })
 
   it('tidies the spacing left behind by a stripped token', () => {
-    const model = withMapping([{ field: 'image_url', array: false, maxCount: 1, token: 'strip' }])
+    const model = withMapping([
+      { field: 'image_url', array: false, maxCount: 1, token: 'strip', required: false },
+    ])
     const result = resolvePrompt(model, 'a photo of @hero , golden hour', [
       ref('hero', 'https://cdn/h.png'),
     ])
@@ -70,7 +76,7 @@ describe('resolvePrompt', () => {
 
   it('replaces every occurrence of a repeated mention', () => {
     const model = withMapping([
-      { field: 'image_url', array: false, maxCount: 1, token: 'keep-label' },
+      { field: 'image_url', array: false, maxCount: 1, token: 'keep-label', required: false },
     ])
     const result = resolvePrompt(model, '@hero looks at @hero', [ref('hero', 'https://cdn/h.png')])
     expect(result.text).toBe('hero looks at hero')
@@ -80,5 +86,30 @@ describe('resolvePrompt', () => {
     const result = resolvePrompt(withMapping([]), 'a quiet street at dawn', [])
     expect(result.text).toBe('a quiet street at dawn')
     expect(result.patch).toEqual({})
+  })
+})
+
+describe('missingRequiredReferences', () => {
+  const required = withMapping([
+    { field: 'image_url', array: false, maxCount: 1, token: 'strip', required: true },
+  ])
+  const optional = withMapping([
+    { field: 'image_urls', array: true, maxCount: 8, token: 'keep-label', required: false },
+  ])
+
+  it('names the slot a model insists on when nothing was mentioned', () => {
+    expect(missingRequiredReferences(required, [])).toEqual(['image_url'])
+  })
+
+  it('is satisfied once something is mentioned', () => {
+    expect(missingRequiredReferences(required, [ref('a', 'https://cdn/a.png')])).toEqual([])
+  })
+
+  it('says nothing about an optional slot', () => {
+    expect(missingRequiredReferences(optional, [])).toEqual([])
+  })
+
+  it('says nothing about a model with no reference slots', () => {
+    expect(missingRequiredReferences(withMapping([]), [])).toEqual([])
   })
 })

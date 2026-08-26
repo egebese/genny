@@ -105,7 +105,7 @@ test.describe('image studio', () => {
   test('the model picker opens without covering the page', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/image')
-    await page.getByRole('button', { name: /Nano Banana 2$/ }).click()
+    await page.getByRole('button', { name: /^Model:/ }).click()
     await expect(page.getByPlaceholder('Search models')).toBeVisible()
 
     // Non-modal: nothing claims the rest of the page is inert, the body is not
@@ -119,7 +119,7 @@ test.describe('image studio', () => {
   test('the picker filters and switching a model changes the controls', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/image')
-    await page.getByRole('button', { name: /Nano Banana 2$/ }).click()
+    await page.getByRole('button', { name: /^Model:/ }).click()
     await page.getByPlaceholder('Search models').fill('FLUX')
     await page.getByRole('option', { name: /FLUX/ }).first().click()
 
@@ -372,5 +372,68 @@ test.describe('history', () => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/image')
     await expect(page.getByRole('button', { name: /Load older/ })).toHaveCount(0)
+  })
+})
+
+test.describe('models that require a reference', () => {
+  test('an editing model blocks generate until an image is mentioned', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/image')
+
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByPlaceholder('Search models').fill('Kontext')
+    await page
+      .getByRole('option', { name: /Kontext/ })
+      .first()
+      .click()
+
+    await page.getByLabel('Prompt').fill('make it a pencil sketch')
+    await expect(page.getByText(/Mention one with/)).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Generate/ })).toBeDisabled()
+  })
+
+  test('mentioning an image unblocks it', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'ref.png',
+      mimeType: 'image/png',
+      buffer: TINY_PNG,
+    })
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    await page.goto('/image')
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByPlaceholder('Search models').fill('Kontext')
+    await page
+      .getByRole('option', { name: /Kontext/ })
+      .first()
+      .click()
+
+    const prompt = page.getByLabel('Prompt')
+    await prompt.fill('make it a pencil sketch of @')
+    await expect(page.locator('#mention-list')).toBeVisible()
+    await prompt.press('Enter')
+
+    await expect(page.getByText(/Mention one with/)).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Generate/ })).toBeEnabled()
+  })
+
+  test('a text-to-image model needs no reference', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/image')
+    await page.getByLabel('Prompt').fill('a quiet street at dawn')
+    await expect(page.getByText(/Mention one with/)).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Generate/ })).toBeEnabled()
+  })
+
+  test('the picker lists every seeded model', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/image')
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    // Seven image models ship in the catalog.
+    await expect(page.locator('#mention-list')).toHaveCount(0)
+    const options = page.locator('[role=option]')
+    expect(await options.count()).toBeGreaterThanOrEqual(7)
   })
 })

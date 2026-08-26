@@ -1,0 +1,48 @@
+{
+  "endpointId": "fal-ai/flux-pro/kontext",
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "FLUX.1 Kontext [pro]",
+  "description": "Edits one image from an instruction while holding on to what was there.",
+  "sortOrder": 25,
+  "pricing": { "unit": "images", "unitPriceUsd": 0.04 },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    { "name": "prompt", "type": "string", "label": "Instruction", "required": true },
+    {
+      "name": "aspect_ratio",
+      "type": "enum",
+      "label": "Aspect ratio",
+      "default": "1:1",
+      "enum": ["1:1", "16:9", "9:16", "4:3", "3:4"]
+    },
+    {
+      "name": "guidance_scale",
+      "type": "number",
+      "label": "Guidance",
+      "default": 3.5,
+      "min": 1,
+      "max": 20
+    },
+    {
+      "name": "num_images",
+      "type": "integer",
+      "label": "Images",
+      "default": 1,
+      "min": 1,
+      "max": 4
+    },
+    {
+      "name": "output_format",
+      "type": "enum",
+      "label": "Format",
+      "default": "jpeg",
+      "enum": ["jpeg", "png"]
+    },
+    { "name": "seed", "type": "integer", "label": "Seed" }
+  ],
+  "references": [
+    { "field": "image_url", "array": false, "maxCount": 1, "token": "strip", "required": true }
+  ],
+  "capabilities": { "supportsSeed": true, "maxOutputs": 4 }
+}

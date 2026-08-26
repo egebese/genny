@@ -34,6 +34,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
+        aria-label={`Model: ${selected.displayName}`}
         className={cn(
           'inline-flex h-9 items-center gap-2 rounded-(--radius-control) border border-line',
           'bg-surface px-3 text-sm text-ink transition-colors hover:bg-surface-hover',

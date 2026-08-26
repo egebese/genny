@@ -1,6 +1,7 @@
 'use client'
 
 import { estimateUnits } from '@genny/models/credits.ts'
+import { mentionedLabels } from '@genny/models/mention.ts'
 import { Button } from '@genny/ui/button.tsx'
 import { useMemo, useRef } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
@@ -81,6 +82,12 @@ export function PromptDock(props: PromptDockProps) {
 
   const activeOption = mentions.active ? mentions.candidates[mentions.highlighted] : undefined
 
+  /*
+   * An editing model cannot run without an image. Blocking here beats letting
+   * fal answer 422 with a reason the person cannot see.
+   */
+  const needsReference = model.requiresReference && mentionedLabels(prompt).length === 0
+
   return (
     <div className="rounded-(--radius-panel) border border-line bg-surface">
       {mentions.active ? (
@@ -145,12 +152,19 @@ export function PromptDock(props: PromptDockProps) {
           tone="primary"
           size="sm"
           className="ml-auto"
-          disabled={pending || prompt.trim().length === 0}
+          disabled={pending || prompt.trim().length === 0 || needsReference}
           onClick={submit}
         >
           {pending ? 'Sending' : `Generate · ${formatCost(cost)}`}
         </Button>
       </div>
+
+      {needsReference ? (
+        <p className="border-line border-t px-4 py-2 text-ink-muted text-sm">
+          {model.displayName} edits an image. Mention one with <span className="font-mono">@</span>{' '}
+          to say which.
+        </p>
+      ) : null}
 
       {error ? (
         <p role="alert" className="border-line border-t px-4 py-2 text-danger text-sm">

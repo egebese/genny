@@ -9,6 +9,15 @@ export type PromptReference = {
   url: string
 }
 
+/** Reference slots the model insists on that the prompt did not fill. */
+export function missingRequiredReferences(
+  model: ModelDefinition,
+  references: PromptReference[],
+): string[] {
+  if (references.length > 0) return []
+  return model.references.filter((mapping) => mapping.required).map((mapping) => mapping.field)
+}
+
 export type ResolvedPrompt = {
   /** Prompt text after mention tokens have been rewritten or removed. */
   text: string

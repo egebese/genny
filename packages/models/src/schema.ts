@@ -12,6 +12,12 @@ export const pricingUnit = z.enum(['images', 'seconds', 'megapixels', 'requests'
 export const referenceMapping = z.object({
   /** Input field that receives the reference url(s). */
   field: z.string().min(1),
+  /**
+   * True when the endpoint refuses to run without it. Editing models often do:
+   * fal answers 422 and the reason is invisible from our side, so the studio has
+   * to know before it submits.
+   */
+  required: z.boolean().default(false),
   /** true when the field is an array of urls rather than a single one. */
   array: z.boolean().default(false),
   /** Hard cap from the model's own schema. Extra references are dropped, loudly. */

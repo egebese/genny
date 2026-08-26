@@ -14,6 +14,9 @@ export type PickableModel = {
   pricing: ModelDefinition['pricing']
   inputs: ModelInput[]
   acceptsReferences: boolean
+  /** True when the endpoint refuses to run without one. */
+  requiresReference: boolean
+  featured: boolean
 }
 
 export function toPickable(model: ModelDefinition): PickableModel {
@@ -26,5 +29,7 @@ export function toPickable(model: ModelDefinition): PickableModel {
     pricing: model.pricing,
     inputs: model.inputs.filter((input) => !input.hidden && input.name !== 'prompt'),
     acceptsReferences: model.references.length > 0,
+    requiresReference: model.references.some((mapping) => mapping.required),
+    featured: model.featured,
   }
 }

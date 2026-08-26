@@ -11,7 +11,11 @@ import { submitJob } from '@genny/fal/queue.ts'
 import { uploadReference } from '@genny/fal/upload.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
 import { buildInputSchema } from '@genny/models/input.ts'
-import { type PromptReference, resolvePrompt } from '@genny/models/references.ts'
+import {
+  missingRequiredReferences,
+  type PromptReference,
+  resolvePrompt,
+} from '@genny/models/references.ts'
 import { generationRequest } from '@genny/models/request.ts'
 import { createPostgresLimiter } from '@genny/ratelimit/postgres-limiter.ts'
 import { ruleFor } from '@genny/ratelimit/rules.ts'
@@ -54,6 +58,12 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
    * also why the ids arriving from the client need no ownership check here.
    */
   const references = await resolveReferences(db, actorId, credentials, request.references)
+
+  // Editing models refuse to run without an image and answer 422, which is
+  // invisible from our side. Say it before spending the round trip.
+  if (missingRequiredReferences(model, references).length > 0) {
+    return refuse(`${model.displayName} needs an image. Mention one with @.`, false)
+  }
   const resolved = resolvePrompt(model, request.prompt, references)
   const payload = buildInputSchema(model).safeParse({
     ...request.settings,
