@@ -32,6 +32,13 @@ export const users = pgTable(
     email: text('email').unique(),
     emailVerified: timestamp('email_verified', { withTimezone: true }),
     image: text('image'),
+    /**
+     * The plan this actor pays for, or null for anonymous and free actors. Set
+     * by the Stripe webhook and cleared when the subscription ends; the only
+     * thing that reads it is the rate limiter, which is why a stale value costs
+     * a generous limit rather than free credits.
+     */
+    planId: text('plan_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   () => [

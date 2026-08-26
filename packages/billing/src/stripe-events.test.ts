@@ -1,7 +1,7 @@
 import type Stripe from 'stripe'
 import { describe, expect, it } from 'vitest'
 import { PLANS, TOPUP } from './plans.ts'
-import { customerIdOf, grantForEvent } from './stripe-events.ts'
+import { customerIdOf, grantForEvent, planChangeForEvent } from './stripe-events.ts'
 
 const event = (type: string, object: unknown, id = 'evt_1'): Stripe.Event =>
   ({ id, type, data: { object } }) as Stripe.Event
@@ -70,6 +70,18 @@ describe('grantForEvent', () => {
     ).toBeNull()
   })
 
+  it('reads the plan off the subscription, which is where Stripe puts it', () => {
+    const plan = PLANS[1]
+    const grant = grantForEvent(
+      event('invoice.paid', {
+        id: 'in_10',
+        metadata: {},
+        parent: { subscription_details: { metadata: { planId: plan?.id } } },
+      }),
+    )
+    expect(grant?.credits).toBe(plan?.credits)
+  })
+
   it('ignores an invoice with no plan at all', () => {
     expect(grantForEvent(event('invoice.paid', { id: 'in_9', metadata: {} }))).toBeNull()
   })
@@ -109,5 +121,43 @@ describe('customerIdOf', () => {
   it('returns null when there is no customer', () => {
     expect(customerIdOf(event('invoice.paid', {}))).toBeNull()
     expect(customerIdOf(event('invoice.paid', { customer: null }))).toBeNull()
+  })
+})
+
+describe('planChangeForEvent', () => {
+  it('confirms the plan on a paid invoice', () => {
+    const plan = PLANS[2]
+    const change = planChangeForEvent(
+      event('invoice.paid', {
+        id: 'in_11',
+        parent: { subscription_details: { metadata: { planId: plan?.id } } },
+      }),
+    )
+    expect(change).toEqual({ planId: plan?.id })
+  })
+
+  it('drops the plan when the subscription ends', () => {
+    expect(planChangeForEvent(event('customer.subscription.deleted', { id: 'sub_1' }))).toEqual({
+      planId: null,
+    })
+  })
+
+  it('says nothing about a top-up, which buys credits and not a tier', () => {
+    expect(
+      planChangeForEvent(
+        event('checkout.session.completed', { mode: 'payment', payment_status: 'paid' }),
+      ),
+    ).toBeUndefined()
+  })
+
+  it('says nothing about an invoice whose plan we do not sell', () => {
+    expect(
+      planChangeForEvent(
+        event('invoice.paid', {
+          id: 'in_12',
+          parent: { subscription_details: { metadata: { planId: 'gone' } } },
+        }),
+      ),
+    ).toBeUndefined()
   })
 })

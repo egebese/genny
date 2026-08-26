@@ -2,7 +2,8 @@
 
 import { createBilling } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
-import { appDb } from '@genny/db/connection.ts'
+import { appDb, ownerDb } from '@genny/db/connection.ts'
+import { findActor } from '@genny/db/repositories/actors.ts'
 import { attachFalRequest, createJob, failJob } from '@genny/db/repositories/jobs.ts'
 import { env } from '@genny/env/env.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
@@ -15,7 +16,7 @@ import { missingRequiredReferences, resolvePrompt } from '@genny/models/referenc
 import { type GenerationRequest, generationRequest } from '@genny/models/request.ts'
 import type { ModelDefinition } from '@genny/models/schema.ts'
 import { createPostgresLimiter } from '@genny/ratelimit/postgres-limiter.ts'
-import { ruleFor } from '@genny/ratelimit/rules.ts'
+import { generationRule, tierOf } from '@genny/ratelimit/rules.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
 import type { GenerationResult } from '../schema.ts'
@@ -49,7 +50,15 @@ async function prepare(raw: unknown): Promise<Prepared | GenerationResult> {
   const actorId = await ensureActorId()
   const db = appDb(env().DATABASE_URL)
 
-  const verdict = await createPostgresLimiter(db).check(ruleFor('anonymousGeneration', actorId))
+  // What they pay for decides the ceiling. Read with the elevated connection
+  // because users grants the app role its own row and nothing else.
+  const actor = await findActor(
+    ownerDb(env().DATABASE_MIGRATION_URL ?? env().DATABASE_URL),
+    actorId,
+  )
+  const tier = actor ? tierOf(actor) : 'anonymous'
+
+  const verdict = await createPostgresLimiter(db).check(generationRule(tier, actorId))
   if (!verdict.allowed) {
     const minutes = Math.max(1, Math.ceil((verdict.resetAt.getTime() - Date.now()) / 60_000))
     return refuse(`Too many generations for now. Try again in about ${minutes} minutes.`, true)

@@ -4,7 +4,9 @@ import { creditBalance } from '../server/balance.ts'
 
 /**
  * The balance, in the topbar, on every studio page. Running out mid-session is
- * the worst moment to discover the number, so it is always on screen.
+ * the worst moment to discover the number, so it is always on screen. It links
+ * to usage rather than to checkout: the first question about a number going down
+ * is what spent it.
  *
  * Renders nothing in byok mode, where credits do not exist.
  */
@@ -14,7 +16,7 @@ export async function CreditMeter() {
 
   return (
     <Link
-      href="/billing"
+      href="/usage"
       className="rounded-(--radius-control) px-2 py-1 text-ink-muted text-sm tabular-nums hover:bg-surface hover:text-ink"
     >
       {balance.credits.toLocaleString()}

@@ -46,7 +46,15 @@ export function grantForEvent(event: Stripe.Event): CreditGrant | null {
 
   if (event.type === 'invoice.paid') {
     const invoice = event.data.object as Stripe.Invoice
-    const plan = findPlan(invoice.metadata?.planId ?? '')
+
+    /*
+     * The subscription's metadata, not the invoice's own. We write planId when
+     * the subscription is created, and Stripe reflects it onto each invoice
+     * under parent.subscription_details; invoice.metadata stays empty, so
+     * reading that grants nobody anything and does it silently.
+     */
+    const metadata = invoice.parent?.subscription_details?.metadata ?? invoice.metadata
+    const plan = findPlan(metadata?.planId ?? '')
     if (!plan) return null
 
     return {
@@ -72,4 +80,29 @@ export function customerIdOf(event: Stripe.Event): string | null {
   const customer = object.customer
   if (typeof customer === 'string') return customer
   return customer?.id ?? null
+}
+
+/**
+ * Which plan an event says the customer is now on, or null to say they are on
+ * none. Undefined for events that say nothing about it, which is most of them.
+ *
+ * Separate from the credit grant because the two answer to different things: a
+ * renewal grants credits and confirms the plan, while a cancellation grants
+ * nothing and still has to be acted on.
+ */
+export function planChangeForEvent(event: Stripe.Event): { planId: string | null } | undefined {
+  if (event.type === 'invoice.paid') {
+    const invoice = event.data.object as Stripe.Invoice
+    const metadata = invoice.parent?.subscription_details?.metadata ?? invoice.metadata
+    const plan = findPlan(metadata?.planId ?? '')
+    return plan ? { planId: plan.id } : undefined
+  }
+
+  if (event.type === 'customer.subscription.deleted') {
+    // The subscription is over, so the rate limit tier goes back to free. Credits
+    // already granted stay: they were paid for.
+    return { planId: null }
+  }
+
+  return undefined
 }

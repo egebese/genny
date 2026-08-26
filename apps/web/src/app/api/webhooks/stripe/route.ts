@@ -1,7 +1,8 @@
 import { recordChange } from '@genny/billing/ledger.ts'
 import { stripeClient, verifyWebhook } from '@genny/billing/stripe-client.ts'
-import { customerIdOf, grantForEvent } from '@genny/billing/stripe-events.ts'
+import { customerIdOf, grantForEvent, planChangeForEvent } from '@genny/billing/stripe-events.ts'
 import { ownerDb } from '@genny/db/connection.ts'
+import { setActorPlan } from '@genny/db/repositories/actors.ts'
 import { env } from '@genny/env/env.ts'
 
 /**
@@ -30,7 +31,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!verified.ok) return new Response(verified.reason, { status: 400 })
 
   const grant = grantForEvent(verified.event)
-  if (!grant) return Response.json({ ok: true, ignored: verified.event.type })
+  const planChange = planChangeForEvent(verified.event)
+  if (!grant && !planChange) return Response.json({ ok: true, ignored: verified.event.type })
 
   const ownerId = await ownerFor(config.STRIPE_SECRET_KEY, verified.event)
   if (!ownerId) {
@@ -40,13 +42,21 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ ok: true, unmatched: true })
   }
 
-  await recordChange(ownerDb(config.DATABASE_MIGRATION_URL ?? config.DATABASE_URL), {
-    ownerId,
-    delta: String(grant.credits),
-    kind: grant.kind,
-    idempotencyKey: grant.idempotencyKey,
-    note: grant.note,
-  })
+  const db = ownerDb(config.DATABASE_MIGRATION_URL ?? config.DATABASE_URL)
+
+  if (grant) {
+    await recordChange(db, {
+      ownerId,
+      delta: String(grant.credits),
+      kind: grant.kind,
+      idempotencyKey: grant.idempotencyKey,
+      note: grant.note,
+    })
+  }
+  // After the credits, and unconditionally: this is a projection of what Stripe
+  // just said, so replaying it writes the same value again.
+  if (planChange) await setActorPlan(db, ownerId, planChange.planId)
+
   return Response.json({ ok: true })
 }
 

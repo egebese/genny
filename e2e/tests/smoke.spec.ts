@@ -524,6 +524,32 @@ test.describe('fal webhook', () => {
   })
 })
 
+test.describe('usage page', () => {
+  test('shows the ledger, the tier and what it allows', async ({ page }) => {
+    test.skip(mode !== 'saas', 'byok has no ledger to read')
+    await page.goto('/usage')
+    await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
+    // A new visitor is on the free tier with their trial grant on the ledger.
+    await expect(page.getByText('Free')).toBeVisible()
+    await expect(page.getByText('trial credits')).toBeVisible()
+  })
+
+  test('is reachable from the credit meter, since that is the number people question', async ({
+    page,
+  }) => {
+    test.skip(mode !== 'saas', 'byok has no credit meter')
+    await page.goto('/image')
+    await page.getByRole('link', { name: /[\d,]+ credits/ }).click()
+    await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
+  })
+
+  test('byok has no usage page, because there is no ledger', async ({ page }) => {
+    test.skip(mode !== 'byok', 'saas is the mode with credits')
+    const response = await page.goto('/usage')
+    expect(response?.status()).toBe(404)
+  })
+})
+
 test.describe('reconcile route', () => {
   test('refuses a request without the shared secret', async ({ request }) => {
     test.skip(mode !== 'saas', 'the suite only configures a cron secret in saas')

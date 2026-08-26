@@ -2,7 +2,7 @@ import { startTestDatabase, type TestDatabase } from '@genny/db/testing/containe
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { createPostgresLimiter, pruneExpiredBuckets } from './postgres-limiter.ts'
-import { ruleFor } from './rules.ts'
+import { generationRule } from './rules.ts'
 
 let database: TestDatabase
 
@@ -102,8 +102,8 @@ describe('postgres limiter', () => {
   })
 
   it('limits anonymous generation harder than signed-in generation', () => {
-    expect(ruleFor('anonymousGeneration', 'ip').limit).toBeLessThan(
-      ruleFor('userGeneration', 'actor').limit,
+    expect(generationRule('anonymous', 'ip').limit).toBeLessThan(
+      generationRule('free', 'actor').limit,
     )
   })
 })

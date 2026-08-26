@@ -6,6 +6,8 @@ export type Actor = {
   id: string
   kind: 'anonymous' | 'registered'
   role: 'user' | 'admin'
+  /** The plan they pay for, or null for anonymous and free actors. */
+  planId: string | null
 }
 
 /**
@@ -20,17 +22,27 @@ export async function createAnonymousActor(db: Database, id: string): Promise<Ac
     .insert(users)
     .values({ id, kind: 'anonymous' })
     .onConflictDoNothing()
-    .returning({ id: users.id, kind: users.kind, role: users.role })
+    .returning({ id: users.id, kind: users.kind, role: users.role, planId: users.planId })
 
-  return row ?? { id, kind: 'anonymous', role: 'user' }
+  return row ?? { id, kind: 'anonymous', role: 'user', planId: null }
 }
 
 /** Reads an actor with the elevated connection, for code that has no actor context yet. */
 export async function findActor(db: Database, id: string): Promise<Actor | null> {
   const [row] = await db
-    .select({ id: users.id, kind: users.kind, role: users.role })
+    .select({ id: users.id, kind: users.kind, role: users.role, planId: users.planId })
     .from(users)
     .where(eq(users.id, id))
     .limit(1)
   return row ?? null
+}
+
+/**
+ * Records which plan an actor pays for, or clears it when the subscription ends.
+ *
+ * Elevated connection: this is written by the Stripe webhook, which arrives with
+ * no session and no actor to scope a policy against.
+ */
+export async function setActorPlan(db: Database, id: string, planId: string | null): Promise<void> {
+  await db.update(users).set({ planId }).where(eq(users.id, id))
 }
