@@ -1,7 +1,5 @@
 'use server'
 
-import { findCharactersByIds } from '@genny/assets/characters.ts'
-import { findAssetsByIds } from '@genny/assets/repository.ts'
 import { createBilling } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
@@ -9,24 +7,36 @@ import { attachFalRequest, createJob, failJob } from '@genny/db/repositories/job
 import { env } from '@genny/env/env.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
 import { submitJob } from '@genny/fal/queue.ts'
-import { uploadReference } from '@genny/fal/upload.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
 import { creditsFor, estimateUnits } from '@genny/models/credits.ts'
 import { buildInputSchema } from '@genny/models/input.ts'
-import {
-  missingRequiredReferences,
-  type PromptReference,
-  resolvePrompt,
-} from '@genny/models/references.ts'
-import { generationRequest } from '@genny/models/request.ts'
+import { missingRequiredReferences, resolvePrompt } from '@genny/models/references.ts'
+import { type GenerationRequest, generationRequest } from '@genny/models/request.ts'
+import type { ModelDefinition } from '@genny/models/schema.ts'
 import { createPostgresLimiter } from '@genny/ratelimit/postgres-limiter.ts'
 import { ruleFor } from '@genny/ratelimit/rules.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
 import type { GenerationResult } from '../schema.ts'
-import { storage } from './storage.ts'
+import { resolveReferences } from './resolve-references.ts'
 
-export async function createGeneration(raw: unknown): Promise<GenerationResult> {
+type Prepared = {
+  model: ModelDefinition
+  actorId: string
+  db: ReturnType<typeof appDb>
+  credentials: Awaited<ReturnType<typeof readCredentials>>
+  request: GenerationRequest
+  payload: Record<string, unknown>
+  dropped: string[]
+}
+
+/**
+ * Everything that can refuse the request, in the order that costs least.
+ *
+ * Kept apart from the submit so each stays readable: this one decides whether the
+ * generation may happen, and `createGeneration` is what happens when it may.
+ */
+async function prepare(raw: unknown): Promise<Prepared | GenerationResult> {
   const parsed = generationRequest.safeParse(raw)
   if (!parsed.success) return refuse('Those settings are not valid.', false)
   const request = parsed.data
@@ -44,12 +54,8 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
     return refuse(`Too many generations for now. Try again in about ${minutes} minutes.`, true)
   }
 
-  let credentials: Awaited<ReturnType<typeof readCredentials>>
-  try {
-    credentials = await readCredentials()
-  } catch {
-    return refuse('Add a fal key before generating.', false)
-  }
+  const credentials = await readCredentials().catch(() => null)
+  if (!credentials) return refuse('Add a fal key before generating.', false)
 
   /*
    * References resolve to urls before validation, so the model schema sees the
@@ -66,6 +72,7 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
   if (missingRequiredReferences(model, references).length > 0) {
     return refuse(`${model.displayName} needs an image. Mention one with @.`, false)
   }
+
   const resolved = resolvePrompt(model, request.prompt, references)
   const payload = buildInputSchema(model).safeParse({
     ...request.settings,
@@ -74,16 +81,28 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
   })
   if (!payload.success) return refuse('The model rejected these settings.', false)
 
+  return {
+    model,
+    actorId,
+    db,
+    credentials,
+    request,
+    payload: payload.data,
+    dropped: [...new Set(resolved.dropped.map((reference) => reference.label))],
+  }
+}
+
+export async function createGeneration(raw: unknown): Promise<GenerationResult> {
+  const prepared = await prepare(raw)
+  if ('ok' in prepared) return prepared
+  const { model, actorId, db, credentials, request, payload } = prepared
+
   /*
    * Hold before submitting, so two tabs cannot spend the same credits. In byok
    * mode this is a no-op: the visitor is spending their own fal balance.
    */
   const billing = createBilling(env().GENNY_MODE, db)
-  const estimate = creditsFor(
-    model,
-    { units: estimateUnits(model, payload.data) },
-    env().CREDIT_PER_USD,
-  )
+  const estimate = creditsFor(model, { units: estimateUnits(model, payload) }, env().CREDIT_PER_USD)
   const held = await billing.hold(actorId, String(estimate))
   if (!held.ok) return refuse(held.reason, false)
 
@@ -94,16 +113,16 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
       ownerId: actorId,
       endpointId: model.endpointId,
       prompt: { text: request.prompt, references: request.references },
-      input: payload.data,
+      input: payload,
       creditsHeld: billing.tracksCredits ? held.held : undefined,
     }),
   )
 
   try {
-    const { requestId } = await submitJob(credentials, model.endpointId, payload.data)
+    const { requestId } = await submitJob(credentials, model.endpointId, payload)
     await withActor(db, actorId, (tx) => attachFalRequest(tx, job.id, requestId))
-    return resolved.dropped.length > 0
-      ? { ok: true, jobId: job.id, dropped: [...new Set(resolved.dropped.map((r) => r.label))] }
+    return prepared.dropped.length > 0
+      ? { ok: true, jobId: job.id, dropped: prepared.dropped }
       : { ok: true, jobId: job.id }
   } catch (error) {
     const failure = error instanceof FalFailure ? error : null
@@ -113,61 +132,6 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
     await withActor(db, actorId, (tx) => failJob(tx, job.id, message))
     return refuse(message, failure?.retryable ?? true)
   }
-}
-
-/**
- * Turns the asset ids the client sent into urls a model can fetch, in the order
- * the client listed them. Anything the actor cannot see is skipped, so a guessed
- * id reveals nothing.
- *
- * The url has to be reachable *by fal*, which our own bucket often is not: in
- * development it is localhost, and in production it may be private. So each
- * reference is handed to fal and its url is used instead.
- */
-async function resolveReferences(
-  db: ReturnType<typeof appDb>,
-  actorId: string,
-  credentials: Awaited<ReturnType<typeof readCredentials>>,
-  requested: { token: string; label: string; kind: 'asset' | 'character'; id: string }[],
-): Promise<PromptReference[]> {
-  if (requested.length === 0) return []
-
-  const assetIds = requested.filter((item) => item.kind === 'asset').map((item) => item.id)
-  const characterIds = requested.filter((item) => item.kind === 'character').map((item) => item.id)
-
-  const [foundAssets, foundCharacters] = await withActor(db, actorId, async (tx) => [
-    await findAssetsByIds(tx, assetIds),
-    await findCharactersByIds(tx, characterIds),
-  ])
-  const assetById = new Map(foundAssets.map((asset) => [asset.id, asset]))
-  const characterById = new Map(foundCharacters.map((character) => [character.id, character]))
-
-  const bucket = storage()
-  const resolved: PromptReference[] = []
-
-  for (const item of requested) {
-    /*
-     * A character contributes one reference per member, all under the same token.
-     * The mapping in the catalog then decides how many the model can take, and
-     * the rest come back as dropped.
-     */
-    const members =
-      item.kind === 'character'
-        ? (characterById.get(item.id)?.members ?? [])
-        : assetById.has(item.id)
-          ? [assetById.get(item.id) as { storageKey: string; mime: string }]
-          : []
-
-    for (const member of members) {
-      const bytes = await bucket.get(member.storageKey)
-      resolved.push({
-        token: item.token,
-        label: item.label,
-        url: await uploadReference(credentials, bytes, member.mime),
-      })
-    }
-  }
-  return resolved
 }
 
 function refuse(reason: string, retryable: boolean): GenerationResult {

@@ -11,6 +11,19 @@ read their gallery.
 **Registered.** Auth.js v5 with the Drizzle adapter. Google first; email link
 later. Phase 2.
 
+## A session buys, it does not gate
+
+The plan originally said saas mode requires a session for any generation. It does
+not, and the change is deliberate.
+
+An anonymous visitor gets the trial grant and can spend it. When it runs out, or
+when they want more, they sign in and buy. Promotion is what makes that safe:
+signing in keeps the same `users` row, so nothing they made is lost and there is
+no reason to demand an account before they have seen the thing work.
+
+Gating generation behind sign-up would also make the trial grant pointless, since
+nobody would ever reach it.
+
 ## Promotion, not migration
 
 Signing in promotes the existing anonymous row to `registered` and attaches an
@@ -33,7 +46,7 @@ adapter uses its own owner-role connection. The application never queries them.
 | I2 | A forged or re-signed actor cookie is rejected |
 | I3 | Signing in preserves everything the anonymous actor created |
 | I4 | The app role can read nothing from the auth tables |
-| I5 | `saas` mode requires a session for any generation |
+| I5 | A session is required to *buy*, not to generate |
 | I6 | Sign-out clears the session and issues a fresh anonymous actor |
 | I7 | Admin role is checked server-side on every admin route |
 

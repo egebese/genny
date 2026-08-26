@@ -37,6 +37,7 @@ catalog:
   # security-patched release because no version avoids it. Run `pnpm build`
   # before bumping: that is the only signal.
   next: 16.3.3
+  '@auth/drizzle-adapter': 1.11.3
   'next-auth': 5.0.0-beta.32
   postgres: 3.4.9
   'radix-ui': 1.6.7

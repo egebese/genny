@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "catalog:",
     "@genny/assets": "workspace:*",
     "@genny/auth": "workspace:*",
     "@genny/billing": "workspace:*",
@@ -20,6 +21,7 @@
     "@genny/ratelimit": "workspace:*",
     "@genny/ui": "workspace:*",
     "next": "catalog:",
+    "next-auth": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

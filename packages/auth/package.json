@@ -8,7 +8,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --exclude '**/*.integration.test.ts' --exclude '**/node_modules/**'",
+    "test:integration": "vitest run --testTimeout 180000 integration.test"
   },
   "dependencies": {
     "@genny/db": "workspace:*",
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "@genny/tsconfig": "workspace:*",
+    "@testcontainers/postgresql": "catalog:",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
