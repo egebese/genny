@@ -24,7 +24,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Opens or updates a version PR while changesets are pending, so the
       # changelog is reviewed like anything else.
-      - uses: changesets/action@v1
+      - uses: changesets/action@v2
         with:
           version: pnpm changeset version
           commit: 'chore: version packages'
