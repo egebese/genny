@@ -520,7 +520,7 @@ test.describe('credits', () => {
     test.skip(mode !== 'saas', 'byok has no credits')
     await page.goto('/image')
     // The topbar meter, not the dock's price: this is the balance itself.
-    await expect(page.getByRole('link', { name: /[\d,]+ credits/ })).toBeVisible()
+    await expect(page.getByRole('link', { name: /[\d,]+ credits available/ })).toBeVisible()
   })
 
   test('saas prices the button in credits, not dollars', async ({ page }) => {
@@ -590,7 +590,7 @@ test.describe('usage page', () => {
   }) => {
     test.skip(mode !== 'saas', 'byok has no credit meter')
     await page.goto('/image')
-    await page.getByRole('link', { name: /[\d,]+ credits/ }).click()
+    await page.getByRole('link', { name: /[\d,]+ credits available/ }).click()
     await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
   })
 

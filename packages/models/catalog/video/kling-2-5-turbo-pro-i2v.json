@@ -3,15 +3,21 @@
   "modality": "video",
   "group": "Image to Video",
   "displayName": "Kling 2.5 Turbo Pro (from an image)",
-  "description": "Animates a still. Mention an image with @ and Kling moves it for five or ten seconds.",
+  "description": "Kling 2.5 Turbo Pro: Top-tier image-to-video generation with unparalleled motion fluidity, cinematic visuals, and exceptional prompt precision.",
   "sortOrder": 2,
   "pricing": {
     "unit": "seconds",
-    "unitPriceUsd": 0.07
+    "unitPriceUsd": 0.07,
+    "note": "fal quotes a 5s bundle at $0.35 plus $0.07 per extra second. Per second is exact for both durations the model offers: 5s costs $0.35, 10s costs $0.70."
   },
   "creditMultiplier": 1.2,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "duration",
       "type": "enum",
@@ -46,5 +52,6 @@
   "capabilities": {
     "supportsNegativePrompt": true,
     "maxOutputs": 1
-  }
+  },
+  "thumbnailUrl": "https://v3.fal.media/files/rabbit/2KNBk1qkmEBXK0FLgfHCl_ee4bb1ada254433bbab296893a8636e3.jpg"
 }

@@ -3,7 +3,7 @@
   "modality": "audio",
   "group": "Text to Audio",
   "displayName": "Stable Audio 2.5",
-  "description": "Music and sound design from a description. One flat price whatever the length.",
+  "description": "Generate high quality music and sound effects using Stable Audio 2.5 from StabilityAI",
   "sortOrder": 2,
   "pricing": {
     "unit": "requests",
@@ -11,7 +11,12 @@
   },
   "creditMultiplier": 1.2,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "seconds_total",
       "type": "integer",
@@ -28,11 +33,16 @@
       "min": 4,
       "max": 16
     },
-    { "name": "seed", "type": "integer", "label": "Seed" }
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
   ],
   "references": [],
   "capabilities": {
     "supportsSeed": true,
     "maxOutputs": 1
-  }
+  },
+  "thumbnailUrl": "https://v3b.fal.media/files/b/0a9f91ae/mtqDUea-jzlnWg_odMe1j_bB5cIBlf.png"
 }

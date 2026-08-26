@@ -32,7 +32,14 @@ for (const modality of readdirSync(catalogRoot)) {
     const remote = await fetchModel(entry.endpointId)
 
     if (!remote) {
-      drift.push(`${entry.endpointId}: not found on fal any more. Disable it or remove it.`)
+      /*
+       * Not proof it is gone. fal's model search does not index every endpoint:
+       * elevenlabs/tts/multilingual-v2 answers generations fine and is absent
+       * from this listing. So this reports rather than advises.
+       */
+      drift.push(
+        `${entry.endpointId}: not in fal's model search. It may be unlisted rather than removed, so check it with a real call before disabling it.`,
+      )
       continue
     }
     if (remote.deprecated || remote.removed) {
@@ -40,10 +47,18 @@ for (const modality of readdirSync(catalogRoot)) {
     }
 
     const priceNote = comparePrice(entry, remote)
-    if (priceNote) drift.push(priceNote)
+    if (priceNote) {
+      const ours = entry.pricing?.note
+      drift.push(ours ? `${priceNote}\n    catalog note: ${ours}` : priceNote)
+    }
 
+    /*
+     * Description and thumbnail follow fal; the display name does not. fal's
+     * titles are not written to sit in a picker together, and two of them
+     * collided on "Nano Banana 2", which is a name that tells nobody which
+     * model they are about to spend money on. The name in the catalog is ours.
+     */
     const updated = { ...entry }
-    if (remote.title) updated.displayName = remote.title
     if (remote.shortDescription) updated.description = remote.shortDescription.trim()
     if (remote.thumbnailUrl) updated.thumbnailUrl = remote.thumbnailUrl
 

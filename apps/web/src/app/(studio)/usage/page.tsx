@@ -36,7 +36,7 @@ export default async function UsagePage() {
           value={Math.round(Number(report.thisMonth.credits)).toLocaleString()}
         />
         <Stat label="Generations" value={report.thisMonth.generations.toLocaleString()} />
-        <Stat label={report.planName} value={`${report.hourlyLimit.toLocaleString()}/hr`} />
+        <Stat label="Plan" value={`${report.planName} · ${report.hourlyLimit}/hr`} />
       </dl>
 
       {report.entries.length === 0 ? (
@@ -49,7 +49,9 @@ export default async function UsagePage() {
               className="flex items-center gap-3 px-3 py-2 text-sm"
             >
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-ink">{entry.note ?? entry.kind}</span>
+                <span className="block truncate text-ink">
+                  {entry.prompt ?? entry.note ?? entry.kind}
+                </span>
                 <span className="block text-ink-faint text-xs">
                   <time dateTime={entry.createdAt.toISOString()}>
                     {entry.createdAt.toISOString().slice(0, 16).replace('T', ' ')}

@@ -3,16 +3,22 @@
   "modality": "video",
   "group": "Text to Video",
   "displayName": "Kling 2.5 Turbo Pro",
-  "description": "Kling 2.5 Turbo Pro turns a prompt into five or ten seconds of video, with strong motion and camera control.",
+  "description": "Kling 2.5 Turbo Pro: Top-tier text-to-video generation with unparalleled motion fluidity, cinematic visuals, and exceptional prompt precision.",
   "featured": true,
   "sortOrder": 1,
   "pricing": {
     "unit": "seconds",
-    "unitPriceUsd": 0.07
+    "unitPriceUsd": 0.07,
+    "note": "fal quotes a 5s bundle at $0.35 plus $0.07 per extra second. Per second is exact for both durations the model offers: 5s costs $0.35, 10s costs $0.70."
   },
   "creditMultiplier": 1.2,
   "inputs": [
-    { "name": "prompt", "type": "string", "label": "Prompt", "required": true },
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
     {
       "name": "duration",
       "type": "enum",
@@ -46,5 +52,6 @@
   "capabilities": {
     "supportsNegativePrompt": true,
     "maxOutputs": 1
-  }
+  },
+  "thumbnailUrl": "https://v3.fal.media/files/panda/6YaK9lV7ySsUA9I3dUp5r_8a807b0c8e2641db9e345107ab8a809e.jpg"
 }

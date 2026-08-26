@@ -60,7 +60,16 @@ export const modelDefinition = z.object({
   thumbnailUrl: z.url().optional(),
   featured: z.boolean().default(false),
   sortOrder: z.int().default(0),
-  pricing: z.object({ unit: pricingUnit, unitPriceUsd: z.number().nonnegative() }),
+  pricing: z.object({
+    unit: pricingUnit,
+    unitPriceUsd: z.number().nonnegative(),
+    /**
+     * Why this number is right when fal's published prose says something else.
+     * Printed next to the drift report, so a recurring false alarm is answered
+     * in the file rather than rediscovered every week.
+     */
+    note: z.string().optional(),
+  }),
   /** Multiplier applied on top of the fal price. 1 means we resell at cost. */
   creditMultiplier: z.number().positive().default(1),
   /**

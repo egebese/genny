@@ -133,7 +133,6 @@ export function Studio({
   return (
     <>
       <ResultFeed
-        credits={credits}
         results={results}
         cursor={cursor}
         loadingMore={loadingMore}
@@ -148,6 +147,7 @@ export function Studio({
       <Dock>
         {ready ? (
           <PromptDock
+            modality={modality}
             models={models}
             model={model}
             mentionables={mentionables}

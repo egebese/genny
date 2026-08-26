@@ -17,10 +17,21 @@ export async function CreditMeter() {
   return (
     <Link
       href="/usage"
+      // Spelled out, because the visible word is dropped on a phone and a bare
+      // number read aloud says nothing.
+      aria-label={`${balance.credits.toLocaleString()} credits available`}
       className="rounded-(--radius-control) px-2 py-1 text-ink-muted text-sm tabular-nums hover:bg-surface hover:text-ink"
     >
       {balance.credits.toLocaleString()}
-      <span className="text-ink-faint"> credits</span>
+      {/* The word costs sixty pixels a phone topbar does not have. The number
+          next to a nav that says Image, Video, Audio is not ambiguous. */}
+      <span className="hidden text-ink-faint sm:inline"> credits</span>
+      {balance.held > 0 ? (
+        <span className="hidden text-ink-faint sm:inline">
+          {' '}
+          · {balance.held.toLocaleString()} reserved
+        </span>
+      ) : null}
     </Link>
   )
 }

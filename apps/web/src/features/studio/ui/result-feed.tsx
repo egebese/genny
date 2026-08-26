@@ -5,8 +5,6 @@ import { LiveResultCard } from './live-result-card.tsx'
 import type { ResultItem } from './result-card.tsx'
 
 type ResultFeedProps = {
-  /** Null in byok mode, where the visitor spends their own fal balance. */
-  credits: { balance: string; holdBalance: string; perUsd: number } | null
   results: ResultItem[]
   /** Cursor for the next page, or null when there is no more. */
   cursor: string | null
@@ -17,7 +15,6 @@ type ResultFeedProps = {
 
 /** Everything above the dock: the balance, the work, and the way to older work. */
 export function ResultFeed({
-  credits,
   results,
   cursor,
   loadingMore,
@@ -26,18 +23,6 @@ export function ResultFeed({
 }: ResultFeedProps) {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-      {credits ? (
-        <p className="mb-4 text-ink-muted text-sm">
-          <span className="font-mono text-ink">{Math.floor(Number(credits.balance))}</span> credits
-          {Number(credits.holdBalance) > 0 ? (
-            <span className="text-ink-faint">
-              {' '}
-              · {Math.ceil(Number(credits.holdBalance))} reserved
-            </span>
-          ) : null}
-        </p>
-      ) : null}
-
       {results.length === 0 ? (
         <p className="py-20 text-center text-ink-faint">
           Nothing generated yet. Write a prompt below.

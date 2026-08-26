@@ -12,6 +12,8 @@ export type LedgerEntry = {
   kind: LedgerKind
   note: string | null
   jobId: string | null
+  /** What the generation was asked for, when the row belongs to one. */
+  prompt: string | null
   createdAt: Date
 }
 
@@ -30,11 +32,18 @@ export async function listLedger(
   ownerId: string,
   limit: number,
 ): Promise<LedgerEntry[]> {
+  /*
+   * Joined to the job so a row can say what it bought. "generation, -421" is a
+   * number with no story; the prompt is the thing someone recognises when they
+   * are working out where a month went.
+   */
   const rows = await tx.execute<LedgerRow>(sql`
-    select delta, kind, note, job_id as "jobId", created_at as "createdAt"
-      from credit_ledger
-     where owner_id = ${ownerId}
-     order by created_at desc
+    select l.delta, l.kind, l.note, l.job_id as "jobId",
+           j.prompt->>'text' as "prompt", l.created_at as "createdAt"
+      from credit_ledger l
+      left join jobs j on j.id = l.job_id
+     where l.owner_id = ${ownerId}
+     order by l.created_at desc
      limit ${Math.min(limit, 200)}
   `)
   return rows.map((row) => ({ ...row, createdAt: new Date(row.createdAt) }))

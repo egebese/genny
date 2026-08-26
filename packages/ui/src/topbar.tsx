@@ -24,15 +24,17 @@ export function Topbar({ brand, nav, actions, className }: TopbarProps) {
       )}
     >
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4">
-        <div className="flex items-center gap-2 font-semibold tracking-tight">{brand}</div>
+        <div className="flex shrink-0 items-center gap-2 font-semibold tracking-tight">{brand}</div>
         {/* Always visible: with no sidebar, hiding this on a phone would leave
-            no navigation at all. It scrolls sideways instead of collapsing. */}
+            no navigation at all. It scrolls sideways instead of collapsing.
+            min-w-0 is what makes that true: without it the nav refuses to shrink
+            and pushes the actions off the edge instead of scrolling. */}
         {nav ? (
-          <nav className="-mx-1 flex items-center gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
+          <nav className="-mx-1 flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
             {nav}
           </nav>
         ) : null}
-        <div className="ml-auto flex items-center gap-2">{actions}</div>
+        <div className="flex shrink-0 items-center gap-2">{actions}</div>
       </div>
     </header>
   )

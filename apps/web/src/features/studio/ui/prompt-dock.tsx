@@ -11,7 +11,15 @@ import { ModelPicker } from './model-picker.tsx'
 import { SettingField } from './setting-field.tsx'
 import { useMentions } from './use-mentions.ts'
 
+/** The dock asks for what this studio makes, not for what the image studio makes. */
+const PLACEHOLDERS = {
+  image: 'Describe the image you want, or @mention an asset',
+  video: 'Describe the shot you want, or @mention an image to animate',
+  audio: 'Write what should be said, or describe the sound you want',
+} as const
+
 type PromptDockProps = {
+  modality: keyof typeof PLACEHOLDERS
   models: PickableModel[]
   model: PickableModel
   onModelChange: (model: PickableModel) => void
@@ -38,7 +46,7 @@ function formatCost(usd: number): string {
 }
 
 export function PromptDock(props: PromptDockProps) {
-  const { model, settings, pending, error, onSubmit, prompt } = props
+  const { model, settings, pending, error, onSubmit, prompt, modality } = props
   const setPrompt = props.onPromptChange
   const textarea = useRef<HTMLTextAreaElement>(null)
 
@@ -113,7 +121,7 @@ export function PromptDock(props: PromptDockProps) {
         ref={textarea}
         rows={2}
         value={prompt}
-        placeholder="Describe the image you want, or @mention an asset"
+        placeholder={PLACEHOLDERS[modality]}
         role="combobox"
         aria-expanded={mentions.active !== null}
         aria-controls="mention-list"
