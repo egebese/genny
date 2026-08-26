@@ -24,50 +24,57 @@ export type CreditGrant = {
  */
 export function grantForEvent(event: Stripe.Event): CreditGrant | null {
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session
-
-    /*
-     * A subscription checkout is granted by the invoice that follows it. Acting
-     * on both would grant the first month twice.
-     */
-    if (session.mode === 'subscription') return null
-    if (session.payment_status !== 'paid') return null
-
-    const credits = Number(session.metadata?.credits ?? TOPUP.credits)
-    if (!Number.isFinite(credits) || credits <= 0) return null
-
-    return {
-      credits,
-      kind: 'topup',
-      idempotencyKey: `stripe:${event.id}`,
-      note: 'credit top-up',
-    }
+    return topup(event.data.object as Stripe.Checkout.Session, event.id)
   }
-
   if (event.type === 'invoice.paid') {
-    const invoice = event.data.object as Stripe.Invoice
-
-    /*
-     * The subscription's metadata, not the invoice's own. We write planId when
-     * the subscription is created, and Stripe reflects it onto each invoice
-     * under parent.subscription_details; invoice.metadata stays empty, so
-     * reading that grants nobody anything and does it silently.
-     */
-    const metadata = invoice.parent?.subscription_details?.metadata ?? invoice.metadata
-    const plan = findPlan(metadata?.planId ?? '')
-    if (!plan) return null
-
-    return {
-      credits: plan.credits,
-      kind: 'grant',
-      // The invoice id, not the event id: a redelivered invoice is the same
-      // month's allowance and must not grant twice.
-      idempotencyKey: `stripe:invoice:${invoice.id}`,
-      note: `${plan.name} allowance`,
-    }
+    return allowance(event.data.object as Stripe.Invoice)
   }
-
   return null
+}
+
+/**
+ * A one-off purchase. A subscription checkout is granted by the invoice that
+ * follows it, so acting on both would grant the first month twice.
+ */
+function topup(session: Stripe.Checkout.Session, eventId: string): CreditGrant | null {
+  if (session.mode === 'subscription') return null
+  if (session.payment_status !== 'paid') return null
+
+  const credits = Number(session.metadata?.credits ?? TOPUP.credits)
+  if (!Number.isFinite(credits) || credits <= 0) return null
+
+  return {
+    credits,
+    kind: 'topup',
+    idempotencyKey: `stripe:${eventId}`,
+    note: 'credit top-up',
+  }
+}
+
+/** A subscription month, whether it is the first one or the fortieth. */
+function allowance(invoice: Stripe.Invoice): CreditGrant | null {
+  const plan = planOfInvoice(invoice)
+  if (!plan) return null
+
+  return {
+    credits: plan.credits,
+    kind: 'grant',
+    // The invoice id, not the event id: a redelivered invoice is the same
+    // month's allowance and must not grant twice.
+    idempotencyKey: `stripe:invoice:${invoice.id}`,
+    note: `${plan.name} allowance`,
+  }
+}
+
+/**
+ * The subscription's metadata, not the invoice's own. We write planId when the
+ * subscription is created, and Stripe reflects it onto each invoice under
+ * parent.subscription_details; invoice.metadata stays empty, so reading that
+ * grants nobody anything and does it silently.
+ */
+function planOfInvoice(invoice: Stripe.Invoice) {
+  const metadata = invoice.parent?.subscription_details?.metadata ?? invoice.metadata
+  return findPlan(metadata?.planId ?? '')
 }
 
 /**
@@ -92,9 +99,7 @@ export function customerIdOf(event: Stripe.Event): string | null {
  */
 export function planChangeForEvent(event: Stripe.Event): { planId: string | null } | undefined {
   if (event.type === 'invoice.paid') {
-    const invoice = event.data.object as Stripe.Invoice
-    const metadata = invoice.parent?.subscription_details?.metadata ?? invoice.metadata
-    const plan = findPlan(metadata?.planId ?? '')
+    const plan = planOfInvoice(event.data.object as Stripe.Invoice)
     return plan ? { planId: plan.id } : undefined
   }
 
