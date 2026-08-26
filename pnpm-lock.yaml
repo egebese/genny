@@ -69,6 +69,9 @@ catalogs:
     react-dom:
       specifier: 19.2.0
       version: 19.2.0
+    stripe:
+      specifier: 22.5.0
+      version: 22.5.0
     tailwind-merge:
       specifier: 3.6.0
       version: 3.6.0
@@ -254,6 +257,9 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(postgres@3.4.9)
+      stripe:
+        specifier: 'catalog:'
+        version: 22.5.0(@types/node@26.3.0)
     devDependencies:
       '@genny/tsconfig':
         specifier: workspace:*
@@ -3616,6 +3622,15 @@ packages:
     resolution: {integrity: sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w==}
     engines: {node: '>=12'}
 
+  stripe@22.5.0:
+    resolution: {integrity: sha512-QVwMwriC0bbySx6R4dpsvJ0W//GojC1kwWVS6rPSoVqDUIZX4Hy3TaUrd2AZeXEAaKbfWIjQjvo3vKAReHZ0vQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/node': '>=18'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+
   styled-jsx@5.1.6:
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}
     engines: {node: '>= 12.0.0'}
@@ -6774,6 +6789,10 @@ snapshots:
   strip-ansi@7.2.0:
     dependencies:
       ansi-regex: 6.3.0
+
+  stripe@22.5.0(@types/node@26.3.0):
+    optionalDependencies:
+      '@types/node': 26.3.0
 
   styled-jsx@5.1.6(react@19.2.0):
     dependencies:

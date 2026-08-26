@@ -15,7 +15,8 @@
     "@genny/db": "workspace:*",
     "@genny/env": "workspace:*",
     "@genny/models": "workspace:*",
-    "drizzle-orm": "catalog:"
+    "drizzle-orm": "catalog:",
+    "stripe": "catalog:"
   },
   "devDependencies": {
     "@genny/tsconfig": "workspace:*",

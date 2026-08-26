@@ -58,6 +58,30 @@ CREDIT_PER_USD=1000        # 1 USD of fal spend = 1000 credits sold
 Per-model markup lives in each catalog file (`creditMultiplier`) and can be
 overridden per model from the admin panel. Your margin is those two numbers.
 
+## Stripe
+
+Three recurring prices, one per plan in `packages/billing/src/plans.ts`, created
+in your own Stripe account. Their ids go in `STRIPE_PRICE_STARTER`,
+`STRIPE_PRICE_CREATIVE` and `STRIPE_PRICE_STUDIO`. A plan whose price id is
+missing is not offered, so you can ship two plans instead of three by leaving
+one blank.
+
+Point a webhook endpoint at `/api/webhooks/stripe` and subscribe it to exactly
+two events:
+
+```
+checkout.session.completed    # one-off top-ups
+invoice.paid                  # the first subscription month and every renewal
+```
+
+Subscriptions are granted by the invoice, never by the checkout, because a
+renewal three months from now produces an invoice and no checkout. Every grant
+is keyed on the Stripe object id, so a redelivered webhook credits nobody twice.
+
+Test it before taking money: `stripe listen --forward-to
+localhost:3000/api/webhooks/stripe` prints a signing secret for
+`STRIPE_WEBHOOK_SECRET`, and `stripe trigger invoice.paid` walks the whole path.
+
 ## Operational chores
 
 | Chore | Frequency | Why |

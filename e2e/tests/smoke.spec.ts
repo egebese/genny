@@ -457,7 +457,8 @@ test.describe('credits', () => {
   test('saas grants trial credits to a new visitor and shows them', async ({ page }) => {
     test.skip(mode !== 'saas', 'byok has no credits')
     await page.goto('/image')
-    await expect(page.getByText(/credits/)).toBeVisible()
+    // The topbar meter, not the dock's price: this is the balance itself.
+    await expect(page.getByRole('link', { name: /[\d,]+ credits/ })).toBeVisible()
   })
 
   test('saas prices the button in credits, not dollars', async ({ page }) => {
@@ -474,5 +475,59 @@ test.describe('credits', () => {
     test.skip(mode !== 'saas', 'byok has no credits')
     await page.goto('/image')
     await expect(page.getByText(/reserved/)).toHaveCount(0)
+  })
+})
+
+test.describe('billing page', () => {
+  test('saas offers plans and a top-up, without a modal in sight', async ({ page }) => {
+    test.skip(mode !== 'saas', 'billing only exists in saas mode')
+    await page.goto('/billing')
+    await expect(page.getByRole('heading', { name: 'Credits' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Subscribe' })).toHaveCount(3)
+    await expect(page.getByRole('button', { name: 'Buy credits' })).toBeVisible()
+    await expect(page.locator('dialog, [role=dialog]')).toHaveCount(0)
+  })
+
+  test('byok has no billing page at all', async ({ page }) => {
+    test.skip(mode !== 'byok', 'saas is the one that sells things')
+    const response = await page.goto('/billing')
+    expect(response?.status()).toBe(404)
+  })
+})
+
+test.describe('stripe webhook', () => {
+  test('an unsigned webhook is refused', async ({ request }) => {
+    test.skip(mode !== 'saas', 'billing only exists in saas mode')
+    const response = await request.post('/api/webhooks/stripe', {
+      data: { id: 'evt_1', type: 'invoice.paid' },
+    })
+    expect(response.status()).toBe(400)
+    expect(await response.text()).toMatch(/signature/i)
+  })
+
+  test('a forged signature is refused', async ({ request }) => {
+    test.skip(mode !== 'saas', 'billing only exists in saas mode')
+    const response = await request.post('/api/webhooks/stripe', {
+      headers: { 'stripe-signature': 't=1,v1=deadbeef' },
+      data: { id: 'evt_1', type: 'invoice.paid' },
+    })
+    expect(response.status()).toBe(400)
+  })
+
+  test('the refusal says nothing about why, so it is not a forging oracle', async ({ request }) => {
+    test.skip(mode !== 'saas', 'billing only exists in saas mode')
+    const response = await request.post('/api/webhooks/stripe', {
+      headers: { 'stripe-signature': 't=1,v1=deadbeef' },
+      data: { id: 'evt_1' },
+    })
+    const body = await response.text()
+    expect(body).toBe('invalid signature')
+    expect(body).not.toMatch(/expected|timestamp|secret/i)
+  })
+
+  test('byok has no billing endpoint at all', async ({ request }) => {
+    test.skip(mode !== 'byok', 'saas has one')
+    const response = await request.post('/api/webhooks/stripe', { data: {} })
+    expect(response.status()).toBe(404)
   })
 })
