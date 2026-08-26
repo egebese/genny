@@ -8,6 +8,7 @@ import type { Metadata } from 'next'
 import { readActorId } from '@/features/session/actor.ts'
 import { hasUsableCredentials } from '@/features/session/fal-key.ts'
 import { toPickable } from '@/features/studio/model-list.ts'
+import { ingestedUrls } from '@/features/studio/server/outputs.ts'
 import type { ResultItem } from '@/features/studio/ui/result-card.tsx'
 import { Studio } from '@/features/studio/ui/studio.tsx'
 
@@ -43,7 +44,14 @@ async function recentJobs(names: Map<string, string>): Promise<ResultItem[]> {
     // Fall back to the endpoint id only for a model since removed from the catalog.
     modelName: names.get(job.endpointId) ?? job.endpointId,
     status: job.status,
-    urls: job.status === 'completed' ? collectMediaUrls(job.output) : [],
+    // Our bucket first; fal's urls only for jobs that predate ingestion, and
+    // those expire.
+    urls:
+      job.status === 'completed'
+        ? ingestedUrls(job.output).length > 0
+          ? ingestedUrls(job.output)
+          : collectMediaUrls(job.output)
+        : [],
     error: job.error,
   }))
 }

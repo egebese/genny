@@ -1,0 +1,27 @@
+{
+  "name": "@genny/assets",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*.ts": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --exclude '**/*.integration.test.ts' --exclude '**/node_modules/**' --passWithNoTests",
+    "test:integration": "vitest run --testTimeout 180000 integration.test"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "catalog:",
+    "@aws-sdk/s3-request-presigner": "catalog:",
+    "@genny/db": "workspace:*",
+    "@genny/env": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@genny/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

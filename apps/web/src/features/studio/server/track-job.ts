@@ -1,3 +1,5 @@
+import { ingestOutputs } from '@genny/assets/ingest.ts'
+import { publicUrlFor } from '@genny/assets/keys.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { Database } from '@genny/db/client.ts'
 import {
@@ -6,9 +8,11 @@ import {
   type JobRecord,
   markJobRunning,
 } from '@genny/db/repositories/jobs.ts'
+import { env } from '@genny/env/env.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
 import { readJobResult, readJobStatus } from '@genny/fal/queue.ts'
+import { storage } from './storage.ts'
 
 export type TrackEvent =
   | { status: 'queued' | 'running'; jobId: string; queuePosition: number | null }
@@ -85,8 +89,42 @@ async function finish(context: TrackContext): Promise<TrackEvent> {
   const { db, actorId, job, credentials } = context
   try {
     const outputs = await readJobResult(credentials, job.endpointId, job.falRequestId)
-    await withActor(db, actorId, (tx) => completeJob(tx, job.id, outputs.raw))
-    return { status: 'completed', jobId: job.id, urls: outputs.urls }
+
+    /*
+     * Copy the media into our own bucket before finishing. fal keeps it for about
+     * a week, so a gallery pointing at fal urls quietly empties itself.
+     *
+     * If ingestion fails we still complete the job and hand back fal's urls: a
+     * result the user can see and download beats a failure over storage they did
+     * not ask about. The failure is recorded on the row.
+     */
+    const ingested = await ingestOutputs({
+      db,
+      storage: storage(),
+      ownerId: actorId,
+      jobId: job.id,
+      urls: outputs.urls,
+      labelHint: job.prompt.text,
+    })
+
+    const stored = {
+      ...(outputs.raw as Record<string, unknown>),
+      genny: {
+        assets: ingested.assets.map((asset) => ({
+          id: asset.id,
+          label: asset.label,
+          storageKey: asset.storageKey,
+        })),
+        ingestFailures: ingested.failures,
+      },
+    }
+    await withActor(db, actorId, (tx) => completeJob(tx, job.id, stored))
+
+    const urls =
+      ingested.assets.length > 0
+        ? ingested.assets.map((asset) => publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey))
+        : outputs.urls
+    return { status: 'completed', jobId: job.id, urls }
   } catch (error) {
     return recordFailure(context, describe(error))
   }

@@ -25,6 +25,18 @@ if (process.argv.includes('build') && process.env.NODE_ENV === 'development') {
 
 const isDev = process.env.NODE_ENV === 'development'
 
+/*
+ * Where our own media is served from. It varies per deployment (MinIO, S3, R2,
+ * Supabase Storage), so it has to reach the CSP rather than be hardcoded.
+ */
+const bucketOrigin = (() => {
+  try {
+    return new URL(process.env.S3_PUBLIC_URL ?? 'http://localhost:9100').origin
+  } catch {
+    return 'http://localhost:9100'
+  }
+})()
+
 const csp = [
   "default-src 'self'",
   // React's development build needs eval(); the production build does not, and
@@ -32,10 +44,10 @@ const csp = [
   // primitive the rest of this policy exists to deny.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.fal.media https://v3b.fal.media http://localhost:9100",
-  "media-src 'self' blob: https://*.fal.media http://localhost:9100",
+  `img-src 'self' data: blob: https://*.fal.media ${bucketOrigin}`,
+  `media-src 'self' blob: https://*.fal.media ${bucketOrigin}`,
   // ws: is the dev server's hot-reload socket, absent from production.
-  `connect-src 'self' https://fal.run https://queue.fal.run https://rest.fal.ai http://localhost:9100${isDev ? ' ws://localhost:* ws://127.0.0.1:*' : ''}`,
+  `connect-src 'self' https://fal.run https://queue.fal.run https://rest.fal.ai ${bucketOrigin}${isDev ? ' ws://localhost:* ws://127.0.0.1:*' : ''}`,
   "font-src 'self' data:",
   "frame-ancestors 'none'",
   "base-uri 'self'",

@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@genny/assets": "workspace:*",
     "@genny/auth": "workspace:*",
     "@genny/db": "workspace:*",
     "@genny/env": "workspace:*",
