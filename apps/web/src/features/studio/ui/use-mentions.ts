@@ -2,25 +2,25 @@
 
 import { type ActiveMention, applyMention, findActiveMention } from '@genny/models/mention.ts'
 import { useCallback, useMemo, useRef, useState } from 'react'
-import type { AssetView } from '@/features/assets/server/list.ts'
+import type { MentionableView } from '@/features/assets/server/list.ts'
 
 export type MentionState = {
   /** The mention being typed, or null when the list should be closed. */
   active: ActiveMention | null
-  candidates: AssetView[]
+  candidates: MentionableView[]
   highlighted: number
   /** Handles the keys the list owns. Returns true when it consumed the event. */
   handleKey: (key: string) => boolean
   /** Called on every change of the textarea's value or caret. */
   sync: (text: string, caret: number) => void
-  choose: (asset: AssetView) => void
+  choose: (item: MentionableView) => void
   close: () => void
 }
 
 type Options = {
-  assets: AssetView[]
+  mentionables: MentionableView[]
   text: string
-  onReplace: (next: { text: string; caret: number }, asset: AssetView) => void
+  onReplace: (next: { text: string; caret: number }, item: MentionableView) => void
 }
 
 const MAX_CANDIDATES = 8
@@ -32,7 +32,7 @@ const MAX_CANDIDATES = 8
  * popover is what makes most mention inputs impossible to type through, so this
  * one leaves the caret alone and only interprets keys the list owns.
  */
-export function useMentions({ assets, text, onReplace }: Options): MentionState {
+export function useMentions({ mentionables, text, onReplace }: Options): MentionState {
   const [active, setActive] = useState<ActiveMention | null>(null)
   const [highlighted, setHighlighted] = useState(0)
   /*
@@ -49,10 +49,10 @@ export function useMentions({ assets, text, onReplace }: Options): MentionState 
   const candidates = useMemo(() => {
     if (!active) return []
     const query = active.query.toLowerCase()
-    return assets
-      .filter((asset) => asset.label.toLowerCase().includes(query))
+    return mentionables
+      .filter((item) => item.label.toLowerCase().includes(query))
       .slice(0, MAX_CANDIDATES)
-  }, [active, assets])
+  }, [active, mentionables])
 
   const sync = useCallback((nextText: string, caret: number) => {
     const found = findActiveMention(nextText, caret)
@@ -73,9 +73,9 @@ export function useMentions({ assets, text, onReplace }: Options): MentionState 
   }, [])
 
   const choose = useCallback(
-    (asset: AssetView) => {
+    (item: MentionableView) => {
       if (!active) return
-      onReplace(applyMention(text, active, asset.label), asset)
+      onReplace(applyMention(text, active, item.label), item)
       dismissedAt.current = null
       setActive(null)
     },
@@ -96,7 +96,14 @@ export function useMentions({ assets, text, onReplace }: Options): MentionState 
 
   const handleKey = useCallback(
     (key: string) => {
-      if (!active || candidates.length === 0) return false
+      if (!active) return false
+
+      /*
+       * Enter is consumed while a mention is open even when nothing matches.
+       * Otherwise typing `@nope` and pressing Enter starts a paid generation the
+       * person did not ask for, which is the expensive kind of surprise.
+       */
+      if (candidates.length === 0) return key === 'Enter' || key === 'Tab'
 
       const actions: Record<string, () => void> = {
         ArrowDown: () => move(1),

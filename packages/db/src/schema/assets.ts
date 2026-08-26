@@ -44,6 +44,9 @@ export const assets = pgTable(
   },
   (t) => [
     unique('assets_owner_label').on(t.ownerId, t.label),
+    // Referenced by character_assets as a composite key, so a membership cannot
+    // name an asset owned by somebody else.
+    unique('assets_id_owner').on(t.id, t.ownerId),
     index('assets_owner_created').on(t.ownerId, t.createdAt.desc()),
     ownerPolicy('assets'),
   ],

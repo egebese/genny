@@ -1,5 +1,6 @@
 'use server'
 
+import { findCharactersByIds } from '@genny/assets/characters.ts'
 import { findAssetsByIds } from '@genny/assets/repository.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
@@ -76,7 +77,7 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
     const { requestId } = await submitJob(credentials, model.endpointId, payload.data)
     await withActor(db, actorId, (tx) => attachFalRequest(tx, job.id, requestId))
     return resolved.dropped.length > 0
-      ? { ok: true, jobId: job.id, dropped: resolved.dropped.map((r) => r.label) }
+      ? { ok: true, jobId: job.id, dropped: [...new Set(resolved.dropped.map((r) => r.label))] }
       : { ok: true, jobId: job.id }
   } catch (error) {
     const failure = error instanceof FalFailure ? error : null
@@ -101,23 +102,42 @@ async function resolveReferences(
   credentials: Awaited<ReturnType<typeof readCredentials>>,
   requested: { token: string; label: string; kind: 'asset' | 'character'; id: string }[],
 ): Promise<PromptReference[]> {
+  if (requested.length === 0) return []
+
   const assetIds = requested.filter((item) => item.kind === 'asset').map((item) => item.id)
-  if (assetIds.length === 0) return []
+  const characterIds = requested.filter((item) => item.kind === 'character').map((item) => item.id)
 
-  const found = await withActor(db, actorId, (tx) => findAssetsByIds(tx, assetIds))
-  const byId = new Map(found.map((asset) => [asset.id, asset]))
+  const [foundAssets, foundCharacters] = await withActor(db, actorId, async (tx) => [
+    await findAssetsByIds(tx, assetIds),
+    await findCharactersByIds(tx, characterIds),
+  ])
+  const assetById = new Map(foundAssets.map((asset) => [asset.id, asset]))
+  const characterById = new Map(foundCharacters.map((character) => [character.id, character]))
+
   const bucket = storage()
-
   const resolved: PromptReference[] = []
+
   for (const item of requested) {
-    const asset = byId.get(item.id)
-    if (!asset) continue
-    const bytes = await bucket.get(asset.storageKey)
-    resolved.push({
-      token: item.token,
-      label: asset.label,
-      url: await uploadReference(credentials, bytes, asset.mime),
-    })
+    /*
+     * A character contributes one reference per member, all under the same token.
+     * The mapping in the catalog then decides how many the model can take, and
+     * the rest come back as dropped.
+     */
+    const members =
+      item.kind === 'character'
+        ? (characterById.get(item.id)?.members ?? [])
+        : assetById.has(item.id)
+          ? [assetById.get(item.id) as { storageKey: string; mime: string }]
+          : []
+
+    for (const member of members) {
+      const bytes = await bucket.get(member.storageKey)
+      resolved.push({
+        token: item.token,
+        label: item.label,
+        url: await uploadReference(credentials, bytes, member.mime),
+      })
+    }
   }
   return resolved
 }

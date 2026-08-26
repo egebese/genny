@@ -3,7 +3,7 @@
 import { estimateUnits } from '@genny/models/credits.ts'
 import { Button } from '@genny/ui/button.tsx'
 import { useMemo, useRef, useState } from 'react'
-import type { AssetView } from '@/features/assets/server/list.ts'
+import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
 import { MentionList } from './mention-list.tsx'
 import { ModelPicker } from './model-picker.tsx'
@@ -14,7 +14,7 @@ type PromptDockProps = {
   models: PickableModel[]
   model: PickableModel
   onModelChange: (model: PickableModel) => void
-  assets: AssetView[]
+  mentionables: MentionableView[]
   settings: Record<string, unknown>
   onSettingChange: (name: string, value: unknown) => void
   pending: boolean
@@ -37,7 +37,7 @@ export function PromptDock(props: PromptDockProps) {
   const textarea = useRef<HTMLTextAreaElement>(null)
 
   const mentions = useMentions({
-    assets: props.assets,
+    mentionables: props.mentionables,
     text: prompt,
     onReplace: (next) => {
       setPrompt(next.text)

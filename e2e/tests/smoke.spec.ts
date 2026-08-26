@@ -2,6 +2,12 @@ import { expect, test } from '@playwright/test'
 
 const mode = process.env.GENNY_MODE ?? 'byok'
 
+/** 8x8 opaque PNG. Real enough for the byte sniffer, small enough to inline. */
+const TINY_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=',
+  'base64',
+)
+
 test.describe('shell', () => {
   test('health endpoint reports every dependency', async ({ request }) => {
     const response = await request.get('/api/health')
@@ -153,9 +159,9 @@ test.describe('assets and mentions', () => {
   test('an uploaded file appears in the library with a mentionable handle', async ({ page }) => {
     await page.goto('/assets')
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
-    const card = page.locator('main ul li').first()
+    const card = page.locator('ul.grid li').first()
     await expect(card).toBeVisible()
-    await expect(card.locator('p').first()).toHaveText(/^@[a-z0-9-]+$/)
+    await expect(card.locator('span.font-mono')).toHaveText(/^@[a-z0-9-]+$/)
   })
 
   test('a file that is not media is refused whatever it is called', async ({ page }) => {
@@ -184,7 +190,7 @@ test.describe('assets and mentions', () => {
 
     await page.goto('/assets')
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
-    await expect(page.locator('main ul li').first()).toBeVisible()
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await page.goto('/image')
     const prompt = page.getByLabel('Prompt')
@@ -205,7 +211,7 @@ test.describe('assets and mentions', () => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/assets')
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
-    await expect(page.locator('main ul li').first()).toBeVisible()
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await page.goto('/image')
     const prompt = page.getByLabel('Prompt')
@@ -219,7 +225,7 @@ test.describe('assets and mentions', () => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/assets')
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
-    await expect(page.locator('main ul li').first()).toBeVisible()
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await page.goto('/image')
     const prompt = page.getByLabel('Prompt')
@@ -236,7 +242,7 @@ test.describe('assets and mentions', () => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/assets')
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
-    await expect(page.locator('main ul li').first()).toBeVisible()
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await page.goto('/image')
     const prompt = page.getByLabel('Prompt')
@@ -253,5 +259,87 @@ test.describe('assets and mentions', () => {
     await page.goto('/image')
     await page.getByLabel('Prompt').fill('mail ege@fal.ai about it')
     await expect(page.locator('#mention-list')).toHaveCount(0)
+  })
+})
+
+test.describe('characters', () => {
+  /** Two assets in the library, ready to bundle. */
+  async function uploadTwo(page: import('@playwright/test').Page) {
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles([
+      { name: 'one.png', mimeType: 'image/png', buffer: TINY_PNG },
+      { name: 'two.png', mimeType: 'image/png', buffer: TINY_PNG },
+    ])
+    await expect(page.locator('ul.grid li').nth(1)).toBeVisible()
+  }
+
+  test('selecting assets reveals the naming bar in the page, not over it', async ({ page }) => {
+    await uploadTwo(page)
+    await expect(page.locator('#character-label')).toHaveCount(0)
+
+    await page.locator('ul.grid li label').first().click()
+    await expect(page.locator('#character-label')).toBeVisible()
+    await expect(page.locator('[aria-modal="true"]')).toHaveCount(0)
+  })
+
+  test('a character is created and shown with how many images it carries', async ({ page }) => {
+    await uploadTwo(page)
+    await page.locator('ul.grid li label').nth(0).click()
+    await page.locator('ul.grid li label').nth(1).click()
+    await page.locator('#character-label').fill('ayse')
+    await page.getByRole('button', { name: 'Create character' }).click()
+
+    const chip = page.locator('section li').first()
+    await expect(chip).toContainText('@ayse')
+    await expect(chip).toContainText('2')
+    // Selection clears, so the bar goes away on its own.
+    await expect(page.locator('#character-label')).toHaveCount(0)
+  })
+
+  test('a character cannot be created without a name', async ({ page }) => {
+    await uploadTwo(page)
+    await page.locator('ul.grid li label').first().click()
+    await expect(page.getByRole('button', { name: 'Create character' })).toBeDisabled()
+  })
+
+  test('a character can be deleted without taking its assets', async ({ page }) => {
+    await uploadTwo(page)
+    await page.locator('ul.grid li label').first().click()
+    await page.locator('#character-label').fill('temporary')
+    await page.getByRole('button', { name: 'Create character' }).click()
+    await expect(page.locator('section li').first()).toContainText('@temporary')
+
+    await page.getByRole('button', { name: /Delete character temporary/ }).click()
+    await expect(page.locator('section li')).toHaveCount(0)
+    await expect(page.locator('ul.grid li')).toHaveCount(2)
+  })
+
+  test('a character appears in the mention list ahead of plain assets', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await uploadTwo(page)
+    await page.locator('ul.grid li label').nth(0).click()
+    await page.locator('ul.grid li label').nth(1).click()
+    await page.locator('#character-label').fill('ayse')
+    await page.getByRole('button', { name: 'Create character' }).click()
+    await expect(page.locator('section li').first()).toContainText('@ayse')
+
+    await page.goto('/image')
+    await page.getByLabel('Prompt').fill('a portrait of @')
+    await expect(page.locator('#mention-list')).toBeVisible()
+
+    const first = page.locator('#mention-list [role=option]').first()
+    await expect(first).toContainText('@ayse')
+    await expect(first).toContainText(/character, 2 images/)
+  })
+
+  test('Enter does not start a generation while an unmatched mention is open', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await page.goto('/image')
+    const prompt = page.getByLabel('Prompt')
+    await prompt.fill('a portrait of @nothingmatchesthis')
+    // Enter here used to fall through and start a paid generation.
+    await prompt.press('Enter')
+    await expect(prompt).toHaveValue('a portrait of @nothingmatchesthis')
+    await expect(page.locator('main ul li')).toHaveCount(0)
   })
 })

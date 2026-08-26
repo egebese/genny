@@ -1,13 +1,13 @@
 'use client'
 
 import { cn } from '@genny/ui/cn.ts'
-import type { AssetView } from '@/features/assets/server/list.ts'
+import type { MentionableView } from '@/features/assets/server/list.ts'
 
 type MentionListProps = {
-  candidates: AssetView[]
+  candidates: MentionableView[]
   highlighted: number
   query: string
-  onChoose: (asset: AssetView) => void
+  onChoose: (item: MentionableView) => void
 }
 
 /**
@@ -19,7 +19,7 @@ export function MentionList({ candidates, highlighted, query, onChoose }: Mentio
   if (candidates.length === 0) {
     return (
       <div className="border-line border-b px-4 py-2 text-ink-faint text-sm">
-        No asset matches “{query}”. Upload one on the Assets page.
+        Nothing matches “{query}”. Upload something on the Assets page.
       </div>
     )
   }
@@ -28,31 +28,35 @@ export function MentionList({ candidates, highlighted, query, onChoose }: Mentio
     <div
       id="mention-list"
       role="listbox"
-      aria-label="Assets you can mention"
+      aria-label="Assets and characters you can mention"
       className="max-h-56 overflow-y-auto border-line border-b p-1"
     >
-      {candidates.map((asset, index) => (
-        <div key={asset.id}>
+      {candidates.map((item, index) => (
+        <div key={`${item.kind}-${item.id}`}>
           <button
             type="button"
-            id={`mention-option-${asset.id}`}
+            id={`mention-option-${item.id}`}
             role="option"
             aria-selected={index === highlighted}
             // The list must not steal focus from the textarea, and mousedown
             // fires before blur would.
             onMouseDown={(event) => {
               event.preventDefault()
-              onChoose(asset)
+              onChoose(item)
             }}
             className={cn(
               'flex w-full items-center gap-3 rounded-(--radius-control) p-2 text-left',
               index === highlighted ? 'bg-surface-hover' : 'hover:bg-surface-hover',
             )}
           >
-            <Thumb asset={asset} />
+            <Thumb item={item} />
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-mono text-sm text-ink">@{asset.label}</span>
-              <span className="block text-ink-faint text-xs">{asset.kind}</span>
+              <span className="block truncate font-mono text-ink text-sm">@{item.label}</span>
+              <span className="block text-ink-faint text-xs">
+                {item.kind === 'character'
+                  ? `character, ${item.count} image${item.count === 1 ? '' : 's'}`
+                  : 'image'}
+              </span>
             </span>
           </button>
         </div>
@@ -61,20 +65,20 @@ export function MentionList({ candidates, highlighted, query, onChoose }: Mentio
   )
 }
 
-function Thumb({ asset }: { asset: AssetView }) {
-  if (asset.kind !== 'image') {
-    return (
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius-control) bg-canvas text-ink-faint text-xs">
-        {asset.kind === 'video' ? '▶' : '♪'}
-      </span>
-    )
+function Thumb({ item }: { item: MentionableView }) {
+  if (!item.previewUrl) {
+    return <span className="size-8 shrink-0 rounded-(--radius-control) bg-canvas" />
   }
   return (
     <img
-      src={asset.url}
+      src={item.previewUrl}
       alt=""
       loading="lazy"
-      className="size-8 shrink-0 rounded-(--radius-control) object-cover"
+      className={cn(
+        'size-8 shrink-0 object-cover',
+        // Characters read as people, so they get the rounder shape.
+        item.kind === 'character' ? 'rounded-full' : 'rounded-(--radius-control)',
+      )}
     />
   )
 }
