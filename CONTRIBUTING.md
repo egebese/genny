@@ -44,7 +44,7 @@ genmedia pricing <endpoint-id> --json    # see the real price
 Then add one file under `packages/models/catalog/<modality>/` and run
 `pnpm db:seed:models`. `packages/models/src/catalog.test.ts` validates every
 entry, so a malformed file fails before it reaches anyone's studio.
-`.claude/skills/genny-model-catalog/` walks through it.
+`skills/genny-model-catalog/` walks through it.
 
 ## What gets merged quickly
 

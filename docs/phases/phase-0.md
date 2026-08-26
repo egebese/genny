@@ -20,7 +20,7 @@ security boundary that everything else leans on is proven rather than asserted.
 - `tooling/src/check-deps.mjs`: architecture rules enforced in CI
 - Playwright e2e in both modes, desktop and phone
 - Docs: 8 PRDs, 8 ADRs, architecture, security, testing, self-hosting
-- 8 skills and 6 commands under `.claude/`
+- 8 skills in `skills/`, linked from `.claude/skills` and `.agents/skills`, plus 6 commands
 - GitHub: milestones, labels, templates, CODEOWNERS, workflows
 
 ## Exit criteria

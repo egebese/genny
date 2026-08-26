@@ -97,6 +97,11 @@ Start with [CONTRIBUTING.md](CONTRIBUTING.md) and [AGENTS.md](AGENTS.md). The
 second one is the house style, enforced by `pnpm check` rather than by review
 comments. Issues labelled `good first issue` are genuinely small.
 
+The repo ships agent instructions rather than assuming you have your own:
+`skills/` holds them, and `AGENTS.md`, `CLAUDE.md`, `.claude/skills` and
+`.agents/skills` are all symlinks into one source. Clone and your assistant knows
+the house rules.
+
 ## License
 
 MIT. Including the billing code.

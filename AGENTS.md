@@ -5,6 +5,10 @@ is. For that, read `README.md` and `docs/prd/`.
 
 `CLAUDE.md` is a symlink to this file. One source, two names.
 
+Skills work the same way: they live in `skills/`, and `.claude/skills` and
+`.agents/skills` are symlinks to it. One set of instructions, whichever agent
+reads them. Add a skill to `skills/`, never to a link.
+
 ## Non-negotiables
 
 These are enforced by `pnpm check` (`tooling/src/check-deps.mjs`), not by review
