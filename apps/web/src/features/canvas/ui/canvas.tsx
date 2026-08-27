@@ -2,7 +2,6 @@
 
 import type { Guide } from '@genny/canvas/snap.ts'
 import { useCallback, useRef, useState } from 'react'
-
 import { persistViewport } from '../server/actions.ts'
 import type { ProjectPage } from '../server/project-page.ts'
 import { Board } from './board.tsx'
@@ -10,12 +9,13 @@ import { BoardOverlays } from './board-overlays.tsx'
 import { CanvasDock } from './canvas-dock.tsx'
 import { EmptyHint } from './empty-hint.tsx'
 import { JobTracker } from './job-tracker.tsx'
-import type { ReuseRequest } from './node-panel.tsx'
 import { useAttachments } from './use-attachments.ts'
+import { useBoardActions } from './use-board-actions.ts'
 import { useBoardNodes } from './use-board-nodes.ts'
 import { kindsOf, useComposer } from './use-composer.ts'
 import { useGenerate } from './use-generate.ts'
 import { useMentionables, useResolvedMentions } from './use-mentionables.ts'
+import { overlaySlots } from './use-overlay-slots.ts'
 import { useSelection } from './use-selection.ts'
 import { useSize } from './use-size.ts'
 import { useSubmit } from './use-submit.ts'
@@ -37,13 +37,13 @@ export function Canvas(props: ProjectPage) {
   )
   const view = useViewport({ initial: props.viewport, surface, onPersist: savePan })
   const handles = useMentionables(props.mentionables)
-  const { nodes, running, move, commit, remove, add, settle } = useBoardNodes(
+  const { nodes, running, beginDrag, move, commit, remove, add, settle } = useBoardNodes(
     projectId,
     props.nodes,
     handles.learn,
   )
   const pinned = useAttachments()
-  const composer = useComposer(props.models, pinned.clear)
+  const composer = useComposer(props.models, pinned.moveTo)
   const { families, family, settings, prompt } = composer
   const mentions = useResolvedMentions(handles.resolve, prompt)
   const pick = useSelection({ nodes, viewport: view.viewport, toLocal: view.toLocal })
@@ -56,7 +56,8 @@ export function Canvas(props: ProjectPage) {
    * Banana 2 with an image on it is Nano Banana 2's edit endpoint, and nobody
    * should have to know that the URL is different.
    */
-  const model = composer.resolve(kindsOf(pinned.attachments, mentions.chips.length))
+  const carrying = kindsOf(pinned.attachments, mentions.chips.length)
+  const model = composer.resolve(carrying)
 
   const generate = useGenerate({
     projectId,
@@ -66,23 +67,17 @@ export function Canvas(props: ProjectPage) {
   })
   const { pending, error, submit } = useSubmit({ generate, onPlaced: add })
 
-  const mention = (label: string) =>
-    composer.setPrompt((current) =>
-      current.trimEnd() ? `${current.trimEnd()} @${label} ` : `@${label} `,
-    )
-
-  function reuse(request: ReuseRequest) {
-    const found = composer.familyOf(request.modelId)
-    if (found) composer.choose(found)
-    composer.setSettings(request.settings)
-    composer.setPrompt(request.prompt)
-  }
-
-  const removeNodes = (ids: string[]) => {
-    for (const id of ids) remove(id)
-    pick.clear()
-    surfaces.clear()
-  }
+  const act = useBoardActions({
+    family,
+    nodes,
+    pick,
+    view,
+    surfaces,
+    pinned,
+    composer,
+    beginDrag,
+    remove,
+  })
 
   const inspected = nodes.find((node) => node.id === surfaces.inspectedId) ?? null
   const menu = surfaces.menu
@@ -103,34 +98,17 @@ export function Canvas(props: ProjectPage) {
         viewport={view.viewport}
         panning={view.panning}
         panMode={view.spaceHeld}
-        onSelect={(id, additive) => {
-          pick.select(id, additive)
-          surfaces.clear()
-        }}
+        onSelect={act.select}
         onInspect={surfaces.inspect}
-        onContextMenu={(id, at) => {
-          // Right-clicking outside the selection acts on what was clicked, the
-          // way it does everywhere else, rather than on what happened to be picked.
-          const chosen = pick.selected.has(id) ? [...pick.selected] : [id]
-          if (!pick.selected.has(id)) pick.select(id, false)
-          surfaces.openMenu(
-            view.toLocal(at),
-            nodes.filter((node) => chosen.includes(node.id)),
-          )
-        }}
-        onPan={(event) => {
-          surfaces.clear()
-          view.startPan(event)
-        }}
-        onMarquee={(event, additive) => {
-          surfaces.clear()
-          pick.startMarquee(event, additive)
-        }}
+        onContextMenu={act.openMenu}
+        onPan={act.pan}
+        onMarquee={act.marquee}
         onKey={(key) => view.handleKey(key, nodes)}
+        onDragStart={act.startDrag}
         onMove={move}
         onGuides={setGuides}
         onCommit={commit}
-        onDelete={(id) => removeNodes([id])}
+        onDelete={(id) => act.removeNodes([id])}
         onZoom={view.zoomBy}
         onFit={() => view.fit(nodes)}
       >
@@ -140,26 +118,15 @@ export function Canvas(props: ProjectPage) {
           menu={menu}
           inspected={inspected}
           family={family}
+          slotsForAdding={overlaySlots(family, carrying, menu?.nodes ?? [])}
           models={props.models}
           showCost={props.credits !== null}
           viewport={view.viewport}
           bounds={bounds}
-          onAttach={(field, chosen) => {
-            /*
-             * The slot came from the family, so the endpoint that owns it is the
-             * one being attached to. Using whatever is resolved right now would
-             * pin to a field that endpoint may not have: before the first
-             * attachment the resolved one is the text-only task.
-             */
-            const owner = family.variants.find((variant) =>
-              variant.slots.some((slot) => slot.field === field),
-            )
-            if (owner) pinned.attach(owner, field, chosen)
-            surfaces.closeMenu()
-          }}
-          onMention={mention}
-          onReuse={reuse}
-          onRemove={removeNodes}
+          onAttach={act.attachAndClose}
+          onMention={act.mention}
+          onReuse={act.reuse}
+          onRemove={act.removeNodes}
           onCloseMenu={surfaces.closeMenu}
           onCloseInspector={surfaces.closeInspector}
         />

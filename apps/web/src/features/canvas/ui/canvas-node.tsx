@@ -1,11 +1,12 @@
 'use client'
 
 import type { Viewport } from '@genny/canvas/geometry.ts'
-import { type Guide, lockAxis, snapTo } from '@genny/canvas/snap.ts'
+import type { Guide } from '@genny/canvas/snap.ts'
 import { cn } from '@genny/ui/cn.ts'
 import { Icon } from '@genny/ui/icon.tsx'
 import type { CanvasNodeView } from '../node-view.ts'
 import { NodeMedia } from './node-media.tsx'
+import { useNodeDrag } from './use-node-drag.ts'
 
 type CanvasNodeProps = {
   node: CanvasNodeView
@@ -19,6 +20,7 @@ type CanvasNodeProps = {
   onInspect: () => void
   /** Raw client coordinates; only the board knows where its own top left is. */
   onContextMenu: (at: { clientX: number; clientY: number }) => void
+  onDragStart: () => void
   onMove: (position: { x: number; y: number }) => void
   onCommit: (position: { x: number; y: number }) => void
   onGuides: (guides: Guide[]) => void
@@ -33,61 +35,21 @@ type CanvasNodeProps = {
  * widget. Selection follows focus, and the arrow keys nudge whatever is
  * selected rather than scrolling the page.
  */
-/** How close, on screen, counts as lined up. Figma's is about this. */
-const SNAP_PIXELS = 6
-
 export function CanvasNode(props: CanvasNodeProps) {
   const { node, selected, viewport } = props
 
-  function startDrag(event: React.PointerEvent) {
-    // Left button only, and never from inside a media control.
-    if (event.button !== 0) return
-    if ((event.target as HTMLElement).closest('video, audio, a, button')) return
-    // Space turns the whole board into a pan surface, nodes included.
-    if (props.panMode) return
-    event.stopPropagation()
-    props.onSelect(event.shiftKey || event.metaKey)
-
-    const origin = { x: event.clientX, y: event.clientY }
-    const start = { x: node.x, y: node.y }
-    let last = start
-    let moved = false
-
-    const move = (dragged: PointerEvent) => {
-      const free = {
-        x: Math.round(start.x + (dragged.clientX - origin.x) / viewport.zoom),
-        y: Math.round(start.y + (dragged.clientY - origin.y) / viewport.zoom),
-      }
-      // Shift first, then snap: locking after a snap would let an alignment on
-      // the abandoned axis drag the node back off the line it is being held to.
-      const along = dragged.shiftKey ? lockAxis(start, free) : free
-      /*
-       * A pixel threshold divided by the zoom. A tolerance in canvas units would
-       * get easier to hit the further you zoomed out, which is exactly when
-       * someone is placing things roughly and wants to be left alone.
-       */
-      const snapped = snapTo(
-        { ...along, width: node.width, height: node.height },
-        props.neighbours,
-        SNAP_PIXELS / viewport.zoom,
-      )
-
-      last = snapped.position
-      moved = true
-      props.onMove(last)
-      props.onGuides(snapped.guides)
-    }
-    const stop = () => {
-      window.removeEventListener('pointermove', move)
-      window.removeEventListener('pointerup', stop)
-      window.removeEventListener('pointercancel', stop)
-      props.onGuides([])
-      if (moved) props.onCommit(last)
-    }
-    window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', stop)
-    window.addEventListener('pointercancel', stop)
-  }
+  const startDrag = useNodeDrag({
+    node,
+    neighbours: props.neighbours,
+    viewport,
+    selected,
+    panMode: props.panMode,
+    onSelect: props.onSelect,
+    onDragStart: props.onDragStart,
+    onMove: props.onMove,
+    onCommit: props.onCommit,
+    onGuides: props.onGuides,
+  })
 
   return (
     <div

@@ -25,6 +25,7 @@ type BoardProps = {
   onPan: (event: React.PointerEvent) => void
   onMarquee: (event: React.PointerEvent, additive: boolean) => void
   onKey: (key: string) => boolean
+  onDragStart: (id: string) => void
   onMove: (id: string, position: { x: number; y: number }) => void
   onGuides: (guides: Guide[]) => void
   onCommit: (id: string, position: { x: number; y: number }) => void
@@ -115,9 +116,19 @@ export function Board(props: BoardProps) {
             viewport={viewport}
             panMode={props.panMode}
             onSelect={(additive) => props.onSelect(node.id, additive)}
+            onDragStart={() => props.onDragStart(node.id)}
             onInspect={() => props.onInspect(node.id)}
             onContextMenu={(at) => props.onContextMenu(node.id, at)}
-            neighbours={props.nodes.filter((other) => other.id !== node.id)}
+            /*
+             * Everything not moving. Snapping a dragged node against another
+             * node moving with it would line it up on a line that is itself
+             * sliding, which reads as the guide chasing the pointer.
+             */
+            neighbours={props.nodes.filter(
+              (other) =>
+                other.id !== node.id &&
+                !(props.selected.has(node.id) && props.selected.has(other.id)),
+            )}
             onMove={(position) => props.onMove(node.id, position)}
             onGuides={props.onGuides}
             onCommit={(position) => props.onCommit(node.id, position)}

@@ -2,7 +2,7 @@
 
 import { anchorPanel } from '@genny/canvas/anchor.ts'
 import type { Point } from '@genny/canvas/geometry.ts'
-import { slotsAccepting } from '@genny/models/slots.ts'
+import { type ReferenceSlot, slotsAccepting } from '@genny/models/slots.ts'
 import { cn } from '@genny/ui/cn.ts'
 import { useEffect, useRef } from 'react'
 import type { PickableFamily } from '../family-list.ts'
@@ -15,6 +15,8 @@ export type NodeMenuTarget = { at: Point; nodes: CanvasNodeView[] }
 type NodeMenuProps = {
   target: NodeMenuTarget
   family: PickableFamily
+  /** Where these could go, on the endpoint adding them would reach. */
+  slotsForAdding: ReferenceSlot[]
   bounds: { width: number; height: number }
   onAttach: (field: string) => void
   onMention: () => void
@@ -50,9 +52,17 @@ export function NodeMenu(props: NodeMenuProps) {
    * and its edit endpoint has three, and the menu used to say "Nano Banana 2
    * takes no image" while standing on an image the model can plainly take.
    */
-  const slots = kind
-    ? family.variants.flatMap((variant) => slotsAccepting(variant.slots, kind))
-    : []
+  /*
+   * The slots of the endpoint this model will resolve to once these are added,
+   * not the union across the family.
+   *
+   * The union offered "use as start frame" twice on PixVerse, because its
+   * animator and its transition each declare one and they are different fields.
+   * Asking what the model will actually run answers both at once: with nothing
+   * attached it is the animator and offers one frame, with one already attached
+   * it is the transition and offers two.
+   */
+  const slots = kind ? slotsAccepting(props.slotsForAdding, kind) : []
   const count = target.nodes.length
 
   const position = anchorPanel({ ...target.at, width: 0, height: 0 }, MENU, props.bounds, 8)

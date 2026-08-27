@@ -11,8 +11,13 @@ import {
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { useSpaceHeld } from './use-space-held.ts'
 
-/** Trackpad deltas are small and continuous; this maps one notch to a sane step. */
-const WHEEL_ZOOM = 0.0025
+/**
+ * Trackpad deltas are small and continuous; this maps one notch to a step.
+ *
+ * Doubled from the first guess. At half this a pinch across the whole trackpad
+ * barely changed the zoom, so people pinched four times to do one thing.
+ */
+const WHEEL_ZOOM = 0.005
 const KEY_PAN = 80
 const SAVE_AFTER_MS = 700
 

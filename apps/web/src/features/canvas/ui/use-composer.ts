@@ -14,7 +14,10 @@ import type { Attachment } from './attachment-strip.tsx'
  * is attached chooses the endpoint, because fal splits one model across URLs by
  * what you hand it and nobody should have to know which URL they are on.
  */
-export function useComposer(models: PickableModel[], clearAttachments: () => void) {
+export function useComposer(
+  models: PickableModel[],
+  carryAttachments: (to: PickableFamily) => void,
+) {
   const families = useMemo(() => toFamilies(models), [models])
   const [family, setFamily] = useState<PickableFamily>(() => defaultFamily(families))
   const [settings, setSettings] = useState<Record<string, unknown>>({})
@@ -23,12 +26,12 @@ export function useComposer(models: PickableModel[], clearAttachments: () => voi
   const choose = useCallback(
     (next: PickableFamily) => {
       setFamily(next)
+      // The controls are the endpoint's own, so nothing carries over. What is
+      // attached does: the field names change, the intent does not.
       setSettings({})
-      // The fields change with the model, so a pin to `image_url` on the last
-      // one means nothing here and would be sent somewhere nobody asked for.
-      clearAttachments()
+      carryAttachments(next)
     },
-    [clearAttachments],
+    [carryAttachments],
   )
 
   const set = useCallback((name: string, value: unknown) => {

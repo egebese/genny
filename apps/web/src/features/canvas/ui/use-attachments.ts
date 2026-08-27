@@ -1,7 +1,10 @@
 'use client'
 
+import { resolveTask } from '@genny/models/family.ts'
+import { reassign } from '@genny/models/reassign.ts'
 import { slotsAccepting } from '@genny/models/slots.ts'
 import { useCallback, useState } from 'react'
+import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
 import type { Attachment } from './attachment-strip.tsx'
@@ -13,6 +16,24 @@ import type { Attachment } from './attachment-strip.tsx'
  * `image_url` on one endpoint is meaningless on the next, and carrying it over
  * would send it somewhere nobody asked for.
  */
+/** The set, placed on whichever endpoint of `family` this many of them reach. */
+function lay(items: Attachment[], family: PickableFamily): Attachment[] {
+  if (items.length === 0) return items
+  const target = resolveTask(
+    family.variants,
+    items.map((item) => item.kind),
+  )
+  const slots = new Map((target?.slots ?? []).map((slot) => [slot.field, slot]))
+  const fields = reassign(items, target?.slots ?? [])
+
+  return items
+    .map((item, at) => {
+      const slot = slots.get(fields[at] ?? '')
+      return slot ? { ...item, field: slot.field, slotLabel: slot.label } : null
+    })
+    .filter((item) => item !== null)
+}
+
 export function useAttachments() {
   const [attachments, setAttachments] = useState<Attachment[]>([])
 
@@ -52,11 +73,56 @@ export function useAttachments() {
     })
   }, [])
 
+  /**
+   * Lay the whole set out again, in the order it was added.
+   *
+   * Called after every change rather than only on a model change, because
+   * adding one can move the others: a second image on PixVerse takes the model
+   * from its animator to its transition, and the first image stops being "the
+   * image" and becomes the first frame.
+   */
+  const relayout = useCallback(
+    (family: PickableFamily) => setAttachments((current) => lay(current, family)),
+    [],
+  )
+
   const remove = useCallback((index: number) => {
     setAttachments((current) => current.filter((_, at) => at !== index))
   }, [])
 
   const clear = useCallback(() => setAttachments([]), [])
+
+  /**
+   * Carry what is attached over to a different model.
+   *
+   * Changing the model used to drop everything, on the reasoning that a pin to
+   * `image_url` means nothing on an endpoint without that field. True, and the
+   * conclusion was wrong: what someone attached is what they want to work with,
+   * and the field is our bookkeeping to redo.
+   *
+   * The endpoint is resolved from what is being carried, so two images reach
+   * whichever task in the new model wants two, and then each item is offered
+   * the slots in the order the catalog declares them.
+   */
+  const moveTo = useCallback((family: PickableFamily) => {
+    setAttachments((current) => {
+      if (current.length === 0) return current
+      const target = resolveTask(
+        family.variants,
+        current.map((item) => item.kind),
+      )
+      const fields = reassign(current, target?.slots ?? [])
+      const slots = new Map((target?.slots ?? []).map((slot) => [slot.field, slot]))
+
+      return current
+        .map((item, at) => {
+          const field = fields[at]
+          const slot = field === null || field === undefined ? undefined : slots.get(field)
+          return slot ? { ...item, field: slot.field, slotLabel: slot.label } : null
+        })
+        .filter((item) => item !== null)
+    })
+  }, [])
 
   /** What the request carries: field and id, nothing the server would not check. */
   const forRequest = useCallback(
@@ -71,5 +137,5 @@ export function useAttachments() {
     [],
   )
 
-  return { attachments, attach, remove, clear, forRequest, canTake }
+  return { attachments, attach, remove, clear, moveTo, relayout, forRequest, canTake }
 }

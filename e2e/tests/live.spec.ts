@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test'
+import { expect, type Locator, type Page, test } from '@playwright/test'
 
 /**
  * The only tests that spend real money, and the only ones that prove a catalog
@@ -107,6 +107,97 @@ test.describe('@live against real fal', () => {
     await expect(page.locator('[aria-hidden].bg-accent')).toHaveCount(0)
   })
 
+  test('dragging one of a selection moves all of it @live', async ({ page }) => {
+    await generate(page, 'schnell', 'a smooth river stone, macro', { count: 3 })
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await expect(nodes.nth(2).locator('img')).toBeVisible({ timeout: 300_000 })
+    await page.getByRole('button', { name: 'Fit' }).click()
+
+    const before = await boxes(nodes, 3)
+
+    await page.waitForTimeout(900)
+    // A band across all three, then a drag from the middle one.
+    await page.mouse.move(40, 130)
+    await page.mouse.down()
+    await page.mouse.move(1390, 700, { steps: 12 })
+    await page.mouse.up()
+    await expect(
+      page.getByRole('listbox', { name: 'Canvas' }).locator('[aria-selected="true"]'),
+    ).toHaveCount(3)
+
+    const grabbed = before[1]
+    if (!grabbed) throw new Error('nothing to drag')
+    await page.mouse.move(grabbed.x + 40, grabbed.y + 40)
+    await page.mouse.down()
+    await page.mouse.move(grabbed.x + 40, grabbed.y + 220, { steps: 12 })
+    await page.mouse.up()
+
+    // The same delta for all of them: a selection is a shape, and moving its
+    // members by different amounts would pull it apart on the way.
+    for (const [at, start] of before.entries()) {
+      const now = await nodes.nth(at).boundingBox()
+      expect(Math.round((now?.x ?? 0) - (start?.x ?? 0))).toBe(0)
+      expect(Math.round((now?.y ?? 0) - (start?.y ?? 0))).toBe(180)
+    }
+
+    /*
+     * And all of them are written, not only the one under the pointer.
+     *
+     * Compared against where they were after the drag rather than before it:
+     * the viewport is saved too, and a reload restores it, so screen
+     * coordinates are only comparable within one view.
+     */
+    const dropped = await boxes(nodes, 3)
+    await page.reload()
+    await expect(nodes.nth(2).locator('img')).toBeVisible({ timeout: 30_000 })
+    expect(await boxes(nodes, 3)).toEqual(dropped)
+  })
+
+  test('attachments follow the model and are placed again @live', async ({ page }) => {
+    await generate(page, 'schnell', 'a smooth river stone, macro', { count: 2 })
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await expect(nodes.nth(1).locator('img')).toBeVisible({ timeout: 300_000 })
+
+    const pick = async (query: string) => {
+      await page.getByRole('button', { name: /^Model:/ }).click()
+      await page.getByPlaceholder('Search models').fill(query)
+      await page.locator('[cmdk-group-items] [role=option]').first().click()
+    }
+    const strip = page.getByRole('list', { name: 'Attached to this generation' })
+    const slots = async () =>
+      (await strip.getByRole('listitem').allInnerTexts()).map((text) => text.split('\n')[0])
+
+    await pick('PixVerse')
+    /*
+     * The menu offers the slots of the endpoint this model would run once these
+     * are added, so the first image sees one frame and the second sees two: with
+     * one already attached, two images reach the transition.
+     */
+    await nodes.nth(0).click({ button: 'right' })
+    await expect(page.getByRole('menuitem', { name: /Use as/ })).toHaveCount(1)
+    await page.getByRole('menuitem', { name: /start frame/i }).click()
+
+    await nodes.nth(1).click({ button: 'right' })
+    await expect(page.getByRole('menuitem', { name: /Use as/ })).toHaveCount(2)
+    await page.getByRole('menuitem', { name: /end frame/i }).click()
+    expect(await slots()).toEqual(['Start frame', 'End frame'])
+
+    /*
+     * Changing the model used to drop all of this. What someone attached is what
+     * they want to work with; the field is our bookkeeping, and it is redone in
+     * the order things were added.
+     */
+    await pick('Nano Banana 2')
+    expect(await slots()).toEqual(['Add to input images', 'Add to input images'])
+
+    await pick('Kling 2.5')
+    expect(await slots()).toEqual(['Start frame', 'End frame'])
+
+    // And dropped where there is nowhere to put them, rather than carried to a 422.
+    await pick('ElevenLabs')
+    await expect(strip).toHaveCount(0)
+  })
+
   test('shift holds a drag to one axis @live', async ({ page }) => {
     await generate(page, 'schnell', 'a brass key on black velvet, overhead')
     const node = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first()
@@ -173,4 +264,14 @@ async function generate(
     await page.getByRole('button', { name: 'One more images' }).click()
   }
   await page.getByRole('button', { name: /^Generate/ }).click()
+}
+
+/** Rounded, because a sub-pixel difference across a reload is not a move. */
+async function boxes(nodes: Locator, count: number) {
+  const found = []
+  for (let at = 0; at < count; at++) {
+    const box = await nodes.nth(at).boundingBox()
+    found.push({ x: Math.round(box?.x ?? 0), y: Math.round(box?.y ?? 0) })
+  }
+  return found
 }
