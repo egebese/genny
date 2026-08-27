@@ -1,3 +1,4 @@
+import { STORABLE_MIMES } from '@genny/assets/media.ts'
 import { findAssetsByIds } from '@genny/assets/repository.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
@@ -23,9 +24,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
  */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string; filename: string }> },
 ): Promise<Response> {
-  const { id } = await params
+  const { id, filename } = await params
   if (!UUID.test(id)) return new Response('bad id', { status: 400 })
 
   const actorId = await readActorId()
@@ -44,12 +45,25 @@ export async function GET(
   const range = request.headers.get('range') ?? undefined
   const object = await storage().getStream(asset.storageKey, range)
 
+  /*
+   * Our own record, not the bucket's header, and only a type the sniffer can
+   * actually produce. Nothing script-executable reaches storage in the first
+   * place, because uploads are typed by their magic bytes and svg and html are
+   * not among the signatures; this makes that a property of the response rather
+   * than something inferred three files away.
+   */
+  const mime = STORABLE_MIMES.has(asset.mime) ? asset.mime : 'application/octet-stream'
+
   const headers = new Headers({
-    'content-type': object.contentType ?? asset.mime,
+    'content-type': mime,
     // The id is a uuid and the bytes behind it never change, so this is safe to
     // keep forever. Private, because the url is only meaningful to its owner.
     'cache-control': 'private, max-age=31536000, immutable',
     'accept-ranges': 'bytes',
+    // Authoritative filename, rather than leaving the browser to guess from the
+    // url. Inline: these are pictures and clips, meant to be looked at. The
+    // sandbox policy for this path is in next.config.ts, with the other headers.
+    'content-disposition': `inline; filename*=UTF-8''${encodeURIComponent(filename)}`,
   })
   if (object.contentLength !== undefined) {
     headers.set('content-length', String(object.contentLength))

@@ -12,5 +12,7 @@
  */
 export function assetUrl(asset: { id: string; label: string; storageKey: string }): string {
   const extension = asset.storageKey.split('.').pop() ?? 'bin'
-  return `/api/assets/${asset.id}/${asset.label}.${extension}`
+  // Encoded even though labels are slugs today: a label carrying a slash or a
+  // question mark would otherwise reshape the route rather than name a file.
+  return `/api/assets/${asset.id}/${encodeURIComponent(asset.label)}.${extension}`
 }

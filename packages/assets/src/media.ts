@@ -49,6 +49,16 @@ const SIGNATURES: { type: MediaType; matches: (bytes: Uint8Array) => boolean }[]
 /** How many bytes the checks above need. Read only this much before deciding. */
 export const SNIFF_BYTES = 16
 
+/**
+ * Exactly the types the sniffer will ever produce, derived from the signatures
+ * rather than listed again. Anything served with a type outside this set is
+ * served as an opaque download, and the two cannot drift apart: adding a
+ * signature adds it here, and nowhere else has to be edited.
+ */
+export const STORABLE_MIMES: ReadonlySet<string> = new Set(
+  SIGNATURES.map((entry) => entry.type.mime),
+)
+
 export function sniffMediaType(bytes: Uint8Array): MediaType | null {
   return SIGNATURES.find((entry) => entry.matches(bytes))?.type ?? null
 }

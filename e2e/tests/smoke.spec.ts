@@ -290,8 +290,17 @@ test.describe('serving media', () => {
     const response = await page.request.get(src as string)
     expect(response.status()).toBe(200)
     expect(response.headers()['content-type']).toBe('image/png')
-    // The filename is what `download` saves as, so it carries the handle.
     expect(response.headers()['accept-ranges']).toBe('bytes')
+
+    /*
+     * Serving files from our own origin is only safe while nothing
+     * script-executable can be stored, so the response says so itself rather
+     * than relying on a property of the upload path three files away.
+     */
+    expect(response.headers()['x-content-type-options']).toBe('nosniff')
+    expect(response.headers()['content-security-policy']).toContain('sandbox')
+    // The filename is what `download` saves as, so it carries the handle.
+    expect(response.headers()['content-disposition']).toContain('tiny.png')
   })
 
   test('a stranger cannot read it, whatever the filename says', async ({ page, browser }) => {

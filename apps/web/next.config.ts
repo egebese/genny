@@ -110,6 +110,18 @@ const config: NextConfig = {
           },
         ],
       },
+      {
+        /*
+         * Stored files get their own policy, and it comes last so it replaces
+         * the one above. Nothing script-executable can be stored (uploads are
+         * typed by their magic bytes, and neither svg nor html is a signature),
+         * so this is the second lock rather than the first: a top-level
+         * navigation to a file can run nothing, whatever the file turns out to
+         * be. Images and clips fetched as subresources ignore it.
+         */
+        source: '/api/assets/:id/:filename',
+        headers: [{ key: 'Content-Security-Policy', value: "default-src 'none'; sandbox" }],
+      },
     ]
   },
 }

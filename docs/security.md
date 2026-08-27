@@ -93,3 +93,23 @@ analytics host, no font host. `frame-ancestors 'none'`, `nosniff`, HSTS, and a
 - [ ] New secret-shaped field is added to `redact.ts`
 - [ ] Route that spends money has a rate limit rule
 - [ ] Nothing secret is passed as a server action argument
+
+## Serving stored files
+
+Assets are served by the app, from `/api/assets/<id>/<name>`, and three things
+have to hold together for that to be safe.
+
+Nothing script-executable can be stored. An upload is typed by its magic bytes,
+not by what the client claims, and the signature list has no svg, html or xml in
+it. The read side then serves only a type that list can produce, derived from
+the same constant so the two cannot drift; anything else is sent as an opaque
+download.
+
+`X-Content-Type-Options: nosniff` is on every response, and this path carries
+its own `default-src 'none'; sandbox`, so a top-level navigation to a file can
+run nothing even if the first two ever fail.
+
+Who may read a file is decided by RLS on the assets table, not by a bucket
+policy. A stranger asking for someone else's id gets the same 404 as an id that
+does not exist.
+
