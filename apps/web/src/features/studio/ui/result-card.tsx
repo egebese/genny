@@ -44,7 +44,7 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
       {status === 'completed' && urls.length > 0 ? (
         <ul
           className={cn(
-            'grid gap-1 overflow-hidden rounded-(--radius-panel) bg-surface',
+            'grid gap-1 overflow-hidden rounded-(--radius-panel) border border-line bg-surface',
             urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1',
           )}
         >
@@ -76,9 +76,9 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
         <Placeholder status={status} error={error} queuePosition={live?.queuePosition ?? null} />
       )}
 
-      <div className="mt-2 flex items-baseline gap-3 px-0.5">
-        <p className="min-w-0 flex-1 truncate text-ink-muted text-xs">{item.prompt}</p>
-        <p className="shrink-0 text-ink-faint text-xs">{item.modelName}</p>
+      <div className="mt-2.5 space-y-0.5 px-0.5">
+        <p className="truncate text-ink text-sm">{item.prompt}</p>
+        <p className="truncate text-ink-faint text-xs">{item.modelName}</p>
       </div>
     </li>
   )
@@ -130,7 +130,7 @@ function Placeholder({
   return (
     <div
       className={cn(
-        'flex aspect-square items-center justify-center rounded-(--radius-panel) px-4 text-center text-sm',
+        'flex aspect-square items-center justify-center rounded-(--radius-panel) border border-line px-4 text-center text-sm',
         failed ? 'bg-danger/10 text-danger' : 'animate-pulse bg-surface text-ink-faint',
       )}
       role="status"

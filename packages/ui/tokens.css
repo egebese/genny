@@ -3,20 +3,35 @@
  * these, never raw hex or arbitrary Tailwind values, because a whitelabel buyer
  * has to be able to rebrand by editing one file.
  *
- * Dark first: this is a tool people stare at next to their own images, and a
- * bright chrome fights the work. A viewer whose system asks for light gets
- * light, because overriding that is its own kind of rude.
+ * Dark, and not up for negotiation by the operating system. This used to follow
+ * prefers-color-scheme, which meant most people saw a bright white tool next to
+ * the images they were making, and bright chrome fights the work. Every studio
+ * in this class commits to dark for the same reason. Light is still here, behind
+ * data-theme="light", for anyone who wants it.
+ *
+ * Neutral greys, no hue. A tint reads as a brand colour applied to the
+ * furniture; near-black reads as absence, which is what lets an image be the
+ * only saturated thing on screen.
  */
 @theme {
-  --color-canvas: oklch(0.16 0.006 264);
-  --color-surface: oklch(0.2 0.007 264);
-  --color-surface-hover: oklch(0.24 0.008 264);
-  --color-line: oklch(0.29 0.008 264);
-  --color-ink: oklch(0.97 0.002 264);
-  --color-ink-muted: oklch(0.72 0.012 264);
-  --color-ink-faint: oklch(0.55 0.012 264);
+  --color-canvas: oklch(0.145 0 0);
+  --color-surface: oklch(0.196 0 0);
+  --color-surface-hover: oklch(0.245 0 0);
+  --color-line: oklch(0.27 0 0);
+  --color-ink: oklch(0.985 0 0);
+  --color-ink-muted: oklch(0.7 0 0);
+  --color-ink-faint: oklch(0.52 0 0);
 
-  --color-accent: oklch(0.72 0.17 152);
+  /*
+   * The primary action is white. A saturated fill on near-black is the single
+   * thing that makes one of these tools look like every other one, and white is
+   * the only colour that cannot compete with the output.
+   */
+  --color-primary: oklch(0.985 0 0);
+  --color-primary-ink: oklch(0.16 0 0);
+
+  /* Accent is for state, not for furniture: a live number, a selected row. */
+  --color-accent: oklch(0.75 0.15 152);
   --color-accent-ink: oklch(0.16 0.02 152);
   --color-danger: oklch(0.65 0.2 22);
   --color-warning: oklch(0.78 0.15 78);
@@ -25,8 +40,9 @@
   --radius-panel: 1rem;
 
   /* The dock floats over the feed rather than sitting in a bar, so it needs to
-     read as lifted off the page at a glance. */
-  --shadow-dock: 0 1px 2px oklch(0 0 0 / 0.16), 0 12px 32px oklch(0 0 0 / 0.28);
+     read as lifted off the page at a glance. On near-black, a shadow alone does
+     not carry that: the hairline does most of the work. */
+  --shadow-dock: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 16px 40px oklch(0 0 0 / 0.55);
 
   /* Mobile lives behind a home indicator and a notch. */
   --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -39,17 +55,27 @@
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", monospace;
 }
 
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --color-canvas: oklch(0.99 0.002 264);
-    --color-surface: oklch(0.97 0.003 264);
-    --color-surface-hover: oklch(0.94 0.004 264);
-    --color-line: oklch(0.89 0.005 264);
-    /* Softer on a light page, where the dark-theme shadow reads as a smudge. */
-    --shadow-dock: 0 1px 2px oklch(0 0 0 / 0.06), 0 10px 28px oklch(0 0 0 / 0.1);
-    --color-ink: oklch(0.22 0.01 264);
-    --color-ink-muted: oklch(0.45 0.012 264);
-    --color-ink-faint: oklch(0.6 0.01 264);
-    --color-accent-ink: oklch(0.99 0.005 152);
-  }
+/* Opt in, rather than inferred from the system. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-canvas: oklch(0.99 0 0);
+  --color-surface: oklch(0.968 0 0);
+  --color-surface-hover: oklch(0.94 0 0);
+  --color-line: oklch(0.9 0 0);
+  --color-ink: oklch(0.2 0 0);
+  --color-ink-muted: oklch(0.46 0 0);
+  --color-ink-faint: oklch(0.62 0 0);
+  --color-primary: oklch(0.2 0 0);
+  --color-primary-ink: oklch(0.99 0 0);
+  --color-accent-ink: oklch(0.99 0.005 152);
+  --shadow-dock: 0 1px 2px oklch(0 0 0 / 0.06), 0 10px 28px oklch(0 0 0 / 0.1);
+}
+
+/*
+ * Not a token, so it cannot live in @theme, but it belongs with the palette:
+ * without it the browser paints native selects, number spinners and scrollbars
+ * from the light theme, and the dock's controls come out white on black.
+ */
+:root {
+  color-scheme: dark;
 }

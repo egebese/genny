@@ -26,7 +26,7 @@ export function Dock({ children, className }: DockProps) {
     >
       <div aria-hidden className="h-12 bg-gradient-to-t from-canvas via-canvas/85 to-transparent" />
       <div className="bg-canvas pb-3">
-        <div className="pointer-events-auto mx-auto w-full max-w-3xl px-4">{children}</div>
+        <div className="pointer-events-auto mx-auto w-full max-w-4xl px-4">{children}</div>
       </div>
     </div>
   )

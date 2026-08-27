@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#101215',
+  themeColor: '#0d0d0d',
   // The studio behaves like an app: no accidental pinch-zoom while dragging a
   // slider, and the layout reaches under the notch.
   width: 'device-width',
