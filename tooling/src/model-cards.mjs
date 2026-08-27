@@ -26,10 +26,13 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { liftMark } from './mark-colour.mjs'
+import { PROVIDERS, TINTS } from './model-card-providers.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const catalogRoot = join(root, 'packages/models/catalog')
 const outRoot = join(root, 'apps/web/public/models')
+const markRoot = join(outRoot, 'marks')
 // Resolved rather than joined onto node_modules: pnpm puts the real files under
 // .pnpm and only symlinks them into the workspace that asked for them.
 const iconRoot = join(
@@ -38,48 +41,26 @@ const iconRoot = join(
 )
 const checkOnly = process.argv.includes('--check')
 
+/** `--color-ink-muted`. Baked in, because an `<img>` inherits nothing. */
+const MONO_INK = '#a1a1aa'
+
 /**
- * Endpoint prefix to lobehub icon id. First match wins, so order longest first.
+ * The brand's own colours where lobehub has them, the mono mark where it does
+ * not.
  *
- * By prefix rather than by an entry in each catalog file: fal names endpoints
- * after the lab that trained the model, so one rule covers every future
- * endpoint from the same lab and a new one only lands here when it is a lab we
- * have never seen.
+ * Colour first, because a grid of nine identical-weight glyphs is read by
+ * shape alone and these are logos people already know. The mono ones fall back
+ * to the modality tint, which is the same job done differently.
  */
-const PROVIDERS = [
-  ['fal-ai/nano-banana', 'gemini'],
-  ['fal-ai/elevenlabs', 'elevenlabs'],
-  ['fal-ai/kling-video', 'kling'],
-  ['fal-ai/ideogram', 'ideogram'],
-  ['fal-ai/stable-audio', 'stability'],
-  ['fal-ai/bytedance', 'bytedance'],
-  ['fal-ai/pixverse', 'pixverse'],
-  ['fal-ai/flux', 'flux'],
-  ['fal-ai/gemini', 'gemini'],
-  ['fal-ai/veo', 'gemini'],
-  ['fal-ai/wan', 'alibaba'],
-  ['fal-ai/minimax', 'minimax'],
-  ['fal-ai/luma', 'luma'],
-  ['fal-ai/recraft', 'recraft'],
-  ['fal-ai/topaz', 'topazlabs'],
-  ['fal-ai/openai', 'openai'],
-  ['fal-ai/gpt-image', 'openai'],
-  // Labs that publish under their own namespace rather than fal-ai/.
-  ['bria/', 'briaai'],
-]
-
-/** One hue per modality, so a glance at the grid separates stills from clips. */
-const TINTS = {
-  image: { from: '#1b1524', to: '#0b0b0f', mark: '#d0b7f9' },
-  video: { from: '#101d24', to: '#0b0b0f', mark: '#99edff' },
-  audio: { from: '#141f12', to: '#0b0b0f', mark: '#adff00' },
-}
-
 function iconFor(endpointId) {
   const match = PROVIDERS.find(([prefix]) => endpointId.startsWith(prefix))
   if (!match) return null
-  const path = join(iconRoot, `${match[1]}.svg`)
-  return existsSync(path) ? readFileSync(path, 'utf8') : null
+
+  const colour = join(iconRoot, `${match[1]}-color.svg`)
+  if (existsSync(colour)) return { svg: liftMark(readFileSync(colour, 'utf8')), coloured: true }
+
+  const mono = join(iconRoot, `${match[1]}.svg`)
+  return existsSync(mono) ? { svg: readFileSync(mono, 'utf8'), coloured: false } : null
 }
 
 /**
@@ -105,7 +86,7 @@ const escapeXml = (text) =>
 function card(model) {
   const tint = TINTS[model.modality] ?? TINTS.image
   const mark = iconFor(model.endpointId)
-  const glyph = mark ? markBody(mark) : null
+  const glyph = mark ? { ...markBody(mark.svg), coloured: mark.coloured } : null
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600" role="img" aria-label="${escapeXml(model.displayName)}">
   <defs>
@@ -118,13 +99,37 @@ function card(model) {
   <rect x="0.5" y="0.5" width="899" height="599" fill="none" stroke="#ffffff" stroke-opacity="0.10"/>
 ${
   glyph
-    ? `  <svg x="330" y="180" width="240" height="240" viewBox="${glyph.viewBox}" fill="${tint.mark}">${glyph.inner}</svg>`
+    ? `  <svg x="330" y="180" width="240" height="240" viewBox="${glyph.viewBox}"${glyph.coloured ? '' : ` fill="${tint.mark}"`}>${glyph.inner}</svg>`
     : `  <circle cx="450" cy="300" r="96" fill="none" stroke="${tint.mark}" stroke-opacity="0.5" stroke-width="10"/>`
 }
   <rect x="60" y="56" rx="26" height="52" width="${40 + model.group.length * 15}" fill="#ffffff" fill-opacity="0.08"/>
   <text x="80" y="90" font-family="ui-monospace, 'SF Mono', monospace" font-size="23" fill="${tint.mark}" letter-spacing="1.5">${escapeXml(model.group.toUpperCase())}</text>
 </svg>
 `
+}
+
+/**
+ * The bare provider mark, square and on its own.
+ *
+ * The 3:2 card is unreadable at the 16px the dock needs, so the same source
+ * produces a second file. One per provider rather than one per model: five
+ * FLUX endpoints share one mark and would otherwise be five identical files.
+ */
+function markFile(endpointId) {
+  const match = PROVIDERS.find(([prefix]) => endpointId.startsWith(prefix))
+  const raw = iconFor(endpointId)
+  if (!match || !raw) return null
+  const glyph = markBody(raw.svg)
+  /*
+   * A coloured mark carries its own fills, which is what makes it look like the
+   * brand. A mono one gets the ink baked in rather than `currentColor`: this is
+   * loaded through an `<img>`, and an image has no cascade to inherit from, so
+   * currentColor there resolves to black on a black page.
+   */
+  return {
+    slug: match[1],
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="${glyph.viewBox}"${raw.coloured ? '' : ` fill="${MONO_INK}"`} aria-hidden="true">${glyph.inner}</svg>\n`,
+  }
 }
 
 function slugOf(endpointId) {
@@ -134,7 +139,7 @@ function slugOf(endpointId) {
     .toLowerCase()
 }
 
-mkdirSync(outRoot, { recursive: true })
+mkdirSync(markRoot, { recursive: true })
 const stale = []
 let written = 0
 
@@ -157,12 +162,30 @@ for (const modality of readdirSync(catalogRoot)) {
       }
     }
 
-    const url = `/models/${slug}.svg`
-    if (!checkOnly && model.thumbnailUrl !== url) {
-      writeFileSync(path, `${JSON.stringify({ ...model, thumbnailUrl: url }, null, 2)}\n`)
-    }
-    if (!iconFor(model.endpointId)) {
+    const mark = markFile(model.endpointId)
+    if (mark) {
+      const markPath = join(markRoot, `${mark.slug}.svg`)
+      const currentMark = existsSync(markPath) ? readFileSync(markPath, 'utf8') : null
+      if (currentMark !== mark.svg) {
+        if (checkOnly) stale.push(`public/models/marks/${mark.slug}.svg`)
+        else {
+          writeFileSync(markPath, mark.svg)
+          written += 1
+        }
+      }
+    } else {
       console.warn(`no provider mark for ${model.endpointId}; add a prefix to PROVIDERS`)
+    }
+
+    const urls = {
+      thumbnailUrl: `/models/${slug}.svg`,
+      ...(mark ? { markUrl: `/models/marks/${mark.slug}.svg` } : {}),
+    }
+    if (
+      !checkOnly &&
+      (model.thumbnailUrl !== urls.thumbnailUrl || model.markUrl !== urls.markUrl)
+    ) {
+      writeFileSync(path, `${JSON.stringify({ ...model, ...urls }, null, 2)}\n`)
     }
   }
 }
@@ -172,4 +195,4 @@ if (checkOnly && stale.length > 0) {
   console.error('Run: node tooling/src/model-cards.mjs')
   process.exit(1)
 }
-console.log(checkOnly ? 'model cards: up to date' : `model cards: ${written} written`)
+console.log(checkOnly ? 'model cards: up to date' : `model cards: ${written} file(s) written`)

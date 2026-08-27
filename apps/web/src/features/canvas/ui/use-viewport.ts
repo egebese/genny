@@ -48,6 +48,14 @@ export function useViewport({ initial, surface, onPersist }: Options) {
     if (!element) return
 
     function onWheel(event: WheelEvent) {
+      /*
+       * The overlays render inside the board, so without this the details panel
+       * cannot be scrolled: every wheel over it was cancelled here and spent on
+       * panning the board underneath instead. Its own content never moved, which
+       * is how a panel taller than the room it has ends up with a bottom half
+       * nobody can reach.
+       */
+      if ((event.target as HTMLElement | null)?.closest('[data-overlay]')) return
       event.preventDefault()
       const rect = element?.getBoundingClientRect()
       if (!rect) return

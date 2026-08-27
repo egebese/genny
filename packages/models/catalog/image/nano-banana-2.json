@@ -58,5 +58,6 @@
     "supportsSeed": true,
     "maxOutputs": 4
   },
-  "thumbnailUrl": "/models/nano-banana-2.svg"
+  "thumbnailUrl": "/models/nano-banana-2.svg",
+  "markUrl": "/models/marks/gemini.svg"
 }

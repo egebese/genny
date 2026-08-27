@@ -53,11 +53,14 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
         // Exactly the setting chips beside it, one size up in text: the model is
         // a setting too, and giving it its own shape made it read as chrome.
         className={cn(
-          'inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap rounded-(--radius-control)',
+          'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-(--radius-control)',
           'bg-control px-2.5 text-ink text-xs transition-colors hover:bg-surface-hover',
           'outline-none focus-visible:ring-2 focus-visible:ring-accent',
         )}
       >
+        {selected.markUrl ? (
+          <img src={selected.markUrl} alt="" className="size-3.5 shrink-0" />
+        ) : null}
         <span className="max-w-40 truncate">{selected.displayName}</span>
         <span aria-hidden className="text-ink-faint">
           ▾
@@ -86,7 +89,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
           {/* Stacked on a phone: a category rail plus a grid in 343px leaves no
               room for either, so the rail becomes a row that scrolls sideways. */}
           <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
-            <ul className="flex shrink-0 gap-1 overflow-x-auto border-line border-b p-1 text-sm sm:w-40 sm:flex-col sm:gap-0 sm:overflow-y-auto sm:border-r sm:border-b-0 [scrollbar-width:none]">
+            <ul className="flex shrink-0 gap-1 overflow-x-auto border-line border-b p-1 text-sm sm:w-40 sm:flex-col sm:gap-0 sm:overflow-y-auto sm:border-r sm:border-b-0 scrollbar-none">
               <CategoryButton active={group === null} onClick={() => setGroup(null)} label="All" />
               {groups.map((name) => (
                 <CategoryButton

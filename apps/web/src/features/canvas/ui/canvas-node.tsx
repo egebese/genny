@@ -2,6 +2,7 @@
 
 import type { Viewport } from '@genny/canvas/geometry.ts'
 import { cn } from '@genny/ui/cn.ts'
+import { Icon } from '@genny/ui/icon.tsx'
 import type { CanvasNodeView } from '../node-view.ts'
 import { NodeMedia } from './node-media.tsx'
 
@@ -137,15 +138,23 @@ function InspectButton(props: { node: CanvasNodeView; selected: boolean; onInspe
       onPointerDown={(event) => event.stopPropagation()}
       onClick={props.onInspect}
       className={cn(
-        'absolute top-2 right-2 flex size-(--size-touch) items-center justify-center rounded-full',
-        'bg-canvas/70 font-mono text-ink text-sm backdrop-blur transition-opacity',
-        'outline-none focus-visible:ring-2 focus-visible:ring-accent',
-        props.selected
-          ? 'opacity-100'
-          : 'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100',
+        // 24px of visible button in a 32px target. A 44px circle on the corner
+        // of a result covered the result; the padding keeps it thumb-sized
+        // without the fill having to be.
+        'absolute top-0.5 right-0.5 flex size-8 items-center justify-center p-1',
+        'opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100',
+        props.selected && 'opacity-100',
       )}
     >
-      i
+      <span
+        className={cn(
+          'flex size-6 items-center justify-center rounded-(--radius-control)',
+          'bg-canvas/75 text-ink backdrop-blur',
+          'group-focus-within:ring-accent',
+        )}
+      >
+        <Icon name="info" className="size-3.5" />
+      </span>
     </button>
   )
 }

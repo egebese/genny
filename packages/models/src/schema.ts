@@ -104,6 +104,11 @@ export const modelDefinition = z.object({
     .string()
     .regex(/^\/[\w/-]+\.svg$/, 'expected a generated card path like /models/flux-dev.svg')
     .optional(),
+  /** The provider mark alone, square, for the 16px places a card cannot go. */
+  markUrl: z
+    .string()
+    .regex(/^\/[\w/-]+\.svg$/, 'expected a generated mark path like /models/marks/flux.svg')
+    .optional(),
   featured: z.boolean().default(false),
   sortOrder: z.int().default(0),
   pricing: z.object({

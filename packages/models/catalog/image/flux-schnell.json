@@ -72,5 +72,6 @@
     "supportsSeed": true,
     "maxOutputs": 4
   },
-  "thumbnailUrl": "/models/flux-schnell.svg"
+  "thumbnailUrl": "/models/flux-schnell.svg",
+  "markUrl": "/models/marks/flux.svg"
 }

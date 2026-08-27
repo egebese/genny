@@ -34,8 +34,11 @@ export function ModelCard({ model, current }: { model: PickableModel; current: b
       {/* Two lines, always. Sharing one with the price left names truncated to
           "E…" at a phone width, which is not a name. */}
       <span className="flex min-w-0 flex-col">
-        <span className="truncate font-medium text-ink text-sm" title={model.displayName}>
-          {model.displayName}
+        <span className="flex min-w-0 items-center gap-1.5">
+          {model.markUrl ? <img src={model.markUrl} alt="" className="size-3.5 shrink-0" /> : null}
+          <span className="truncate font-medium text-ink text-sm" title={model.displayName}>
+            {model.displayName}
+          </span>
         </span>
         <span className="truncate text-ink-faint text-xs tabular-nums">{model.priceLabel}</span>
       </span>

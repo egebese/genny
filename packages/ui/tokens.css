@@ -85,3 +85,55 @@
   background: var(--color-surface);
   box-shadow: var(--shadow-panel);
 }
+
+/*
+ * Scrollbars, everywhere, in the product's own colours.
+ *
+ * The native ones are drawn by the platform: light grey on macOS unless the page
+ * declares a scheme, a permanent grey gutter on Windows, and neither of them is
+ * this. A thumb the colour of a control on a transparent track reads as part of
+ * the surface it is scrolling instead of as a piece of the operating system.
+ *
+ * `scrollbar-*` for Firefox and Chrome, `::-webkit-scrollbar` for Safari and
+ * older Chrome. Both, because neither covers everyone.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-hover) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  /* Padding drawn as a transparent border, so the thumb reads as a slim pill
+     with room around it rather than filling the gutter edge to edge. */
+  background: var(--color-surface-hover);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-faint);
+  background-clip: content-box;
+}
+
+/*
+ * A row that scrolls sideways and should not say so: the topbar nav, the dock's
+ * settings, the picker's categories. Both properties, because hiding it in
+ * Firefox and leaving a 10px gutter in Safari is worse than either.
+ */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

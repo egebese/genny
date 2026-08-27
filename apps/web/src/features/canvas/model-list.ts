@@ -14,6 +14,8 @@ export type PickableModel = {
   description: string
   group: string
   thumbnailUrl: string | null
+  /** The provider mark alone, for the chip and the picker rows. */
+  markUrl: string | null
   priceLabel: string
   pricing: ModelDefinition['pricing']
   /** On the client so the button can price the request without a round trip. */
@@ -39,6 +41,7 @@ export function toPickable(model: ModelDefinition): PickableModel {
     description: model.description,
     group: model.group,
     thumbnailUrl: model.thumbnailUrl ?? null,
+    markUrl: model.markUrl ?? null,
     priceLabel: `$${model.pricing.unitPriceUsd} / ${model.pricing.unit}`,
     pricing: model.pricing,
     creditMultiplier: model.creditMultiplier,

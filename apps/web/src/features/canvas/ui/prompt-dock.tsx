@@ -157,7 +157,7 @@ export function PromptDock(props: PromptDockProps) {
         {/* One line that scrolls sideways rather than a block that wraps: a
             second row of controls pushes the prompt up the screen on a phone,
             and the controls are adjustments, not the point. */}
-        <div className="-mx-0.5 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto px-0.5 py-0.5 [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] [scrollbar-width:none]">
+        <div className="-mx-0.5 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto px-0.5 py-0.5 [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] scrollbar-none">
           <ModelPicker models={props.models} selected={model} onSelect={props.onModelChange} />
           {model.inputs.map((input) => (
             <SettingField

@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@genny/ui/cn.ts'
+import { Icon } from '@genny/ui/icon.tsx'
 
 export type Attachment = {
   field: string
@@ -46,7 +47,7 @@ export function AttachmentStrip({ attachments, mentions, onRemove, onUnmention }
       {attachments.map((attachment, index) => (
         <Chip
           key={`${attachment.field}:${attachment.assetId}:${index}`}
-          tag={attachment.slotLabel}
+          tag={attachment.slotLabel.replace(/^Use as /, '').replace(/^./, (c) => c.toUpperCase())}
           name={attachment.label}
           preview={attachment.kind === 'image' ? attachment.url : null}
           fallback={attachment.kind}
@@ -57,10 +58,10 @@ export function AttachmentStrip({ attachments, mentions, onRemove, onUnmention }
       {mentions.map((mention) => (
         <Chip
           key={`@${mention.label}`}
-          tag="@"
-          name={mention.label}
+          tag={`@${mention.label}`}
+          name={mention.count > 1 ? `${mention.count} images` : 'mentioned'}
           preview={mention.previewUrl}
-          fallback={mention.count > 1 ? `${mention.count}` : null}
+          fallback={mention.count > 1 ? `${mention.count}` : '@'}
           onRemove={() => onUnmention(mention.label)}
         />
       ))}
@@ -68,6 +69,14 @@ export function AttachmentStrip({ attachments, mentions, onRemove, onUnmention }
   )
 }
 
+/**
+ * The preview leads, then what this is for, then what it is.
+ *
+ * Two lines rather than one: "Start frame" and the handle answer different
+ * questions, and running them together as `START FRAME a-smooth-river-…` made
+ * the part that matters, which of two image slots this fills, the part that got
+ * truncated first.
+ */
 function Chip(props: {
   tag: string
   name: string
@@ -76,29 +85,29 @@ function Chip(props: {
   onRemove: () => void
 }) {
   return (
-    <li className="flex items-center gap-2 rounded-(--radius-control) bg-control py-1 pr-1 pl-2">
-      <span className="font-mono text-[10px] text-ink-faint uppercase tracking-wider">
-        {props.tag}
-      </span>
+    <li className="flex items-center gap-2 rounded-(--radius-control) bg-control py-1 pr-1 pl-1">
       {props.preview ? (
-        <img src={props.preview} alt="" className="size-6 rounded-[3px] object-cover" />
+        <img src={props.preview} alt="" className="size-8 rounded-[3px] object-cover" />
       ) : (
-        <span className="flex size-6 items-center justify-center rounded-[3px] bg-canvas font-mono text-[10px] text-ink-faint">
+        <span className="flex size-8 items-center justify-center rounded-[3px] bg-canvas font-mono text-[10px] text-ink-faint">
           {props.fallback}
         </span>
       )}
-      <span className="max-w-24 truncate text-ink text-xs">{props.name}</span>
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate text-ink text-xs">{props.tag}</span>
+        <span className="max-w-32 truncate text-[11px] text-ink-faint">{props.name}</span>
+      </span>
       <button
         type="button"
         aria-label={`Remove ${props.name}`}
         onClick={props.onRemove}
         className={cn(
-          'flex size-6 items-center justify-center rounded-[3px] text-ink-faint',
+          'flex size-6 shrink-0 items-center justify-center rounded-[3px] text-ink-faint',
           'outline-none hover:bg-surface-hover hover:text-ink',
           'focus-visible:ring-2 focus-visible:ring-accent',
         )}
       >
-        ×
+        <Icon name="close" className="size-3.5" />
       </button>
     </li>
   )

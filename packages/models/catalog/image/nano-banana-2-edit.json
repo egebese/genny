@@ -73,5 +73,6 @@
   "capabilities": {
     "maxOutputs": 4
   },
-  "thumbnailUrl": "/models/nano-banana-2-edit.svg"
+  "thumbnailUrl": "/models/nano-banana-2-edit.svg",
+  "markUrl": "/models/marks/gemini.svg"
 }

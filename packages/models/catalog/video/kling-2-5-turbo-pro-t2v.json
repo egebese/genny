@@ -53,5 +53,6 @@
     "supportsNegativePrompt": true,
     "maxOutputs": 1
   },
-  "thumbnailUrl": "/models/kling-video-v2-5-turbo-pro-text-to-video.svg"
+  "thumbnailUrl": "/models/kling-video-v2-5-turbo-pro-text-to-video.svg",
+  "markUrl": "/models/marks/kling.svg"
 }

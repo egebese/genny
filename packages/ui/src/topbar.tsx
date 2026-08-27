@@ -30,7 +30,7 @@ export function Topbar({ brand, nav, actions, className }: TopbarProps) {
             min-w-0 is what makes that true: without it the nav refuses to shrink
             and pushes the actions off the edge instead of scrolling. */}
         {nav ? (
-          <nav className="-mx-1 flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
+          <nav className="-mx-1 flex min-w-0 flex-1 items-center gap-1 overflow-x-auto px-1 scrollbar-none">
             {nav}
           </nav>
         ) : null}

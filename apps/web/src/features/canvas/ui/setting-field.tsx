@@ -1,6 +1,8 @@
 'use client'
 
 import type { ModelInput } from '@genny/models/schema.ts'
+import { Icon } from '@genny/ui/icon.tsx'
+import { settingIcon } from './setting-icon.ts'
 
 type SettingFieldProps = {
   input: ModelInput
@@ -20,6 +22,7 @@ type SettingFieldProps = {
 const pill =
   'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-(--radius-control) bg-control px-2.5 text-xs transition-colors hover:bg-surface-hover focus-within:ring-2 focus-within:ring-accent'
 const label = 'text-ink-faint'
+const glyph = 'size-3.5 text-ink-faint'
 const field = 'bg-transparent text-ink outline-none'
 
 /**
@@ -33,6 +36,7 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
   if (input.type === 'enum' && input.enum) {
     return (
       <span className={pill}>
+        <Icon name={settingIcon(input.name)} className={glyph} />
         <label htmlFor={id} className={label}>
           {input.label}
         </label>
@@ -62,6 +66,7 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
         htmlFor={id}
         className={`${pill} cursor-pointer ${on ? 'text-accent' : 'text-ink-faint'}`}
       >
+        <Icon name={settingIcon(input.name)} className={glyph} />
         <input
           id={id}
           type="checkbox"
@@ -77,6 +82,7 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
   if (input.type === 'integer' || input.type === 'number') {
     return (
       <span className={pill}>
+        <Icon name={settingIcon(input.name)} className={glyph} />
         <label htmlFor={id} className={label}>
           {input.label}
         </label>
@@ -99,6 +105,7 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
 
   return (
     <span className={pill}>
+      <Icon name={settingIcon(input.name)} className={glyph} />
       <label htmlFor={id} className={label}>
         {input.label}
       </label>

@@ -68,7 +68,17 @@ export function NodePanel(props: NodePanelProps) {
     <aside
       aria-label="Generation details"
       data-overlay
-      style={{ left: position.x, top: position.y, width: PANEL.width, maxHeight: PANEL.height }}
+      /*
+       * A fixed height, not a maximum. `anchorPanel` places it by the height it
+       * was told about, so a shorter panel would sit where a taller one would
+       * have, and the body below is what scrolls either way.
+       */
+      style={{
+        left: position.x,
+        top: position.y,
+        width: PANEL.width,
+        height: Math.min(PANEL.height, props.bounds.height - 24),
+      }}
       className="panel absolute z-20 flex flex-col overflow-hidden rounded-(--radius-panel)"
     >
       <header className="flex items-center justify-between gap-2 border-line border-b px-3 py-2">
@@ -86,7 +96,7 @@ export function NodePanel(props: NodePanelProps) {
         </Button>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3">
         {node.status === 'failed' && node.error ? (
           <Alert tone="danger" className="mb-3">
             {node.error}
