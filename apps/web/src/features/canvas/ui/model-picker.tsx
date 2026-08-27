@@ -12,6 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@genny/ui/vendor/ui/popover.tsx'
 import { useMemo, useState } from 'react'
 import type { PickableModel } from '../model-list.ts'
+import { ModelCard } from './model-card.tsx'
 
 type ModelPickerProps = {
   models: PickableModel[]
@@ -51,12 +52,19 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
         align="start"
         sideOffset={8}
         aria-label="Choose a model"
-        className="chrome-edge w-[min(34rem,calc(100vw-2rem))] overflow-hidden rounded-(--radius-panel) p-0"
+        /*
+         * A fixed size, not a maximum. The card used to grow and shrink with
+         * whatever the filter left in it, so every click moved the thing you
+         * were about to click next.
+         */
+        className="chrome-edge h-[min(30rem,70dvh)] w-[min(54rem,calc(100vw-2rem))] overflow-hidden rounded-(--radius-panel) p-0"
       >
-        <Command className="bg-transparent">
+        <Command className="flex h-full flex-col bg-transparent">
           <CommandInput placeholder="Search models" className="border-line" />
-          <div className="flex max-h-80">
-            <ul className="w-32 shrink-0 border-line border-r py-1 text-sm">
+          {/* Stacked on a phone: a category rail plus a grid in 343px leaves no
+              room for either, so the rail becomes a row that scrolls sideways. */}
+          <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
+            <ul className="flex shrink-0 gap-1 overflow-x-auto border-line border-b p-1 text-sm sm:w-40 sm:flex-col sm:gap-0 sm:overflow-y-auto sm:border-r sm:border-b-0 [scrollbar-width:none]">
               <CategoryButton active={group === null} onClick={() => setGroup(null)} label="All" />
               {groups.map((name) => (
                 <CategoryButton
@@ -67,11 +75,13 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
                 />
               ))}
             </ul>
-            <CommandList className="max-h-80 flex-1">
+            <CommandList className="max-h-none min-h-0 flex-1 overflow-y-auto">
               <CommandEmpty className="px-3 py-6 text-center text-ink-faint text-sm">
                 Nothing matches that.
               </CommandEmpty>
-              <CommandGroup className="p-1">
+              {/* cmdk puts the items in a nested container, so the grid has to
+                  reach into it or every card ends up in one column. */}
+              <CommandGroup className="p-2 [&_[cmdk-group-items]]:grid [&_[cmdk-group-items]]:grid-cols-2 [&_[cmdk-group-items]]:gap-2 lg:[&_[cmdk-group-items]]:grid-cols-3">
                 {visible.map((model) => (
                   <CommandItem
                     key={model.endpointId}
@@ -80,27 +90,9 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
                       onSelect(model)
                       setOpen(false)
                     }}
-                    className="flex cursor-pointer items-center gap-3 rounded-(--radius-control) p-2 data-[selected=true]:bg-surface-hover"
+                    className="cursor-pointer rounded-(--radius-control) p-1 data-[selected=true]:bg-surface-hover"
                   >
-                    <ModelThumb model={model} />
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-baseline gap-2">
-                        <span className="truncate font-medium text-sm">{model.displayName}</span>
-                        <span className="shrink-0 text-ink-faint text-xs tabular-nums">
-                          {model.priceLabel}
-                        </span>
-                      </span>
-                      {/* What it is for. Picking between eleven models on price
-                          alone is picking on the only axis that does not matter. */}
-                      <span className="line-clamp-2 text-ink-muted text-xs">
-                        {model.description}
-                      </span>
-                    </span>
-                    {model.endpointId === selected.endpointId ? (
-                      <span className="text-accent">
-                        <span className="sr-only">Selected</span>✓
-                      </span>
-                    ) : null}
+                    <ModelCard model={model} current={model.endpointId === selected.endpointId} />
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -128,28 +120,12 @@ function CategoryButton({
         onClick={onClick}
         aria-pressed={active}
         className={cn(
-          'w-full truncate px-3 py-1.5 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent',
+          'w-full shrink-0 truncate rounded-(--radius-control) px-3 py-1.5 text-left whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent',
           active ? 'bg-surface-hover text-ink' : 'text-ink-muted hover:text-ink',
         )}
       >
         {label}
       </button>
     </li>
-  )
-}
-
-function ModelThumb({ model }: { model: PickableModel }) {
-  if (!model.thumbnailUrl) {
-    return <span className="size-9 shrink-0 rounded-(--radius-control) bg-canvas" />
-  }
-  return (
-    // Plain img: these are remote thumbnails on a CDN we allowlist in the CSP,
-    // and next/image would add a proxy hop for no gain at this size.
-    <img
-      src={model.thumbnailUrl}
-      alt=""
-      loading="lazy"
-      className="size-9 shrink-0 rounded-(--radius-control) object-cover"
-    />
   )
 }

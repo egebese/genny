@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "check": "biome check . && turbo run typecheck && pnpm deps:check",
+    "check": "biome check . && turbo run typecheck && pnpm deps:check && pnpm cards:check",
     "fix": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
@@ -23,7 +23,9 @@
     "up": "docker compose -f docker/compose.yml up -d",
     "down": "docker compose -f docker/compose.yml down",
     "env:link": "node tooling/src/link-env.mjs",
-    "postinstall": "node tooling/src/link-env.mjs"
+    "postinstall": "node tooling/src/link-env.mjs",
+    "cards": "node tooling/src/model-cards.mjs",
+    "cards:check": "node tooling/src/model-cards.mjs --check"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",

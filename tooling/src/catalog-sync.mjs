@@ -60,7 +60,10 @@ for (const modality of readdirSync(catalogRoot)) {
      */
     const updated = { ...entry }
     if (remote.shortDescription) updated.description = remote.shortDescription.trim()
-    if (remote.thumbnailUrl) updated.thumbnailUrl = remote.thumbnailUrl
+    /*
+     * The thumbnail is ours now, drawn by `pnpm cards` from the provider mark and
+     * the entry's own fields. Taking fal's back would undo that on every sync.
+     */
 
     const next = `${JSON.stringify(updated, null, 2)}\n`
     if (!checkOnly && next !== readFileSync(path, 'utf8')) {

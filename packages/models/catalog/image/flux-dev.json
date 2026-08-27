@@ -73,5 +73,5 @@
     "supportsSeed": true,
     "maxOutputs": 4
   },
-  "thumbnailUrl": "https://storage.googleapis.com/fal_cdn/fal/Upscale-1.jpeg"
+  "thumbnailUrl": "/models/flux-dev.svg"
 }

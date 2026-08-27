@@ -12,6 +12,7 @@
       "!**/node_modules",
       "!**/dist",
       "!**/*.tsbuildinfo",
+      "!apps/web/public/models",
       "!**/next-env.d.ts"
     ]
   },

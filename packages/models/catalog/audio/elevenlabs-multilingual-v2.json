@@ -13,7 +13,12 @@
   "creditMultiplier": 1.2,
   "promptField": "text",
   "inputs": [
-    { "name": "text", "type": "string", "label": "Script", "required": true },
+    {
+      "name": "text",
+      "type": "string",
+      "label": "Script",
+      "required": true
+    },
     {
       "name": "voice",
       "type": "enum",
@@ -37,10 +42,18 @@
       "min": 0,
       "max": 1
     },
-    { "name": "speed", "type": "number", "label": "Speed", "default": 1, "min": 0.7, "max": 1.2 }
+    {
+      "name": "speed",
+      "type": "number",
+      "label": "Speed",
+      "default": 1,
+      "min": 0.7,
+      "max": 1.2
+    }
   ],
   "references": [],
   "capabilities": {
     "maxOutputs": 1
-  }
+  },
+  "thumbnailUrl": "/models/elevenlabs-tts-multilingual-v2.svg"
 }

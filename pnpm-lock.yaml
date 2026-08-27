@@ -515,6 +515,9 @@ importers:
       '@genny/tsconfig':
         specifier: workspace:*
         version: link:../packages/tsconfig
+      '@lobehub/icons-static-svg':
+        specifier: ^1.94.0
+        version: 1.94.0
       '@types/node':
         specifier: 'catalog:'
         version: 26.3.0
@@ -1428,6 +1431,9 @@ packages:
 
   '@kwsites/file-exists@1.1.1':
     resolution: {integrity: sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==}
+
+  '@lobehub/icons-static-svg@1.94.0':
+    resolution: {integrity: sha512-Inx1TYkjLH6YeHOIHeVW9+OM/xxRnk8TmcQVKquFUDBmE3X9sUuRGt7kALrrDBNNAbrWz7Qq6fAiFj9E9Mmw9Q==}
 
   '@manypkg/find-root@3.1.0':
     resolution: {integrity: sha512-BcSqCyKhBVZ5YkSzOiheMCV41kqAFptW6xGqYSTjkVTl9XQpr+pqHhwgGCOHQtjDCv7Is6EFyA14Sm5GVbVABA==}
@@ -4716,6 +4722,8 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  '@lobehub/icons-static-svg@1.94.0': {}
 
   '@manypkg/find-root@3.1.0':
     dependencies:
