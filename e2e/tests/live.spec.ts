@@ -84,6 +84,50 @@ test.describe('@live against real fal', () => {
     await expect(panel.getByText('fal-ai/flux/schnell')).toBeVisible()
   })
 
+  test('a dragged node lines up with its neighbours @live', async ({ page }) => {
+    await generate(page, 'schnell', 'a smooth river stone, macro', { count: 2 })
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await expect(nodes.nth(1).locator('img')).toBeVisible({ timeout: 300_000 })
+
+    const anchor = await nodes.nth(0).boundingBox()
+    const moving = await nodes.nth(1).boundingBox()
+    if (!anchor || !moving) throw new Error('no nodes to drag')
+
+    // Down and a few pixels shy of the first node's left edge: near enough to
+    // line up, far enough that landing there by hand would be luck.
+    await page.mouse.move(moving.x + 40, moving.y + 40)
+    await page.mouse.down()
+    await page.mouse.move(anchor.x + 44, moving.y + 260, { steps: 12 })
+    await expect(page.locator('[aria-hidden].bg-accent')).toHaveCount(1)
+    await page.mouse.up()
+
+    const landed = await nodes.nth(1).boundingBox()
+    expect(Math.round(landed?.x ?? -1)).toBe(Math.round(anchor.x))
+    // The guide is for the drag, not for the board.
+    await expect(page.locator('[aria-hidden].bg-accent')).toHaveCount(0)
+  })
+
+  test('shift holds a drag to one axis @live', async ({ page }) => {
+    await generate(page, 'schnell', 'a brass key on black velvet, overhead')
+    const node = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first()
+    await expect(node.locator('img')).toBeVisible({ timeout: 300_000 })
+
+    const before = await node.boundingBox()
+    if (!before) throw new Error('no node to drag')
+
+    await page.keyboard.down('Shift')
+    await page.mouse.move(before.x + 40, before.y + 40)
+    await page.mouse.down()
+    // Mostly sideways, and enough vertical that an unlocked drag would show it.
+    await page.mouse.move(before.x + 240, before.y + 130, { steps: 10 })
+    await page.mouse.up()
+    await page.keyboard.up('Shift')
+
+    const after = await node.boundingBox()
+    expect(Math.abs((after?.y ?? 0) - before.y)).toBeLessThan(2)
+    expect((after?.x ?? 0) - before.x).toBeGreaterThan(150)
+  })
+
   test('the node keeps its place while it fills @live', async ({ page }) => {
     await generate(page, 'schnell', 'a brass key on black velvet, overhead')
     const node = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first()
@@ -123,6 +167,10 @@ async function generate(
 
   // Exact: a model control called "Prompt strength" would otherwise match too.
   await page.getByLabel('Prompt', { exact: true }).fill(prompt)
-  if (options.count) await page.getByLabel('Images').fill(String(options.count))
+  // A stepper, not a field: the endpoint's own max is the ceiling and a typed
+  // number could walk past it.
+  for (let made = 1; made < (options.count ?? 1); made++) {
+    await page.getByRole('button', { name: 'One more images' }).click()
+  }
   await page.getByRole('button', { name: /^Generate/ }).click()
 }

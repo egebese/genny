@@ -1,5 +1,6 @@
 'use client'
 
+import type { Guide } from '@genny/canvas/snap.ts'
 import { suggestFor } from '@genny/models/slots.ts'
 import { useCallback, useRef, useState } from 'react'
 import { defaultModel } from '../default-model.ts'
@@ -30,6 +31,7 @@ export function Canvas(props: ProjectPage) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(props.hasCredentials)
+  const [guides, setGuides] = useState<Guide[]>([])
 
   const projectId = props.projectId
   const savePan = useCallback(
@@ -114,6 +116,7 @@ export function Canvas(props: ProjectPage) {
         nodes={nodes}
         selected={pick.selected}
         marquee={pick.marquee}
+        guides={guides}
         viewport={view.viewport}
         panning={view.panning}
         panMode={view.spaceHeld}
@@ -142,6 +145,7 @@ export function Canvas(props: ProjectPage) {
         }}
         onKey={(key) => view.handleKey(key, nodes)}
         onMove={move}
+        onGuides={setGuides}
         onCommit={commit}
         onDelete={(id) => removeNodes([id])}
         onZoom={view.zoomBy}

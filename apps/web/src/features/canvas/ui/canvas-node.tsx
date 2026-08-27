@@ -1,6 +1,7 @@
 'use client'
 
 import type { Viewport } from '@genny/canvas/geometry.ts'
+import { type Guide, lockAxis, snapTo } from '@genny/canvas/snap.ts'
 import { cn } from '@genny/ui/cn.ts'
 import { Icon } from '@genny/ui/icon.tsx'
 import type { CanvasNodeView } from '../node-view.ts'
@@ -8,6 +9,8 @@ import { NodeMedia } from './node-media.tsx'
 
 type CanvasNodeProps = {
   node: CanvasNodeView
+  /** Everything else on the board, to line this one up against. */
+  neighbours: CanvasNodeView[]
   selected: boolean
   viewport: Viewport
   /** Space is down, so this drag belongs to the board rather than to the node. */
@@ -18,6 +21,7 @@ type CanvasNodeProps = {
   onContextMenu: (at: { clientX: number; clientY: number }) => void
   onMove: (position: { x: number; y: number }) => void
   onCommit: (position: { x: number; y: number }) => void
+  onGuides: (guides: Guide[]) => void
   onDelete: () => void
 }
 
@@ -29,6 +33,9 @@ type CanvasNodeProps = {
  * widget. Selection follows focus, and the arrow keys nudge whatever is
  * selected rather than scrolling the page.
  */
+/** How close, on screen, counts as lined up. Figma's is about this. */
+const SNAP_PIXELS = 6
+
 export function CanvasNode(props: CanvasNodeProps) {
   const { node, selected, viewport } = props
 
@@ -47,17 +54,34 @@ export function CanvasNode(props: CanvasNodeProps) {
     let moved = false
 
     const move = (dragged: PointerEvent) => {
-      last = {
+      const free = {
         x: Math.round(start.x + (dragged.clientX - origin.x) / viewport.zoom),
         y: Math.round(start.y + (dragged.clientY - origin.y) / viewport.zoom),
       }
+      // Shift first, then snap: locking after a snap would let an alignment on
+      // the abandoned axis drag the node back off the line it is being held to.
+      const along = dragged.shiftKey ? lockAxis(start, free) : free
+      /*
+       * A pixel threshold divided by the zoom. A tolerance in canvas units would
+       * get easier to hit the further you zoomed out, which is exactly when
+       * someone is placing things roughly and wants to be left alone.
+       */
+      const snapped = snapTo(
+        { ...along, width: node.width, height: node.height },
+        props.neighbours,
+        SNAP_PIXELS / viewport.zoom,
+      )
+
+      last = snapped.position
       moved = true
       props.onMove(last)
+      props.onGuides(snapped.guides)
     }
     const stop = () => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', stop)
       window.removeEventListener('pointercancel', stop)
+      props.onGuides([])
       if (moved) props.onCommit(last)
     }
     window.addEventListener('pointermove', move)

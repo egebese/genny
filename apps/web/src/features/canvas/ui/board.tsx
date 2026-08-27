@@ -1,6 +1,7 @@
 'use client'
 
 import type { Rect, Viewport } from '@genny/canvas/geometry.ts'
+import type { Guide } from '@genny/canvas/snap.ts'
 import { Button } from '@genny/ui/button.tsx'
 import { cn } from '@genny/ui/cn.ts'
 import type { ReactNode, RefObject } from 'react'
@@ -12,6 +13,8 @@ type BoardProps = {
   nodes: CanvasNodeView[]
   selected: ReadonlySet<string>
   marquee: Rect | null
+  /** Alignment lines, while something is being dragged. */
+  guides: Guide[]
   viewport: Viewport
   panning: boolean
   /** True while space is down, which is when a drag pans instead of selecting. */
@@ -23,6 +26,7 @@ type BoardProps = {
   onMarquee: (event: React.PointerEvent, additive: boolean) => void
   onKey: (key: string) => boolean
   onMove: (id: string, position: { x: number; y: number }) => void
+  onGuides: (guides: Guide[]) => void
   onCommit: (id: string, position: { x: number; y: number }) => void
   onDelete: (id: string) => void
   onZoom: (factor: number) => void
@@ -78,6 +82,31 @@ export function Board(props: BoardProps) {
         }}
         className="absolute inset-0 outline-none"
       >
+        {/* Under the nodes, in canvas space, so a line stays on its edge at any
+            zoom. Its own width is divided back out so it stays hairline. */}
+        {props.guides.map((guide) => (
+          <div
+            key={`${guide.axis}:${guide.at}:${guide.from}`}
+            aria-hidden
+            style={
+              guide.axis === 'x'
+                ? {
+                    left: guide.at,
+                    top: guide.from,
+                    height: guide.to - guide.from,
+                    width: 1 / viewport.zoom,
+                  }
+                : {
+                    top: guide.at,
+                    left: guide.from,
+                    width: guide.to - guide.from,
+                    height: 1 / viewport.zoom,
+                  }
+            }
+            className="pointer-events-none absolute bg-accent"
+          />
+        ))}
+
         {props.nodes.map((node) => (
           <CanvasNode
             key={node.id}
@@ -88,7 +117,9 @@ export function Board(props: BoardProps) {
             onSelect={(additive) => props.onSelect(node.id, additive)}
             onInspect={() => props.onInspect(node.id)}
             onContextMenu={(at) => props.onContextMenu(node.id, at)}
+            neighbours={props.nodes.filter((other) => other.id !== node.id)}
             onMove={(position) => props.onMove(node.id, position)}
+            onGuides={props.onGuides}
             onCommit={(position) => props.onCommit(node.id, position)}
             onDelete={() => props.onDelete(node.id)}
           />
