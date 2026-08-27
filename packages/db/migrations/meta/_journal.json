@@ -36,6 +36,20 @@
       "when": 1787775182446,
       "tag": "0004_password_login",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787847509061,
+      "tag": "0005_flawless_korg",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787847660372,
+      "tag": "0006_canvas_node_project_owner_fk",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { resolveImageSize } from './aspect.ts'
 import type { ModelDefinition } from './schema.ts'
 
 /** Everything the estimate needs. Keeps the browser from importing the catalog. */
@@ -58,18 +59,4 @@ export function estimateUnits(model: PricedModel, input: Record<string, unknown>
 function positiveNumber(value: unknown, fallback: number): number {
   const parsed = Number(value)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
-}
-
-/** fal's named sizes, in pixels. Kept here so pricing does not guess. */
-const IMAGE_SIZES: Record<string, { width: number; height: number }> = {
-  square: { width: 512, height: 512 },
-  square_hd: { width: 1024, height: 1024 },
-  portrait_4_3: { width: 768, height: 1024 },
-  portrait_16_9: { width: 576, height: 1024 },
-  landscape_4_3: { width: 1024, height: 768 },
-  landscape_16_9: { width: 1024, height: 576 },
-}
-
-function resolveImageSize(name: string): { width: number; height: number } {
-  return IMAGE_SIZES[name] ?? { width: 1024, height: 1024 }
 }

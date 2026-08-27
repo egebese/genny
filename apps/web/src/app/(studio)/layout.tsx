@@ -7,12 +7,12 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { AccountMenu } from '@/features/auth/ui/account-menu.tsx'
 import { CreditMeter } from '@/features/billing/ui/credit-meter.tsx'
-import { StudioNav } from '@/features/studio/ui/studio-nav.tsx'
+import { CanvasNav } from '@/features/canvas/ui/canvas-nav.tsx'
 
 export default function StudioLayout({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
-      <div className="flex min-h-dvh flex-col">
+      <div className="flex h-dvh flex-col">
         <SparkleField />
         <ToastRegion />
         <Topbar
@@ -21,7 +21,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
               <Wordmark />
             </Link>
           }
-          nav={<StudioNav />}
+          nav={<CanvasNav />}
           actions={
             <>
               <CreditMeter />
@@ -29,7 +29,10 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
             </>
           }
         />
-        <div className="relative z-10 flex flex-1 flex-col">{children}</div>
+        {/* The board sizes itself to what is left rather than to the document, so
+            the page never scrolls behind an infinite canvas. Routes that do
+            scroll get it from this container. */}
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
       </div>
     </ToastProvider>
   )

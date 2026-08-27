@@ -17,6 +17,7 @@ const ALLOWED = {
   '@genny/env': [],
   '@genny/models': [],
   '@genny/ui': [],
+  '@genny/canvas': [],
   '@genny/tsconfig': [],
   '@genny/db': ['@genny/env'],
   '@genny/fal': ['@genny/env', '@genny/models'],

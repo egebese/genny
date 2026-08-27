@@ -10,7 +10,7 @@ import type { FullConfig } from '@playwright/test'
  *
  * Sequential on purpose: the point is to pay each compile once, alone.
  */
-const ROUTES = ['/', '/image', '/assets', '/history', '/billing', '/usage']
+const ROUTES = ['/', '/c', '/assets', '/billing', '/usage']
 
 export default async function warmRoutes(config: FullConfig): Promise<void> {
   const baseURL = config.projects[0]?.use.baseURL

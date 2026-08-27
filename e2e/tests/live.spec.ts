@@ -18,9 +18,9 @@ test.describe('@live against real fal', () => {
   // Real models, real queues. Kling alone is a couple of minutes.
   test.setTimeout(10 * 60 * 1000)
 
-  test('an image arrives and is stored as ours @live', async ({ page }) => {
+  test('an image lands on the board as a node of ours @live', async ({ page }) => {
     // A tenth of a cent.
-    await generate(page, '/image', 'schnell', 'a single red leaf on wet slate, overhead')
+    await generate(page, 'schnell', 'a single red leaf on wet slate, overhead')
     await expect(page.locator('main img[src*="/genny/"]').first()).toBeVisible({ timeout: 300_000 })
   })
 
@@ -28,19 +28,32 @@ test.describe('@live against real fal', () => {
     page,
   }) => {
     // A third of a cent, and the only model whose prompt field is not `prompt`.
-    await generate(page, '/audio', 'ElevenLabs', 'Genny now speaks, not only draws.')
+    await generate(page, 'ElevenLabs', 'Genny now speaks, not only draws.')
     await expect(page.locator('main audio').first()).toBeVisible({ timeout: 300_000 })
   })
 
   test('a video arrives and plays @live', async ({ page }) => {
     // Thirty-five cents. The expensive one, and the reason this file is opt-in.
-    await generate(page, '/video', 'Kling', 'a paper boat drifting down a rain gutter, close up')
+    await generate(page, 'Kling', 'a paper boat drifting down a rain gutter, close up')
     await expect(page.locator('main video').first()).toBeVisible({ timeout: 540_000 })
+  })
+
+  /*
+   * The one path a mocked suite has never run. Nothing in the fake fal ever
+   * finishes, so ingest, capture and the fill that turns a placeholder into a
+   * node only ever execute here.
+   */
+  test('the node keeps its place while it fills @live', async ({ page }) => {
+    await generate(page, 'schnell', 'a brass key on black velvet, overhead')
+    const node = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first()
+    const reserved = await node.boundingBox()
+    await expect(node.locator('img')).toBeVisible({ timeout: 300_000 })
+    expect(await node.boundingBox()).toEqual(reserved)
   })
 })
 
-async function generate(page: Page, route: string, model: string, prompt: string): Promise<void> {
-  await page.goto(route)
+async function generate(page: Page, model: string, prompt: string): Promise<void> {
+  await page.goto('/c')
 
   // Through the route rather than the form: Next's dev logger prints server
   // action arguments, and a fal key is not something to write to a terminal.
@@ -51,7 +64,10 @@ async function generate(page: Page, route: string, model: string, prompt: string
       body: JSON.stringify({ key: value }),
     })
   }, key)
-  await page.goto(route)
+
+  await page.goto('/c')
+  await page.getByRole('button', { name: 'New canvas' }).click()
+  await page.waitForURL(/\/c\/[0-9a-f-]{36}/)
 
   await page.getByRole('button', { name: /^Model:/ }).click()
   await page

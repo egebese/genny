@@ -26,3 +26,25 @@ export const generationRequest = z.object({
 })
 
 export type GenerationRequest = z.infer<typeof generationRequest>
+
+/**
+ * Where the generation's first output goes on the board.
+ *
+ * The client decides, because only the browser knows the viewport and what is
+ * already placed. The bounds are a sanity rail, not a layout rule: a coordinate
+ * past them is a bug or an attack, never a person scrolling.
+ */
+export const nodeRect = z.object({
+  x: z.int().min(-1_000_000).max(1_000_000),
+  y: z.int().min(-1_000_000).max(1_000_000),
+  width: z.int().positive().max(4000),
+  height: z.int().positive().max(4000),
+})
+
+export const canvasGenerationRequest = generationRequest.extend({
+  projectId: z.uuid(),
+  node: nodeRect,
+})
+
+export type NodeRect = z.infer<typeof nodeRect>
+export type CanvasGenerationRequest = z.infer<typeof canvasGenerationRequest>

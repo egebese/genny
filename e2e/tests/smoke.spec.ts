@@ -9,6 +9,24 @@ const TINY_PNG = Buffer.from(
 )
 
 /**
+ * A fresh board, which is where the dock now lives.
+ *
+ * There is one canvas per piece of work rather than one studio per modality, so
+ * every test that needs the prompt needs a board to put the result on. A new one
+ * each time keeps tests from seeing each other's nodes.
+ */
+async function openCanvas(page: Page): Promise<void> {
+  await page.goto('/c')
+  await page.getByRole('button', { name: 'New canvas' }).click()
+  await page.waitForURL(/\/c\/[0-9a-f-]{36}/)
+}
+
+/** The board itself, so a node is never confused with a model picker option. */
+function board(page: Page): Locator {
+  return page.getByRole('listbox', { name: 'Canvas' })
+}
+
+/**
  * Fills the prompt and makes sure the value survived.
  *
  * A dev build under nine parallel workers can hydrate slowly enough that a fill
@@ -51,7 +69,7 @@ test.describe('shell', () => {
     await page.goto('/')
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await page.getByRole('link', { name: 'Start generating' }).click()
-    await expect(page).toHaveURL(/\/image$/)
+    await expect(page).toHaveURL(/\/c$/)
   })
 
   test('security headers are present on every response', async ({ request }) => {
@@ -63,7 +81,7 @@ test.describe('shell', () => {
   })
 
   test('nothing modal and no sidebar in the shell', async ({ page }) => {
-    await page.goto('/image')
+    await openCanvas(page)
     /*
      * `aria-modal="true"` is the thing that makes a surface modal: it tells
      * assistive technology the rest of the page is inert. Radix gives a popover
@@ -75,7 +93,7 @@ test.describe('shell', () => {
   })
 
   test('the page does not scroll sideways on a phone', async ({ page }) => {
-    await page.goto('/image')
+    await openCanvas(page)
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     )
@@ -83,23 +101,24 @@ test.describe('shell', () => {
   })
 
   test('navigation stays reachable at every width', async ({ page }) => {
-    await page.goto('/image')
-    await expect(page.getByRole('link', { name: 'Video' })).toBeVisible()
+    await openCanvas(page)
+    await expect(page.getByRole('link', { name: 'Canvases' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Assets' })).toBeVisible()
     await expect(page.locator('header nav')).toBeVisible()
   })
 })
 
-test.describe('image studio', () => {
+test.describe('the dock', () => {
   test('byok asks for a key before anything else', async ({ page }) => {
     test.skip(mode !== 'byok', 'saas mode uses the server key')
-    await page.goto('/image')
+    await openCanvas(page)
     await expect(page.getByLabel('Paste your fal key to start')).toBeVisible()
     await expect(page.getByLabel('Prompt', { exact: true })).toHaveCount(0)
   })
 
   test('byok refuses a key with whitespace in it', async ({ page, request }) => {
     test.skip(mode !== 'byok', 'saas mode uses the server key')
-    await page.goto('/image')
+    await openCanvas(page)
     const response = await request.post('/api/session/fal-key', {
       data: { key: 'not a valid key at all here' },
     })
@@ -115,14 +134,14 @@ test.describe('image studio', () => {
 
   test('saas goes straight to the prompt', async ({ page }) => {
     test.skip(mode !== 'saas', 'byok mode needs a key first')
-    await page.goto('/image')
+    await openCanvas(page)
     await expect(page.getByLabel('Prompt', { exact: true })).toBeVisible()
     await expect(page.getByLabel('Paste your fal key to start')).toHaveCount(0)
   })
 
   test('the model picker opens without covering the page', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
+    await openCanvas(page)
     await page.getByRole('button', { name: /^Model:/ }).click()
     await expect(page.getByPlaceholder('Search models')).toBeVisible()
 
@@ -136,7 +155,7 @@ test.describe('image studio', () => {
 
   test('the picker filters and switching a model changes the controls', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
+    await openCanvas(page)
     await page.getByRole('button', { name: /^Model:/ }).click()
     await page.getByPlaceholder('Search models').fill('FLUX')
     await page.getByRole('option', { name: /FLUX/ }).first().click()
@@ -148,7 +167,7 @@ test.describe('image studio', () => {
 
   test('generate stays disabled until there is a prompt', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
+    await openCanvas(page)
     const generate = page.getByRole('button', { name: 'Generate' })
     await expect(generate).toBeDisabled()
     await fillPrompt(page, 'a quiet street at dawn')
@@ -210,7 +229,7 @@ test.describe('assets and mentions', () => {
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
-    await page.goto('/image')
+    await openCanvas(page)
     const prompt = await fillPrompt(page, 'make it a sketch of @')
     await expect(page.locator('#mention-list')).toBeVisible()
 
@@ -230,7 +249,7 @@ test.describe('assets and mentions', () => {
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
-    await page.goto('/image')
+    await openCanvas(page)
     const prompt = await fillPrompt(page, '@')
     await expect(page.locator('#mention-list')).toHaveAttribute('role', 'listbox')
     await expect(prompt).toHaveAttribute('aria-expanded', 'true')
@@ -243,7 +262,7 @@ test.describe('assets and mentions', () => {
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
-    await page.goto('/image')
+    await openCanvas(page)
     const prompt = await fillPrompt(page, 'a sketch of @')
     await expect(page.locator('#mention-list')).toBeVisible()
     await prompt.press('ArrowDown')
@@ -259,7 +278,7 @@ test.describe('assets and mentions', () => {
     await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
-    await page.goto('/image')
+    await openCanvas(page)
     const prompt = await fillPrompt(page, 'a sketch of @ti')
     await expect(page.locator('#mention-list')).toBeVisible()
     await prompt.press('Escape')
@@ -270,7 +289,7 @@ test.describe('assets and mentions', () => {
 
   test('an email address does not open the mention list', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
+    await openCanvas(page)
     await fillPrompt(page, 'mail ege@fal.ai about it')
     await expect(page.locator('#mention-list')).toHaveCount(0)
   })
@@ -382,7 +401,7 @@ test.describe('characters', () => {
     await page.getByRole('button', { name: 'Create character' }).click()
     await expect(page.locator('section li').first()).toContainText('@ayse')
 
-    await page.goto('/image')
+    await openCanvas(page)
     await fillPrompt(page, 'a portrait of @')
     await expect(page.locator('#mention-list')).toBeVisible()
 
@@ -393,7 +412,7 @@ test.describe('characters', () => {
 
   test('Enter does not start a generation while an unmatched mention is open', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
+    await openCanvas(page)
     const prompt = await fillPrompt(page, 'a portrait of @nothingmatchesthis')
     // Enter here used to fall through and start a paid generation.
     await prompt.press('Enter')
@@ -402,91 +421,128 @@ test.describe('characters', () => {
   })
 })
 
-test.describe('the other modalities', () => {
-  test('video is a studio of its own, offering only video models', async ({ page }) => {
+test.describe('one dock over every modality', () => {
+  test('the picker offers stills, clips and speech from the same box', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/video')
+    await openCanvas(page)
     await page.getByRole('button', { name: /^Model:/ }).click()
 
+    // The three studios are gone. A board holds a still, the clip animated from
+    // it and its voiceover, so one picker has to reach all of them.
     const options = page.getByRole('option')
+    await expect(options.filter({ hasText: 'Nano Banana' }).first()).toBeVisible()
     await expect(options.filter({ hasText: 'Kling' }).first()).toBeVisible()
-    // Nothing from the image catalogue leaks in.
-    await expect(options.filter({ hasText: 'FLUX' })).toHaveCount(0)
-    await expect(options.filter({ hasText: 'Nano Banana' })).toHaveCount(0)
+    await expect(options.filter({ hasText: 'ElevenLabs' }).first()).toBeVisible()
   })
 
-  test('audio is its own studio too, and text to speech calls the prompt a script', async ({
+  test('a board opens on an image model, not on whatever is first', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    // Merging the studios made this a real decision: the first featured model of
+    // any modality was a text to speech endpoint, so the first prompt anyone
+    // typed got read aloud instead of drawn.
+    await expect(page.getByPlaceholder(/Describe the image/)).toBeVisible()
+  })
+
+  test('the controls follow the model, because a video is not a still', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    await expect(page.getByLabel('Length')).toHaveCount(0)
+
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByRole('option', { name: /Kling/ }).first().click()
+    await expect(page.getByLabel('Length')).toBeVisible()
+  })
+
+  test('choosing a speech model renames the box, since nobody describes a script', async ({
     page,
   }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/audio')
+    await openCanvas(page)
     await page.getByRole('button', { name: /^Model:/ }).click()
     await page
       .getByRole('option', { name: /ElevenLabs/ })
       .first()
       .click()
     await expect(page.getByLabel('Voice')).toBeVisible()
-  })
-
-  test('each studio keeps its own controls, because a video is not a still', async ({ page }) => {
-    test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/video')
-    await expect(page.getByLabel('Length')).toBeVisible()
-
-    await page.goto('/image')
-    await expect(page.getByLabel('Length')).toHaveCount(0)
-  })
-
-  test('the topbar links to all three and none of them is a dead end', async ({ page }) => {
-    await page.goto('/image')
-    for (const name of ['Video', 'Audio']) {
-      const response = await page.goto(`/${name.toLowerCase()}`)
-      expect(response?.status(), `${name} is a dead link`).toBe(200)
-      await expect(page.getByRole('link', { name })).toHaveAttribute('aria-current', 'page')
-    }
-  })
-
-  test('a page of history is refused an unknown modality', async ({ request }) => {
-    const response = await request.get('/api/jobs?modality=holograms')
-    expect(response.status()).toBe(400)
+    await expect(page.getByPlaceholder(/what should be said/)).toBeVisible()
   })
 })
 
-test.describe('history', () => {
-  test('history is a route in the topbar and says so when empty', async ({ page }) => {
-    await page.goto('/image')
-    await expect(page.getByRole('link', { name: 'History' })).toBeVisible()
-
-    await page.goto('/history')
-    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible()
-    await expect(page.getByText(/Nothing yet/)).toBeVisible()
+test.describe('the board', () => {
+  test('a new canvas is empty and says what to do with it', async ({ page }) => {
+    await openCanvas(page)
+    await expect(board(page).getByRole('option')).toHaveCount(0)
+    await expect(page.getByText(/Everything you make lands here/)).toBeVisible()
   })
 
-  test('the jobs page returns an empty page rather than an error without a session', async ({
-    request,
-  }) => {
-    const response = await request.get('/api/jobs')
-    expect(response.status()).toBe(200)
-    const body = (await response.json()) as { items: unknown[]; nextCursor: string | null }
-    expect(Array.isArray(body.items)).toBe(true)
+  test('the canvas list shows what you made and links back into it', async ({ page }) => {
+    await openCanvas(page)
+    const url = page.url()
+
+    await page.goto('/c')
+    await expect(page.getByRole('heading', { name: 'Canvases' })).toBeVisible()
+    const cards = page.getByRole('list', { name: 'Canvases' }).getByRole('listitem')
+    await expect(cards.first()).toBeVisible()
+
+    await cards.first().getByRole('link').click()
+    await expect(page).toHaveURL(url)
   })
 
-  test('a malformed cursor is refused rather than silently ignored', async ({ request }) => {
-    const response = await request.get('/api/jobs?before=not-a-date')
-    expect(response.status()).toBe(400)
+  test('zoom is a control, not a surprise, and it survives the round trip', async ({ page }) => {
+    await openCanvas(page)
+    await expect(page.getByText('100%')).toBeVisible()
+    await page.getByRole('button', { name: 'Zoom in' }).click()
+    await expect(page.getByText('120%')).toBeVisible()
+
+    // The viewport is debounced before it is written, so the wait is the point
+    // of the test rather than an accident of it.
+    await page.waitForTimeout(1200)
+    await page.reload()
+    await expect(page.getByText('120%')).toBeVisible()
   })
 
-  test('the feed offers no load-more button when there is nothing older', async ({ page }) => {
-    test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
-    await expect(page.getByRole('button', { name: /Load older/ })).toHaveCount(0)
+  test('the board keeps the page from scrolling behind it', async ({ page }) => {
+    await openCanvas(page)
+    const overflow = await page.evaluate(() => ({
+      x: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      y: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+    }))
+    expect(overflow.x).toBeLessThanOrEqual(1)
+    expect(overflow.y).toBeLessThanOrEqual(1)
+  })
+
+  test('a canvas belonging to somebody else is not found', async ({ page }) => {
+    // RLS scopes the read, so a stranger's board and a board that never existed
+    // are the same answer. Telling them apart tells a stranger what exists.
+    const response = await page.goto('/c/00000000-0000-4000-8000-000000000000')
+    expect(response?.status()).toBe(404)
+  })
+
+  test('a canvas id that is not a uuid is refused too', async ({ page }) => {
+    const response = await page.goto('/c/not-a-canvas')
+    expect(response?.status()).toBe(404)
+  })
+
+  test('deleting a canvas takes it off the list', async ({ page }) => {
+    await openCanvas(page)
+    await page.goto('/c')
+    const cards = page.getByRole('list', { name: 'Canvases' }).getByRole('listitem')
+    const before = await cards.count()
+
+    await cards.first().getByRole('button', { name: 'Delete' }).click()
+    // No dialog: the button becomes the question, which is the house pattern.
+    await expect(page.getByText(/Delete .* and everything on it\?/)).toBeVisible()
+    await page.getByRole('button', { name: 'Yes, delete' }).click()
+
+    await expect(cards).toHaveCount(before - 1)
   })
 })
 
 test.describe('models that require a reference', () => {
   test('an editing model blocks generate until an image is mentioned', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
+    await openCanvas(page)
 
     await page.getByRole('button', { name: /^Model:/ }).click()
     await page.getByPlaceholder('Search models').fill('Kontext')
@@ -510,7 +566,7 @@ test.describe('models that require a reference', () => {
     })
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
-    await page.goto('/image')
+    await openCanvas(page)
     await page.getByRole('button', { name: /^Model:/ }).click()
     await page.getByPlaceholder('Search models').fill('Kontext')
     await page
@@ -528,7 +584,7 @@ test.describe('models that require a reference', () => {
 
   test('a text-to-image model needs no reference', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
+    await openCanvas(page)
     await fillPrompt(page, 'a quiet street at dawn')
     await expect(page.getByText(/Mention one with/)).toHaveCount(0)
     await expect(page.getByRole('button', { name: /^Generate/ })).toBeEnabled()
@@ -536,7 +592,7 @@ test.describe('models that require a reference', () => {
 
   test('the picker lists every seeded model', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await page.goto('/image')
+    await openCanvas(page)
     await page.getByRole('button', { name: /^Model:/ }).click()
     // Seven image models ship in the catalog.
     await expect(page.locator('#mention-list')).toHaveCount(0)
@@ -550,27 +606,27 @@ test.describe('credits', () => {
     page,
   }) => {
     test.skip(mode !== 'byok', 'credits only exist in saas mode')
-    await page.goto('/image')
+    await openCanvas(page)
     await expect(page.getByText(/credits/)).toHaveCount(0)
   })
 
   test('byok prices the button in dollars', async ({ page }) => {
     test.skip(mode !== 'byok', 'credits only exist in saas mode')
-    await page.goto('/image')
+    await openCanvas(page)
     // The key gate stands in front of the dock, so check what it says instead.
     await expect(page.getByLabel('Paste your fal key to start')).toBeVisible()
   })
 
   test('saas grants trial credits to a new visitor and shows them', async ({ page }) => {
     test.skip(mode !== 'saas', 'byok has no credits')
-    await page.goto('/image')
+    await openCanvas(page)
     // The topbar meter, not the dock's price: this is the balance itself.
     await expect(page.getByRole('link', { name: /[\d,]+ credits available/ })).toBeVisible()
   })
 
   test('saas prices the button in credits, not dollars', async ({ page }) => {
     test.skip(mode !== 'saas', 'byok has no credits')
-    await page.goto('/image')
+    await openCanvas(page)
     await fillPrompt(page, 'a quiet street at dawn')
 
     const generate = page.getByRole('button', { name: /^Generate/ })
@@ -580,7 +636,7 @@ test.describe('credits', () => {
 
   test('the reserved amount only appears when something is held', async ({ page }) => {
     test.skip(mode !== 'saas', 'byok has no credits')
-    await page.goto('/image')
+    await openCanvas(page)
     await expect(page.getByText(/reserved/)).toHaveCount(0)
   })
 })
@@ -711,7 +767,7 @@ test.describe('usage page', () => {
     page,
   }) => {
     test.skip(mode !== 'saas', 'byok has no credit meter')
-    await page.goto('/image')
+    await openCanvas(page)
     await page.getByRole('link', { name: /[\d,]+ credits available/ }).click()
     await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
   })

@@ -5,7 +5,7 @@ import { type AssetRecord, createAsset, takenLabels } from '@genny/assets/reposi
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { env } from '@genny/env/env.ts'
-import { storage } from '@/features/studio/server/storage.ts'
+import { storage } from '@/features/storage.ts'
 
 export type UploadOutcome =
   | { ok: true; asset: AssetRecord }

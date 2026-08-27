@@ -55,7 +55,7 @@ export async function signInAction(_state: FormState, form: FormData): Promise<F
 export async function signOutToHome(): Promise<void> {
   const { signOut } = await import('../config.ts')
   await forgetAnonymousActor()
-  await signOut({ redirectTo: '/image' })
+  await signOut({ redirectTo: '/c' })
 }
 
 /**
@@ -83,7 +83,7 @@ async function attempt(input: { email: string; password: string }): Promise<Form
 }
 
 async function landing(): Promise<string> {
-  return (await readActorId()) ? '/image' : '/signin'
+  return (await readActorId()) ? '/c' : '/signin'
 }
 
 function readForm(form: FormData): { email: string; password: string } {

@@ -6,7 +6,7 @@ import { env } from '@genny/env/env.ts'
 import { trackJob } from '@genny/jobs/track.ts'
 import { readActorId } from '@/features/session/actor.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
-import { storage } from '@/features/studio/server/storage.ts'
+import { storage } from '@/features/storage.ts'
 
 const POLL_INTERVAL_MS = 2500
 /*

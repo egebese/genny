@@ -20,7 +20,7 @@ alone. If you disagree with one, change the rule and its check in the same PR.
 | fal calls live only in `packages/fal` | Credentials, retries and the byok/saas split have exactly one home. |
 | `packages/ui` imports no domain package | The design system takes props. A UI package that knows about jobs cannot be previewed or reused. |
 | No modals, dialogs, sheets or drawers | A route, an inline panel or a non-modal popover instead. Product decision, applies everywhere. |
-| No sidebar | Topbar plus a bottom dock. The dock is where the prompt lives on every screen size. |
+| No sidebar | Topbar plus a bottom dock. The dock is where the prompt lives on every screen size. A panel anchored to a selected node is not a sidebar; a persistent one down the edge is. |
 | Config comes from `@genny/env` | It is validated with zod at boot. `process.env.FOO` in app code skips that. |
 | 200 lines per file, hard | Past that a file is doing two things. Tests and migrations are exempt. |
 | `GENNY_MODE` is read in three factories only | `packages/billing`, `packages/fal`, `packages/auth`. Everywhere else works through the interface, so the e2e matrix covers both modes without every file branching. |

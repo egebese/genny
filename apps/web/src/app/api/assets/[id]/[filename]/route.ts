@@ -4,7 +4,7 @@ import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { env } from '@genny/env/env.ts'
 import { readActorId } from '@/features/session/actor.ts'
-import { storage } from '@/features/studio/server/storage.ts'
+import { storage } from '@/features/storage.ts'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 

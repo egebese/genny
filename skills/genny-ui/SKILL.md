@@ -17,9 +17,16 @@ those identifiers. Use instead:
 | A model picker dropdown | a non-modal popover that keeps focus in the textarea |
 | A confirm dialog | an inline confirm in place, or an undo after the fact |
 | A mobile bottom sheet | the dock, which is already at the bottom |
+| A lightbox for one result | a panel anchored to the node it belongs to |
+
+The node panel on the canvas is the edge case worth knowing: it sets no
+`aria-modal`, traps no focus and leaves the board live behind it, so it is an
+inline panel that happens to float. If a surface makes the rest of the page
+inert, it is a modal whatever it is called.
 
 **No sidebar.** Topbar for navigation, dock for the prompt. On a phone the topbar
-stays a topbar; nothing collapses into a hamburger.
+stays a topbar; nothing collapses into a hamburger. A panel anchored to something
+you selected is not a sidebar; a persistent column down the edge is.
 
 ## Tokens
 

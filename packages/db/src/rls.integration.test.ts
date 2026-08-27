@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { withActor, withoutActor } from './actor.ts'
 import { assets } from './schema/assets.ts'
 import { users } from './schema/auth.ts'
+import { canvasNodes, projects } from './schema/canvas.ts'
 import { startTestDatabase, type TestDatabase } from './testing/container.ts'
 
 let database: TestDatabase
@@ -140,6 +141,49 @@ describe('row level security', () => {
         tx.execute(sql`delete from credit_ledger where owner_id = ${alice}`),
       ),
       /permission denied/i,
+    )
+  })
+
+  it('hides one actor canvas from another', async () => {
+    const projectId = await withActor(database.app, alice, async (tx) => {
+      const [project] = await tx
+        .insert(projects)
+        .values({ ownerId: alice, title: 'Alice board' })
+        .returning({ id: projects.id })
+      if (!project) throw new Error('project insert returned no row')
+      await tx.insert(canvasNodes).values({
+        projectId: project.id,
+        ownerId: alice,
+        x: 0,
+        y: 0,
+        width: 512,
+        height: 512,
+      })
+      return project.id
+    })
+
+    const seen = await withActor(database.app, bob, (tx) =>
+      tx.select({ id: projects.id }).from(projects),
+    )
+    expect(seen).toHaveLength(0)
+
+    const nodes = await withActor(database.app, bob, (tx) =>
+      tx.select({ id: canvasNodes.id }).from(canvasNodes),
+    )
+    expect(nodes).toHaveLength(0)
+
+    /*
+     * The composite foreign key, not a policy. RLS would let this insert through
+     * because the row bob is writing is owned by bob; only the key ties the node
+     * to a project with the same owner.
+     */
+    await expectPgError(
+      withActor(database.app, bob, (tx) =>
+        tx
+          .insert(canvasNodes)
+          .values({ projectId, ownerId: bob, x: 0, y: 0, width: 512, height: 512 }),
+      ),
+      /canvas_nodes_project_owner_fk/,
     )
   })
 

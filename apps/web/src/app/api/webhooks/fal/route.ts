@@ -5,7 +5,7 @@ import { env } from '@genny/env/env.ts'
 import { falPublicKeys } from '@genny/fal/jwks.ts'
 import { verifyFalWebhook } from '@genny/fal/webhook.ts'
 import { settleOnce } from '@genny/jobs/track.ts'
-import { storage } from '@/features/studio/server/storage.ts'
+import { storage } from '@/features/storage.ts'
 
 export const dynamic = 'force-dynamic'
 

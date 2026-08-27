@@ -87,6 +87,16 @@ export async function listAssets(
 }
 
 /** Labels already in use, so a new one can avoid colliding. */
+/** A job's outputs, oldest first, which is the order fal returned them in. */
+export async function findAssetsByJob(tx: Database, jobId: string): Promise<AssetRecord[]> {
+  const rows = await tx
+    .select(columns)
+    .from(assets)
+    .where(eq(assets.jobId, jobId))
+    .orderBy(assets.createdAt, assets.id)
+  return rows as AssetRecord[]
+}
+
 export async function takenLabels(tx: Database): Promise<string[]> {
   const rows = await tx.select({ label: assets.label }).from(assets)
   return rows.map((row) => row.label)

@@ -8,7 +8,7 @@ export default function HomePage() {
       <Topbar
         brand={<span>genny</span>}
         actions={
-          <Link href="/image">
+          <Link href="/c">
             <Button tone="primary" size="sm">
               Open studio
             </Button>
@@ -24,7 +24,7 @@ export default function HomePage() {
           inference, or self-host it with credits and billing for your own users.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link href="/image">
+          <Link href="/c">
             <Button tone="primary">Start generating</Button>
           </Link>
           <Link href="https://github.com/egebese/genny">

@@ -4,24 +4,33 @@ The studio is the product. Everything else supports it.
 
 ## Shape
 
-One route per modality: `/image`, `/video`, `/audio`. Same skeleton, same
-components, different catalog slice. No tabs inside a page, because a URL that
-cannot be shared is a feature that cannot be linked.
+One board per piece of work: `/c` lists them, `/c/[projectId]` is one. Not one
+route per modality, and not a feed. See
+[ADR 0010](../adr/0010-canvas-instead-of-three-studios.md) for why: the work does
+not divide by modality, and a feed orders results by when they happened, which is
+never the order they belong in.
 
 ```
 ┌──────────────────────────────────────────┐
-│ topbar: genny   Image Video Audio Assets │
+│ topbar: genny   Canvases Assets   ⊙ 240  │
 ├──────────────────────────────────────────┤
-│                                          │
-│   results (newest first, infinite)       │
-│                                          │
-├──────────────────────────────────────────┤
-│ ┌──────────────────────────────────────┐ │
-│ │ prompt, with @mentions               │ │
-│ │ [model ▾] [1:1] [1K] [refs] [cost →] │ │
-│ └──────────────────────────────────────┘ │  ← dock, always visible
+│  · · · · · · · · · · · · · · · ·  ⊖ 100% │
+│    ┌────────┐   ┌────────┐┌───────────┐  │
+│    │ still  │   │  clip  ││ details   │  │
+│    └────────┘   └────────┘│ prompt ⧉  │  │
+│  · · ┌──────────────┐ · · │ payload ⧉ │  │
+│      │ generating…  │     │ seed ⧉    │  │
+│      └──────────────┘     └───────────┘  │
+│      ┌──────────────────────────────┐    │
+│      │ prompt, with @mentions       │    │
+│      │ [model ▾] [1:1] [1K] [cost →]│    │  ← dock, always visible
+│      └──────────────────────────────┘    │
 └──────────────────────────────────────────┘
 ```
+
+A generation reserves its rectangle before it is submitted, at the aspect the
+output will have, and fills in place. The panel is anchored to the selected node
+in screen space, so it stays readable at any zoom.
 
 ## The dock
 

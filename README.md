@@ -4,9 +4,10 @@
 
 **Open source generative media studio built on [fal](https://fal.ai).**
 
-Image, video and audio generation over the whole fal catalog, in one interface.
-Run it with your own fal key for free, or self-host it as a white-label SaaS with
-credits and billing.
+Image, video and audio generation over the whole fal catalog, on one infinite
+canvas. Everything you make stays on the board and the next prompt can point at
+it. Run it with your own fal key for free, or self-host it as a white-label SaaS
+with credits and billing.
 
 [Quick start](#quick-start) · [Architecture](docs/architecture.md) ·
 [Contributing](CONTRIBUTING.md) · [Roadmap](docs/phases/)
@@ -45,7 +46,7 @@ pnpm db:seed:models
 pnpm dev                      # http://localhost:3000
 ```
 
-Then open `http://localhost:3000/image` and paste a fal key from
+Then open `http://localhost:3000/c`, start a canvas and paste a fal key from
 [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys).
 
 Generate the two required secrets with:
