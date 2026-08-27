@@ -3,11 +3,14 @@
  * these, never raw hex or arbitrary Tailwind values, because a whitelabel buyer
  * has to be able to rebrand by editing one file.
  *
- * Dark, and not up for negotiation by the operating system. This used to follow
- * prefers-color-scheme, which meant most people saw a bright white tool next to
- * the images they were making, and bright chrome fights the work. Every studio
- * in this class commits to dark for the same reason. Light is still here, behind
- * data-theme="light", for anyone who wants it.
+ * Dark, and not up for negotiation. This used to follow prefers-color-scheme,
+ * which meant most people saw a bright white tool next to the images they were
+ * making, and bright chrome fights the work. Every studio in this class commits
+ * to dark for the same reason.
+ *
+ * There was a light palette here behind data-theme="light". Nothing ever set
+ * that attribute, so it was a second set of colours to keep correct for no
+ * reader. A white-label operator who wants light edits these values.
  *
  * Neutral greys, no hue. A tint reads as a brand colour applied to the
  * furniture; near-black reads as absence, which is what lets an image be the
@@ -69,31 +72,6 @@
 
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", monospace;
-}
-
-/* Opt in, rather than inferred from the system. */
-:root[data-theme="light"] {
-  color-scheme: light;
-  --color-canvas: oklch(0.99 0 0);
-  --color-surface: oklch(0.968 0 0);
-  --color-surface-hover: oklch(0.94 0 0);
-  --color-line: oklch(0.9 0 0);
-  --color-ink: oklch(0.2 0 0);
-  --color-ink-muted: oklch(0.46 0 0);
-  --color-ink-faint: oklch(0.62 0 0);
-  --color-primary: oklch(0.2 0 0);
-  --color-primary-ink: oklch(0.99 0 0);
-  --color-accent-ink: oklch(0.99 0.005 152);
-  --shadow-dock: 0 1px 2px oklch(0 0 0 / 0.06), 0 10px 28px oklch(0 0 0 / 0.1);
-}
-
-/*
- * Not a token, so it cannot live in @theme, but it belongs with the palette:
- * without it the browser paints native selects, number spinners and scrollbars
- * from the light theme, and the dock's controls come out white on black.
- */
-:root {
-  color-scheme: dark;
 }
 
 /*

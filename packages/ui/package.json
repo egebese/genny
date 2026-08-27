@@ -9,7 +9,8 @@
     "./tokens.css": "./tokens.css"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --exclude '**/*.integration.test.ts' --exclude '**/node_modules/**' --passWithNoTests"
   },
   "dependencies": {
     "class-variance-authority": "catalog:",
@@ -23,7 +24,8 @@
     "@genny/tsconfig": "workspace:*",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "peerDependencies": {
     "react": ">=19"

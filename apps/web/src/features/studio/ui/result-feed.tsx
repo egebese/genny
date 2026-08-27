@@ -62,7 +62,7 @@ export function ResultFeed({
                 <button
                   type="button"
                   onClick={() => onSuggest(opener)}
-                  className="max-w-xs truncate rounded-full border border-line bg-surface px-3 py-1.5 text-ink-muted text-xs transition-colors hover:bg-surface-hover hover:text-ink"
+                  className="max-w-xs truncate rounded-full border border-line bg-surface px-3 py-1.5 text-ink-muted text-xs transition-colors hover:bg-surface-hover hover:text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   {opener}
                 </button>

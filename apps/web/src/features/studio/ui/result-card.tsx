@@ -56,7 +56,7 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
                 <a
                   href={url}
                   download
-                  className="rounded-(--radius-control) bg-canvas/85 px-2 py-1 text-xs backdrop-blur"
+                  className="rounded-(--radius-control) bg-canvas/85 px-2 py-1 text-xs backdrop-blur outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   Download
                 </a>
@@ -64,7 +64,7 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
                   <button
                     type="button"
                     onClick={() => onMention(labels[index] as string)}
-                    className="rounded-(--radius-control) bg-canvas/85 px-2 py-1 text-xs backdrop-blur"
+                    className="rounded-(--radius-control) bg-canvas/85 px-2 py-1 text-xs backdrop-blur outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     Use as reference
                   </button>

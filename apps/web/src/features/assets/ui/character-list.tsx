@@ -40,7 +40,7 @@ export function CharacterList({ characters, onDeleted }: CharacterListProps) {
               type="button"
               onClick={() => void remove(character.id)}
               aria-label={`Delete character ${character.label}`}
-              className="rounded-full px-1.5 text-ink-faint hover:text-danger"
+              className="rounded-full px-1.5 text-ink-faint hover:text-danger outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               ×
             </button>

@@ -169,8 +169,8 @@ export function PromptDock(props: PromptDockProps) {
         <Button
           type="button"
           tone="chrome"
-          size="sm"
-          className="shrink-0 rounded-full"
+          size="md"
+          className="shrink-0 rounded-full px-5"
           disabled={pending || prompt.trim().length === 0 || needsReference}
           onClick={submit}
         >

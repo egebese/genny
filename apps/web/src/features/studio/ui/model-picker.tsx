@@ -38,6 +38,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
         className={cn(
           'inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border',
           'border-line bg-surface px-3 text-sm text-ink transition-colors hover:bg-surface-hover',
+          'outline-none focus-visible:ring-2 focus-visible:ring-accent',
         )}
       >
         <span className="max-w-40 truncate">{selected.displayName}</span>
@@ -127,7 +128,7 @@ function CategoryButton({
         onClick={onClick}
         aria-pressed={active}
         className={cn(
-          'w-full truncate px-3 py-1.5 text-left transition-colors',
+          'w-full truncate px-3 py-1.5 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent',
           active ? 'bg-surface-hover text-ink' : 'text-ink-muted hover:text-ink',
         )}
       >
