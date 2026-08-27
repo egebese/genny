@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "check": "biome check . && turbo run typecheck && pnpm deps:check && pnpm cards:check",
+    "check": "biome check . && turbo run typecheck && pnpm deps:check && pnpm cards:check && pnpm catalog:check",
     "fix": "biome check --write .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
@@ -26,7 +26,8 @@
     "postinstall": "node tooling/src/link-env.mjs",
     "cards": "node tooling/src/model-cards.mjs",
     "cards:check": "node tooling/src/model-cards.mjs --check",
-    "cards:art": "node tooling/src/model-cards.mjs --art"
+    "cards:art": "node tooling/src/model-cards.mjs --art",
+    "catalog:check": "node tooling/src/catalog-check.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",

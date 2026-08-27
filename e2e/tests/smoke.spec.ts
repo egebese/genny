@@ -268,7 +268,7 @@ test.describe('the dock', () => {
     await expect(panel.getByRole('button', { name: /ids for support/ })).toBeVisible()
   })
 
-  test('4K costs what fal charges for 4K, which is double', async ({ page }) => {
+  test('a bigger output costs what fal charges for it', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await openCanvas(page)
 
@@ -276,17 +276,52 @@ test.describe('the dock', () => {
     const resolution = page.getByLabel('Resolution')
 
     /*
-     * The estimate becomes the hold, and settle captures held × produced ÷
-     * expected and never more, so an unscaled 4K is not a rounding error: it is
-     * half price forever on that setting.
+     * Nano Banana charges 1.5x for 2K and 2x for 4K. The estimate becomes the
+     * hold and settle captures held × produced ÷ expected and never more, so an
+     * unscaled rung is not a rounding error: it is a permanent discount.
+     *
+     * Read as numbers rather than as strings, so this fails on a wrong price
+     * rather than on a changed currency symbol.
      */
+    const priced = async () => {
+      const text = (await generate.textContent()) ?? ''
+      return Number(/([0-9]+(?:\.[0-9]+)?)/.exec(text)?.[1] ?? '0')
+    }
+
     await resolution.fill('1')
-    const standard = (await generate.textContent()) ?? ''
+    const standard = await priced()
+    expect(standard).toBeGreaterThan(0)
+
     await resolution.fill('2')
-    expect(await generate.textContent()).toBe(standard)
+    expect(await priced()).toBeCloseTo(standard * 1.5, 4)
 
     await resolution.fill('3')
-    expect(await generate.textContent()).not.toBe(standard)
+    expect(await priced()).toBeCloseTo(standard * 2, 4)
+  })
+
+  test('a model that takes no reference says so before it is paid for', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    await openCanvas(page)
+    /*
+     * The board opens on Nano Banana 2, which declares no reference slot. This
+     * used to run anyway: the mention was dropped, a picture came back that
+     * ignored it, and the warning arrived after the money.
+     */
+    await fillPrompt(page, 'make it a sketch of @')
+    await page.locator('#mention-list [role=option]').first().click()
+
+    const generate = page.getByRole('button', { name: /^Generate/ })
+    await expect(generate).toBeDisabled()
+    await expect(page.getByText(/cannot use a reference/)).toBeVisible()
+
+    // And it offers the sibling that can, rather than leaving you to find it.
+    await page.getByRole('button', { name: /^Use Nano Banana 2 Edit/ }).click()
+    await expect(generate).toBeEnabled()
   })
 
   test('the price follows the size, because fal bills this model by area', async ({ page }) => {

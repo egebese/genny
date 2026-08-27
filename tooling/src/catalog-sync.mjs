@@ -17,6 +17,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { comparePrice, fetchPrices } from './catalog-pricing.mjs'
 
 const catalogRoot = join(dirname(fileURLToPath(import.meta.url)), '../../packages/models/catalog')
 const checkOnly = process.argv.includes('--check')
@@ -24,11 +25,24 @@ const checkOnly = process.argv.includes('--check')
 const drift = []
 let refreshed = 0
 
+const entries = []
 for (const modality of readdirSync(catalogRoot)) {
   for (const file of readdirSync(join(catalogRoot, modality))) {
     if (!file.endsWith('.json')) continue
     const path = join(catalogRoot, modality, file)
-    const entry = JSON.parse(readFileSync(path, 'utf8'))
+    entries.push({ path, entry: JSON.parse(readFileSync(path, 'utf8')) })
+  }
+}
+
+/*
+ * Every price, in one request. This is the authority on the number now: fal's
+ * prose is where the conditions live but the figure itself comes back
+ * structured, and parsing prose for it was always the weakest link here.
+ */
+const quotes = fetchPrices(entries.map(({ entry }) => entry.endpointId))
+
+for (const { path, entry } of entries) {
+  {
     const remote = await fetchModel(entry.endpointId)
 
     if (!remote) {
@@ -46,7 +60,7 @@ for (const modality of readdirSync(catalogRoot)) {
       drift.push(`${entry.endpointId}: fal marks this deprecated. Disable it in the admin panel.`)
     }
 
-    const priceNote = comparePrice(entry, remote)
+    const priceNote = comparePrice(entry, quotes.get(entry.endpointId))
     if (priceNote) {
       const ours = entry.pricing?.note
       drift.push(ours ? `${priceNote}\n    catalog note: ${ours}` : priceNote)
@@ -78,7 +92,11 @@ console.warn(`catalog: ${refreshed} file(s) refreshed`)
 if (drift.length > 0) {
   console.error(`\n${drift.length} thing(s) need a human:\n`)
   for (const item of drift) console.error(`  - ${item}`)
-  console.error('\nPrices are never changed automatically. Edit the file yourself.\n')
+  console.error(
+    '\nPrices are reported, never written. genmedia answers $0.005/s for PixVerse\n' +
+      'against a published $0.03 to $0.12: a base unit no request is ever charged.\n' +
+      "Check fal's own page, then edit the file and say why in pricing.note.\n",
+  )
   process.exit(1)
 }
 console.warn('catalog: no price drift')
@@ -90,23 +108,4 @@ async function fetchModel(endpointId) {
   if (!response.ok) throw new Error(`fal model list failed: ${response.status}`)
   const body = await response.json()
   return (body.items ?? []).find((item) => item.id === endpointId) ?? null
-}
-
-/**
- * Pulls the first dollar figure out of fal's pricing prose and compares it. A
- * match is reassurance, not proof: the prose often carries multipliers for
- * higher resolutions that no single number captures.
- */
-function comparePrice(entry, remote) {
-  const prose = remote.pricingInfoOverride
-  if (!prose) return null
-  const match = /\$([0-9]+(?:\.[0-9]+)?)/.exec(prose)
-  if (!match) return null
-
-  const published = Number(match[1])
-  const ours = entry.pricing.unitPriceUsd
-  if (Math.abs(published - ours) < 1e-9) return null
-
-  const direction = published > ours ? 'UP' : 'DOWN'
-  return `${entry.endpointId}: price moved ${direction}, catalog says $${ours}, fal says $${published}. fal's note: "${prose.slice(0, 160)}..."`
 }

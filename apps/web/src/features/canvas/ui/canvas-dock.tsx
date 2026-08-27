@@ -16,6 +16,7 @@ type CanvasDockProps = {
   attachments: Attachment[]
   mentions: MentionChip[]
   resolvable: ReadonlySet<string>
+  suggestion: PickableModel | null
   settings: Record<string, unknown>
   prompt: string
   pending: boolean
@@ -48,6 +49,7 @@ export function CanvasDock(props: CanvasDockProps) {
             attachments={props.attachments}
             mentions={props.mentions}
             resolvable={props.resolvable}
+            suggestion={props.suggestion}
             onRemoveAttachment={props.onRemoveAttachment}
             onModelChange={props.onModelChange}
             settings={props.settings}

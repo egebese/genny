@@ -1,6 +1,8 @@
 'use client'
 
+import { suggestFor } from '@genny/models/slots.ts'
 import { useCallback, useRef, useState } from 'react'
+import { defaultModel } from '../default-model.ts'
 import type { PickableModel } from '../model-list.ts'
 import { persistViewport } from '../server/actions.ts'
 import type { ProjectPage } from '../server/project-page.ts'
@@ -173,6 +175,7 @@ export function Canvas(props: ProjectPage) {
         mentionables={handles.mentionables}
         mentions={mentions.chips}
         resolvable={mentions.resolvable}
+        suggestion={suggestFor(props.models, model, ['image'])}
         attachments={pinned.attachments}
         credits={props.credits}
         onRemoveAttachment={pinned.remove}
@@ -184,16 +187,4 @@ export function Canvas(props: ProjectPage) {
       />
     </>
   )
-}
-
-/**
- * A board starts with a still: an image model, whichever is featured.
- *
- * Merging the three studios made this a real decision. Picking the first
- * featured model of any modality meant a text to speech endpoint was the
- * default, so the first prompt someone typed got read aloud.
- */
-function defaultModel(models: PickableModel[]): PickableModel {
-  const images = models.filter((candidate) => candidate.modality === 'image')
-  return (images.find((candidate) => candidate.featured) ?? images[0] ?? models[0]) as PickableModel
 }

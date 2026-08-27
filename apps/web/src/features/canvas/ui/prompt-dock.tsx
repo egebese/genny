@@ -5,6 +5,7 @@ import { useRef } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
 import { type Attachment, AttachmentStrip, type MentionChip } from './attachment-strip.tsx'
+import { DockNotice, whyBlocked } from './dock-notice.tsx'
 import { GenerateButton } from './generate-button.tsx'
 import { MentionList } from './mention-list.tsx'
 import { PROMPT_BOX, PromptHighlight } from './prompt-highlight.tsx'
@@ -30,6 +31,8 @@ type PromptDockProps = {
   mentions: MentionChip[]
   /** Which of those handles resolve; the rest are marked as a miss in the text. */
   resolvable: ReadonlySet<string>
+  /** The nearest model that could take what this one cannot, if there is one. */
+  suggestion: PickableModel | null
   settings: Record<string, unknown>
   onSettingChange: (name: string, value: unknown) => void
   pending: boolean
@@ -87,10 +90,13 @@ export function PromptDock(props: PromptDockProps) {
    * fal answer 422 with a reason the person cannot see.
    */
 
-  const needsReference =
-    model.requiresReference &&
-    mentionedLabels(prompt).length === 0 &&
-    props.attachments.length === 0
+  const block = whyBlocked({
+    model,
+    suggestion: props.suggestion,
+    mentionCount: mentionedLabels(prompt).length,
+    attachmentCount: props.attachments.length,
+    carrying: props.mentions.length > 0 || props.attachments.length > 0,
+  })
 
   return (
     <div data-dock className="panel rounded-(--radius-dock) shadow-(--shadow-dock)">
@@ -166,17 +172,12 @@ export function PromptDock(props: PromptDockProps) {
           settings={settings}
           credits={props.credits}
           pending={pending}
-          disabled={prompt.trim().length === 0 || needsReference}
+          disabled={prompt.trim().length === 0 || block !== null}
           onClick={submit}
         />
       </div>
 
-      {needsReference ? (
-        <p className="border-line border-t px-4 py-2 text-ink-muted text-sm">
-          {model.displayName} edits an image. Mention one with <span className="font-mono">@</span>{' '}
-          to say which.
-        </p>
-      ) : null}
+      <DockNotice block={block} model={model} onModelChange={props.onModelChange} />
 
       {error ? (
         <p role="alert" className="border-line border-t px-4 py-2 text-danger text-sm">

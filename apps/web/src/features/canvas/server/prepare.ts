@@ -8,6 +8,7 @@ import { buildInputSchema } from '@genny/models/input.ts'
 import { missingRequiredReferences, resolvePrompt } from '@genny/models/references.ts'
 import type { CanvasGenerationRequest } from '@genny/models/request.ts'
 import type { ModelDefinition } from '@genny/models/schema.ts'
+import { allSlots, unusableKinds } from '@genny/models/slots.ts'
 import { createPostgresLimiter } from '@genny/ratelimit/postgres-limiter.ts'
 import { generationRule, tierOf } from '@genny/ratelimit/rules.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
@@ -72,6 +73,23 @@ export async function prepareGeneration(context: {
   // invisible from our side. Say it before spending the round trip.
   if (attachments.length === 0 && missingRequiredReferences(model, references).length > 0) {
     return refuse(`${model.displayName} needs an image. Attach one or mention it with @.`, false)
+  }
+
+  /*
+   * Given something the model has no slot for at all. This used to run anyway:
+   * the reference was dropped, a picture came back that ignored it, and the
+   * warning arrived after the money. Refusing is the only honest answer, and it
+   * has to happen before the hold.
+   *
+   * Partial drops stay a warning further down. Four of five taken is what was
+   * asked for, mostly; none of five taken is a different generation.
+   */
+  const offered = request.references.length + request.attachments.length
+  if (offered > 0 && unusableKinds(allSlots(model), ['image']).length > 0) {
+    return refuse(
+      `${model.displayName} makes images from text alone and cannot take a reference. Pick a model that edits.`,
+      false,
+    )
   }
 
   const resolved = resolvePrompt(model, request.prompt, references)

@@ -12,10 +12,11 @@
     "scale": {
       "field": "resolution",
       "factors": {
+        "2K": 1.5,
         "4K": 2
       }
     },
-    "note": "fal charges $0.08 per image and charges 4K at double that rate, which is why this entry carries a `scale` factor: the hold has to match or every 4K generation is half price forever."
+    "note": "fal charges $0.08 per image, 2K at 1.5 times that and 4K at double. Same reasoning as nano-banana-2: an unscaled option is a permanent discount, not a rounding error."
   },
   "creditMultiplier": 1.25,
   "inputs": [

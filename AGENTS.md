@@ -23,6 +23,8 @@ alone. If you disagree with one, change the rule and its check in the same PR.
 | No sidebar | Topbar plus a bottom dock. The dock is where the prompt lives on every screen size. A panel anchored to a selected node is not a sidebar; a persistent one down the edge is. |
 | Config comes from `@genny/env` | It is validated with zod at boot. `process.env.FOO` in app code skips that. |
 | 200 lines per file, hard | Past that a file is doing two things. Tests and migrations are exempt. |
+| Every catalog entry satisfies the contract | `packages/models/src/contract.ts`, eight rules, run over the real catalog by `pnpm test`. Each one is a way a model has already shipped broken. See [ADR 0011](docs/adr/0011-one-contract-for-every-model.md). |
+| Prices are reported, never written | `catalog:sync` asks genmedia for every price in one request and reports differences. It has been wrong by 10x on a real endpoint. |
 | `GENNY_MODE` is read in three factories only | `packages/billing`, `packages/fal`, `packages/auth`. Everywhere else works through the interface, so the e2e matrix covers both modes without every file branching. |
 
 ## Layout

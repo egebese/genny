@@ -70,3 +70,55 @@ export function acceptsAll(model: ModelDefinition, kinds: readonly MediaKind[]):
 export function capacityFor(model: ModelDefinition, kind: MediaKind): number {
   return slotsFor(model, kind).reduce((total, slot) => total + slot.maxCount, 0)
 }
+
+/**
+ * Kinds this model has no slot for at all.
+ *
+ * The difference that matters is between "took four of your five" and "took
+ * none of them". The first is a warning after the fact; the second means the
+ * generation you paid for ignored the thing you gave it, and it has to be
+ * refused before anything is held.
+ */
+export function unusableKinds(
+  slots: readonly ReferenceSlot[],
+  kinds: readonly MediaKind[],
+): MediaKind[] {
+  return [...new Set(kinds)].filter((kind) => slotsAccepting(slots, kind).length === 0)
+}
+
+/**
+ * What both sides of the wire have in common.
+ *
+ * The server holds a `ModelDefinition` and the browser holds a `PickableModel`,
+ * and this is the part of each that decides whether a reference has anywhere to
+ * go. Writing the rule against the shared part is what keeps the dock's answer
+ * and the server's refusal from ever disagreeing.
+ */
+export type Slotted = {
+  endpointId: string
+  modality: MediaKind
+  slots: readonly ReferenceSlot[]
+}
+
+/**
+ * A model that could take what this one cannot, nearest first.
+ *
+ * Nearest means the same endpoint with a suffix: `nano-banana-2` and
+ * `nano-banana-2/edit` are the same model with and without an input, and
+ * offering the sibling is a better answer than offering the alphabetical first
+ * thing that happens to accept an image.
+ */
+export function suggestFor<T extends Slotted>(
+  models: readonly T[],
+  chosen: Slotted,
+  kinds: readonly MediaKind[],
+): T | null {
+  const able = models.filter(
+    (candidate) =>
+      candidate.endpointId !== chosen.endpointId &&
+      candidate.modality === chosen.modality &&
+      unusableKinds(candidate.slots, kinds).length === 0,
+  )
+  const sibling = able.find((candidate) => candidate.endpointId.startsWith(`${chosen.endpointId}/`))
+  return sibling ?? able[0] ?? null
+}

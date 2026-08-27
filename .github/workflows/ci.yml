@@ -40,6 +40,20 @@ jobs:
       - run: pnpm typecheck
       # The architecture rules are a gate, not advice.
       - run: pnpm deps:check
+      # A model with no provider mark is a hole in the picker.
+      - run: pnpm cards:check
+
+      # What fal charges, against what the catalog says. Strict here and not on
+      # a laptop: a developer offline should not be blocked, but a merge where
+      # nobody could check the prices is a merge that can quietly undercharge.
+      - name: prices agree with fal
+        env:
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+          CATALOG_STRICT: '1'
+        run: |
+          curl -fsSL https://genmedia.sh/install | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          pnpm catalog:check
 
   unit:
     name: unit tests
