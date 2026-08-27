@@ -44,7 +44,7 @@ jobs:
       S3_SECRET_ACCESS_KEY: gennygenny
       S3_PUBLIC_URL: http://127.0.0.1:9100/genny
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v5
         with:
