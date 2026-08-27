@@ -1,13 +1,14 @@
 'use client'
 
-import { mentionedLabels } from '@genny/models/mention.ts'
+import { mentionedLabels, unmention } from '@genny/models/mention.ts'
 import { useRef } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
-import { type Attachment, AttachmentStrip } from './attachment-strip.tsx'
+import { type Attachment, AttachmentStrip, type MentionChip } from './attachment-strip.tsx'
 import { GenerateButton } from './generate-button.tsx'
 import { MentionList } from './mention-list.tsx'
 import { ModelPicker } from './model-picker.tsx'
+import { PROMPT_BOX, PromptHighlight } from './prompt-highlight.tsx'
 import { SettingField } from './setting-field.tsx'
 import { useMentions } from './use-mentions.ts'
 
@@ -26,6 +27,10 @@ type PromptDockProps = {
   /** Assets pinned to a named input, rather than named in the sentence. */
   attachments: Attachment[]
   onRemoveAttachment: (index: number) => void
+  /** Handles the prompt names that resolve to something, with their previews. */
+  mentions: MentionChip[]
+  /** Which of those handles resolve; the rest are marked as a miss in the text. */
+  resolvable: ReadonlySet<string>
   settings: Record<string, unknown>
   onSettingChange: (name: string, value: unknown) => void
   pending: boolean
@@ -98,45 +103,55 @@ export function PromptDock(props: PromptDockProps) {
         />
       ) : null}
 
-      <AttachmentStrip attachments={props.attachments} onRemove={props.onRemoveAttachment} />
+      <AttachmentStrip
+        attachments={props.attachments}
+        mentions={props.mentions}
+        onRemove={props.onRemoveAttachment}
+        onUnmention={(label) => setPrompt(unmention(prompt, label))}
+      />
 
       <label htmlFor="prompt" className="sr-only">
         Prompt
       </label>
-      <textarea
-        id="prompt"
-        ref={textarea}
-        rows={2}
-        value={prompt}
-        placeholder={PLACEHOLDERS[model.modality]}
-        role="combobox"
-        aria-expanded={mentions.active !== null}
-        aria-controls="mention-list"
-        aria-autocomplete="list"
-        aria-activedescendant={activeOption ? `mention-option-${activeOption.id}` : undefined}
-        onChange={(event) => {
-          setPrompt(event.target.value)
-          mentions.sync(event.target.value, event.target.selectionStart)
-          resize()
-        }}
-        onSelect={(event) => {
-          const node = event.currentTarget
-          mentions.sync(node.value, node.selectionStart)
-        }}
-        onKeyDown={(event) => {
-          if (mentions.handleKey(event.key)) {
-            event.preventDefault()
-            return
-          }
-          // Enter sends, Shift+Enter breaks the line. On a phone the button is
-          // the only sane target, so it stays visible either way.
-          if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
-            event.preventDefault()
-            submit()
-          }
-        }}
-        className="max-h-40 w-full resize-none bg-transparent px-4 pt-3 text-ink text-sm outline-none placeholder:text-ink-faint"
-      />
+      {/* The highlight is a second copy of the same text, painted underneath.
+          Both take their metrics from PROMPT_BOX so they stay exactly as wide. */}
+      <div className="relative">
+        <PromptHighlight text={prompt} known={props.resolvable} scroller={textarea} />
+        <textarea
+          id="prompt"
+          ref={textarea}
+          rows={2}
+          value={prompt}
+          placeholder={PLACEHOLDERS[model.modality]}
+          role="combobox"
+          aria-expanded={mentions.active !== null}
+          aria-controls="mention-list"
+          aria-autocomplete="list"
+          aria-activedescendant={activeOption ? `mention-option-${activeOption.id}` : undefined}
+          onChange={(event) => {
+            setPrompt(event.target.value)
+            mentions.sync(event.target.value, event.target.selectionStart)
+            resize()
+          }}
+          onSelect={(event) => {
+            const node = event.currentTarget
+            mentions.sync(node.value, node.selectionStart)
+          }}
+          onKeyDown={(event) => {
+            if (mentions.handleKey(event.key)) {
+              event.preventDefault()
+              return
+            }
+            // Enter sends, Shift+Enter breaks the line. On a phone the button is
+            // the only sane target, so it stays visible either way.
+            if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+              event.preventDefault()
+              submit()
+            }
+          }}
+          className={`${PROMPT_BOX} relative max-h-40 w-full resize-none bg-transparent text-ink outline-none placeholder:text-ink-faint`}
+        />
+      </div>
 
       <div className="flex items-center gap-2 px-2 pt-1 pb-2">
         {/* One line that scrolls sideways rather than a block that wraps: a

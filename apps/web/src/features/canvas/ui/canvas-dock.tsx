@@ -4,7 +4,7 @@ import { Dock } from '@genny/ui/dock.tsx'
 import type { Ref } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
-import type { Attachment } from './attachment-strip.tsx'
+import type { Attachment, MentionChip } from './attachment-strip.tsx'
 import { KeyGate } from './key-gate.tsx'
 import { PromptDock } from './prompt-dock.tsx'
 
@@ -14,6 +14,8 @@ type CanvasDockProps = {
   model: PickableModel
   mentionables: MentionableView[]
   attachments: Attachment[]
+  mentions: MentionChip[]
+  resolvable: ReadonlySet<string>
   settings: Record<string, unknown>
   prompt: string
   pending: boolean
@@ -44,6 +46,8 @@ export function CanvasDock(props: CanvasDockProps) {
             model={props.model}
             mentionables={props.mentionables}
             attachments={props.attachments}
+            mentions={props.mentions}
+            resolvable={props.resolvable}
             onRemoveAttachment={props.onRemoveAttachment}
             onModelChange={props.onModelChange}
             settings={props.settings}

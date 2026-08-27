@@ -49,3 +49,53 @@ export function mentionedLabels(text: string): string[] {
   const found = text.match(/(?:^|\s)@([\w-]+)/g) ?? []
   return [...new Set(found.map((token) => token.trim().slice(1)))]
 }
+
+/**
+ * Takes one handle back out of the prompt.
+ *
+ * Removing a mention is editing the sentence, because that is where it lives:
+ * there is no second list to delete it from, which is what keeps the two from
+ * disagreeing about what this generation references.
+ *
+ * The space before the handle goes with it and the one after stays, so a prompt
+ * that ended in a mention still ends somewhere you can keep typing.
+ */
+export function unmention(text: string, label: string): string {
+  const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return text.replace(new RegExp(`(^|\\s)@${escaped}(?![\\w-])\\s?`, 'g'), '$1').trimStart()
+}
+
+export type PromptSegment = {
+  text: string
+  /** The handle without its `@`, on the segments that are mentions. */
+  label?: string
+}
+
+/**
+ * The prompt split into plain runs and mention tokens.
+ *
+ * What the dock draws behind the textarea to mark the mentions. A textarea holds
+ * one string and cannot contain elements, so the highlight is a second copy of
+ * the same text rendered underneath it; that copy has to agree with this
+ * function about exactly which characters are a token, or the marks land beside
+ * the words instead of on them.
+ *
+ * Same rule as `mentionedLabels`, and deliberately the same regex source: a
+ * highlight that disagrees with what actually gets sent is worse than none.
+ */
+export function splitMentions(text: string): PromptSegment[] {
+  const segments: PromptSegment[] = []
+  let taken = 0
+
+  for (const match of text.matchAll(/(^|\s)@([\w-]+)/g)) {
+    const lead = match[1] ?? ''
+    const label = match[2] ?? ''
+    const start = (match.index ?? 0) + lead.length
+    if (start > taken) segments.push({ text: text.slice(taken, start) })
+    segments.push({ text: `@${label}`, label })
+    taken = start + label.length + 1
+  }
+
+  if (taken < text.length) segments.push({ text: text.slice(taken) })
+  return segments
+}

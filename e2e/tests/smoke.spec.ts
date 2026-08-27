@@ -243,6 +243,48 @@ test.describe('assets and mentions', () => {
     await expect(page.locator('#mention-list')).toHaveCount(0)
   })
 
+  test('a chosen mention shows up as a chip with its own preview', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    await openCanvas(page)
+    const prompt = await fillPrompt(page, 'make it a sketch of @')
+    await page.locator('#mention-list [role=option]').first().click()
+
+    /*
+     * A mention used to be bare text in the prompt and nothing else, which made
+     * a working reference look exactly like a typo. It is a chip now, the same
+     * shape as a pinned attachment, because both are an image this generation
+     * will see.
+     */
+    const strip = page.getByRole('list', { name: 'Attached to this generation' })
+    const chip = strip.getByRole('listitem').first()
+    await expect(chip).toBeVisible()
+    await expect(chip.locator('img')).toBeVisible()
+
+    // Removing the chip edits the sentence, because that is where it lives. The
+    // trailing space stays so the caret lands somewhere you can keep typing.
+    await chip.getByRole('button').click()
+    await expect(prompt).toHaveValue('make it a sketch of ')
+    await expect(strip).toHaveCount(0)
+  })
+
+  test('a handle that resolves to nothing is marked as a miss', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+
+    await openCanvas(page)
+    await fillPrompt(page, 'next to @nothing-here and done')
+
+    // The highlight is a second copy of the prompt painted underneath it, so
+    // the mark is findable even though the real text is in a textarea.
+    const marked = page.locator('[aria-hidden="true"] span', { hasText: '@nothing-here' }).last()
+    await expect(marked).toHaveClass(/decoration-wavy/)
+    await expect(page.getByRole('list', { name: 'Attached to this generation' })).toHaveCount(0)
+  })
+
   test('the mention list is a listbox the textarea points at', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/assets')

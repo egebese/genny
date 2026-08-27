@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { applyMention, findActiveMention, mentionedLabels } from './mention.ts'
+import {
+  applyMention,
+  findActiveMention,
+  mentionedLabels,
+  splitMentions,
+  unmention,
+} from './mention.ts'
 
 describe('findActiveMention', () => {
   it('opens on a bare @ at the start', () => {
@@ -68,5 +74,70 @@ describe('mentionedLabels', () => {
 
   it('returns nothing for a prompt without mentions', () => {
     expect(mentionedLabels('a quiet street at dawn')).toEqual([])
+  })
+})
+
+describe('splitMentions', () => {
+  const rebuilt = (text: string) =>
+    splitMentions(text)
+      .map((segment) => segment.text)
+      .join('')
+
+  it('marks the token and leaves the rest alone', () => {
+    expect(splitMentions('make @ayse cinematic')).toEqual([
+      { text: 'make ' },
+      { text: '@ayse', label: 'ayse' },
+      { text: ' cinematic' },
+    ])
+  })
+
+  it('handles a mention at either end', () => {
+    expect(splitMentions('@ayse')).toEqual([{ text: '@ayse', label: 'ayse' }])
+    expect(splitMentions('with @ayse')).toEqual([
+      { text: 'with ' },
+      { text: '@ayse', label: 'ayse' },
+    ])
+  })
+
+  it('agrees with mentionedLabels about what is a mention', () => {
+    for (const text of ['a@b is an email', 'hey@there', 'plain text', '@a and @b', '@a-b_c']) {
+      const marked = splitMentions(text)
+        .filter((segment) => segment.label !== undefined)
+        .map((segment) => segment.label)
+      expect([...new Set(marked)]).toEqual(mentionedLabels(text))
+    }
+  })
+
+  it('never loses or invents a character', () => {
+    for (const text of ['', '@a', ' @a ', 'x @a @b y', '@@a', 'a@b @c']) {
+      expect(rebuilt(text)).toBe(text)
+    }
+  })
+})
+
+describe('unmention', () => {
+  it('takes the handle and the space it left behind', () => {
+    expect(unmention('make @ayse cinematic', 'ayse')).toBe('make cinematic')
+    expect(unmention('@ayse', 'ayse')).toBe('')
+    // Trailing space kept: the caret lands there and typing continues without
+    // first having to press it again.
+    expect(unmention('with @ayse', 'ayse')).toBe('with ')
+  })
+
+  it('removes every occurrence, since they are all the same reference', () => {
+    expect(unmention('@a then @a again', 'a')).toBe('then again')
+  })
+
+  it('leaves a longer handle that merely starts the same', () => {
+    expect(unmention('@ayse and @ayse-2', 'ayse')).toBe('and @ayse-2')
+  })
+
+  it('leaves something that was never a mention', () => {
+    expect(unmention('mail me at a@ayse now', 'ayse')).toBe('mail me at a@ayse now')
+  })
+
+  it('leaves nothing mentionedLabels would still find', () => {
+    const text = 'a @one b @two c'
+    expect(mentionedLabels(unmention(text, 'one'))).toEqual(['two'])
   })
 })

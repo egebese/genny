@@ -13,6 +13,7 @@ import type { ReuseRequest } from './node-panel.tsx'
 import { useAttachments } from './use-attachments.ts'
 import { useBoardNodes } from './use-board-nodes.ts'
 import { useGenerate } from './use-generate.ts'
+import { useMentionables, useResolvedMentions } from './use-mentionables.ts'
 import { useSelection } from './use-selection.ts'
 import { useSize } from './use-size.ts'
 import { useSurfaces } from './use-surfaces.ts'
@@ -36,10 +37,13 @@ export function Canvas(props: ProjectPage) {
     [projectId],
   )
   const view = useViewport({ initial: props.viewport, surface, onPersist: savePan })
+  const handles = useMentionables(props.mentionables)
   const { nodes, running, move, commit, remove, add, settle } = useBoardNodes(
     projectId,
     props.nodes,
+    handles.learn,
   )
+  const mentions = useResolvedMentions(handles.resolve, prompt)
   const pick = useSelection({ nodes, viewport: view.viewport, toLocal: view.toLocal })
   const pinned = useAttachments()
   const surfaces = useSurfaces()
@@ -49,7 +53,7 @@ export function Canvas(props: ProjectPage) {
   const generate = useGenerate({
     projectId,
     nodes,
-    mentionables: props.mentionables,
+    mentionables: handles.mentionables,
     centreOfView: view.centreOfView,
   })
 
@@ -164,7 +168,9 @@ export function Canvas(props: ProjectPage) {
       <CanvasDock
         ref={dock}
         {...{ models: props.models, model, settings, prompt, pending, error, ready }}
-        mentionables={props.mentionables}
+        mentionables={handles.mentionables}
+        mentions={mentions.chips}
+        resolvable={mentions.resolvable}
         attachments={pinned.attachments}
         credits={props.credits}
         onRemoveAttachment={pinned.remove}
