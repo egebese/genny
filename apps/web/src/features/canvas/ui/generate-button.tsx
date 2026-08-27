@@ -42,11 +42,21 @@ export function GenerateButton(props: {
       type="button"
       tone="primary"
       size="md"
-      className="shrink-0 px-5"
+      className="shrink-0 px-4"
       disabled={props.disabled || props.pending}
       onClick={props.onClick}
     >
-      {props.pending ? 'Sending' : `Generate · ${priced}`}
+      <span>{props.pending ? 'Sending' : 'Generate'}</span>
+      {/*
+       * A fixed slot for the number, not a fixed button. `$0.0024` and `$0.10`
+       * are four characters apart, so the button changed width as you dragged
+       * the quality slider and the thing you were about to press moved out from
+       * under the pointer. Reserving the widest ordinary price holds it still
+       * without padding the word out to nothing.
+       */}
+      {props.pending ? null : (
+        <span className="min-w-[4.25rem] text-right tabular-nums opacity-80">{priced}</span>
+      )}
     </Button>
   )
 }

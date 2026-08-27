@@ -137,3 +137,25 @@
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/*
+ * The soft edge on a row that scrolls sideways with its scrollbar hidden.
+ *
+ * Applied per side, because a fade on an edge with nothing past it is a fade
+ * that says there is more when there is not.
+ */
+.mask-r {
+  mask-image: linear-gradient(to right, black calc(100% - 2rem), transparent);
+}
+.mask-l {
+  mask-image: linear-gradient(to left, black calc(100% - 2rem), transparent);
+}
+.mask-l.mask-r {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 2rem,
+    black calc(100% - 2rem),
+    transparent
+  );
+}

@@ -202,6 +202,45 @@ test.describe('the dock', () => {
     await expect(fewer).toBeEnabled()
   })
 
+  test('the generate button does not move when the price changes', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    const generate = page.getByRole('button', { name: /^Generate/ })
+    const width = async () => Math.round((await generate.boundingBox())?.width ?? 0)
+
+    /*
+     * `$0.0024` and `$0.35` are four characters apart, so a button sized to its
+     * own text changed width as the settings changed and the thing you were
+     * about to press moved out from under the pointer.
+     */
+    const before = await width()
+    await page.getByRole('button', { name: 'One more images' }).click()
+    expect(await width()).toBe(before)
+
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByRole('option', { name: /Kling/ }).first().click()
+    await expect(generate).toBeVisible()
+    expect(await width()).toBe(before)
+  })
+
+  test('the settings row says when it has more, and can be scrolled to it', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    test.skip(page.viewportSize()!.width < 700, 'a phone row is always overflowing')
+    await openCanvas(page)
+
+    // Nothing past the edge to begin with, so nothing to point at.
+    await expect(page.getByRole('button', { name: 'Scroll settings right' })).toHaveCount(0)
+
+    // The scrollbar is hidden here on purpose, so opening the rest of the
+    // settings would otherwise put them past the edge without saying so.
+    await page.getByRole('button', { name: 'More settings' }).click()
+    const right = page.getByRole('button', { name: 'Scroll settings right' })
+    await expect(right).toBeVisible()
+
+    await right.click()
+    await expect(page.getByRole('button', { name: 'Scroll settings left' })).toBeVisible()
+  })
+
   test('the price follows the size, because fal bills this model by area', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await openCanvas(page)
