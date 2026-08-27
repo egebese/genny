@@ -14,6 +14,7 @@ type BoardProps = {
   viewport: Viewport
   panning: boolean
   onSelect: (id: string | null) => void
+  onInspect: (id: string) => void
   onPan: (event: React.PointerEvent) => void
   onKey: (key: string) => boolean
   onMove: (id: string, position: { x: number; y: number }) => void
@@ -69,6 +70,7 @@ export function Board(props: BoardProps) {
             selected={node.id === props.selectedId}
             viewport={viewport}
             onSelect={() => props.onSelect(node.id)}
+            onInspect={() => props.onInspect(node.id)}
             onMove={(position) => props.onMove(node.id, position)}
             onCommit={(position) => props.onCommit(node.id, position)}
             onDelete={() => props.onDelete(node.id)}

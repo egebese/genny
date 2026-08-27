@@ -35,8 +35,8 @@ export function useBoardNodes(projectId: string, initial: CanvasNodeView[]) {
     [projectId],
   )
 
-  const add = useCallback((node: CanvasNodeView) => {
-    setNodes((current) => [...current, node])
+  const add = useCallback((added: CanvasNodeView[]) => {
+    setNodes((current) => [...current, ...added])
   }, [])
 
   const settle = useCallback(

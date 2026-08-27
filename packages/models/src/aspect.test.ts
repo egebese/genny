@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { outputAspect } from './aspect.ts'
+import { outputAspect, outputCount } from './aspect.ts'
 
 describe('outputAspect', () => {
   it('reads one of fal named image sizes', () => {
@@ -32,5 +32,23 @@ describe('outputAspect', () => {
 
   it('gives audio a strip regardless of what the settings say', () => {
     expect(outputAspect('audio', { aspect_ratio: '1:1' })).toEqual({ width: 4, height: 1 })
+  })
+})
+
+describe('outputCount', () => {
+  it('is one when the model has no count control', () => {
+    expect(outputCount({})).toBe(1)
+    expect(outputCount({ num_images: 'three' })).toBe(1)
+  })
+
+  it('reads whichever name the endpoint uses', () => {
+    expect(outputCount({ num_images: 4 })).toBe(4)
+    expect(outputCount({ num_outputs: 2 })).toBe(2)
+  })
+
+  it('refuses a count that would paper the board', () => {
+    expect(outputCount({ num_images: 500 })).toBe(16)
+    expect(outputCount({ num_images: 0 })).toBe(1)
+    expect(outputCount({ num_images: -3 })).toBe(1)
   })
 })

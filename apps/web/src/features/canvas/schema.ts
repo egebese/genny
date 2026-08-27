@@ -9,8 +9,8 @@ export type GenerationResult =
   | {
       ok: true
       jobId: string
-      /** Null only if the placeholder lost a race it cannot lose in practice. */
-      nodeId: string | null
+      /** One per reserved output, in order. Empty only if it lost a race it cannot lose. */
+      nodeIds: string[]
       /** References the chosen model could not take. Shown, never silent. */
       dropped?: string[]
     }

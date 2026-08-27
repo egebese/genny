@@ -2,15 +2,15 @@
 
 import type { Viewport } from '@genny/canvas/geometry.ts'
 import { cn } from '@genny/ui/cn.ts'
-import { Skeleton } from '@genny/ui/skeleton.tsx'
-import { Spinner } from '@genny/ui/spinner.tsx'
 import type { CanvasNodeView } from '../node-view.ts'
+import { NodeMedia } from './node-media.tsx'
 
 type CanvasNodeProps = {
   node: CanvasNodeView
   selected: boolean
   viewport: Viewport
   onSelect: () => void
+  onInspect: () => void
   onMove: (position: { x: number; y: number }) => void
   onCommit: (position: { x: number; y: number }) => void
   onDelete: () => void
@@ -88,73 +88,48 @@ export function CanvasNode(props: CanvasNodeProps) {
       }}
       style={{ left: node.x, top: node.y, width: node.width, height: node.height }}
       className={cn(
-        'absolute m-0 cursor-grab touch-none select-none outline-none',
+        'group absolute m-0 cursor-grab touch-none select-none outline-none',
         'ring-offset-2 ring-offset-surface',
         selected ? 'ring-2 ring-accent' : 'focus-visible:ring-2 focus-visible:ring-accent',
       )}
     >
-      <NodeBody node={node} />
+      <NodeMedia node={node} />
+      <InspectButton node={node} selected={selected} onInspect={props.onInspect} />
     </div>
   )
 }
 
-function NodeBody({ node }: { node: CanvasNodeView }) {
-  if (node.status === 'failed') {
-    return (
-      <div className="flex h-full w-full flex-col justify-center gap-1 border border-danger/40 bg-danger/5 p-3">
-        <span className="font-mono text-[10px] text-danger uppercase tracking-wider">failed</span>
-        <p className="line-clamp-4 text-ink-muted text-xs">{node.error ?? 'No reason given.'}</p>
-      </div>
-    )
-  }
-
-  if (node.status === 'pending' || !node.url) {
-    return (
-      <div className="relative h-full w-full">
-        <Skeleton aspect="auto" className="h-full w-full" />
-        <span className="absolute inset-0 flex items-center justify-center gap-2 text-ink-muted text-xs">
-          <Spinner /> Generating
-        </span>
-      </div>
-    )
-  }
-
-  if (node.kind === 'video') {
-    return (
-      // Controls rather than a custom scrubber: the native one is keyboard
-      // reachable and already translated into every language we are not.
-      //
-      // biome-ignore lint/a11y/useMediaCaption: freshly generated media has no caption track and an empty one claims otherwise
-      <video
-        src={node.url}
-        controls
-        playsInline
-        preload="metadata"
-        className="h-full w-full bg-black object-cover"
-      />
-    )
-  }
-
-  if (node.kind === 'audio') {
-    return (
-      <div className="flex h-full w-full flex-col justify-center gap-2 border border-line bg-surface px-3">
-        <span className="truncate font-mono text-[10px] text-ink-faint uppercase tracking-wider">
-          {node.label}
-        </span>
-        {/* biome-ignore lint/a11y/useMediaCaption: same as video, there is no transcript to point at */}
-        <audio src={node.url} controls className="w-full" />
-      </div>
-    )
-  }
+/**
+ * The way into the details, on the media rather than on the whole node.
+ *
+ * Selecting and inspecting were the same click, so dragging something into place
+ * kept opening a panel over the thing being placed. Now a click selects and this
+ * opens.
+ *
+ * Shown on hover, and whenever the node is selected or holds focus. That second
+ * half is not decoration: a phone has no hover, so tapping the node is the only
+ * way this can ever appear.
+ */
+function InspectButton(props: { node: CanvasNodeView; selected: boolean; onInspect: () => void }) {
+  if (props.node.status === 'pending') return null
 
   return (
-    <img
-      src={node.url}
-      alt={node.label ?? ''}
-      draggable={false}
-      loading="lazy"
-      className="h-full w-full bg-surface object-cover"
-    />
+    <button
+      type="button"
+      aria-label="Generation details"
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={props.onInspect}
+      className={cn(
+        'absolute top-2 right-2 flex size-(--size-touch) items-center justify-center rounded-full',
+        'bg-canvas/70 font-mono text-ink text-sm backdrop-blur transition-opacity',
+        'outline-none focus-visible:ring-2 focus-visible:ring-accent',
+        props.selected
+          ? 'opacity-100'
+          : 'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100',
+      )}
+    >
+      i
+    </button>
   )
 }
 

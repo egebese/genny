@@ -20,6 +20,7 @@ export function Canvas(props: ProjectPage) {
   const surface = useRef<HTMLDivElement>(null)
   const dock = useRef<HTMLDivElement>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [inspectedId, setInspectedId] = useState<string | null>(null)
   const [model, setModel] = useState<PickableModel>(defaultModel(props.models))
   const [settings, setSettings] = useState<Record<string, unknown>>({})
   const [prompt, setPrompt] = useState('')
@@ -59,8 +60,9 @@ export function Canvas(props: ProjectPage) {
       return
     }
     setError(outcome.warning)
-    add(outcome.node)
-    setPrompt('')
+    add(outcome.nodes)
+    // The prompt stays. Most of the next one is the last one with a word
+    // changed, and clearing it made the person retype what they had just typed.
   }
 
   function mention(label: string) {
@@ -74,7 +76,19 @@ export function Canvas(props: ProjectPage) {
     setPrompt(request.prompt)
   }
 
-  const selected = nodes.find((node) => node.id === selectedId) ?? null
+  const inspected = nodes.find((node) => node.id === inspectedId) ?? null
+
+  function select(id: string | null) {
+    setSelectedId(id)
+    // Inspecting follows the selection rather than surviving it: a panel still
+    // describing the node you just clicked away from is a panel that lies.
+    if (id !== inspectedId) setInspectedId(null)
+  }
+
+  function inspect(id: string) {
+    setSelectedId(id)
+    setInspectedId((current) => (current === id ? null : id))
+  }
 
   return (
     <>
@@ -92,32 +106,33 @@ export function Canvas(props: ProjectPage) {
         selectedId={selectedId}
         viewport={view.viewport}
         panning={view.panning}
-        onSelect={setSelectedId}
+        onSelect={select}
+        onInspect={inspect}
         onPan={view.startPan}
         onKey={(key) => view.handleKey(key, nodes)}
         onMove={move}
         onCommit={commit}
         onDelete={(id) => {
           remove(id)
-          setSelectedId(null)
+          select(null)
         }}
         onZoom={view.zoomBy}
         onFit={() => view.fit(nodes)}
       >
         {nodes.length === 0 ? <EmptyHint /> : null}
-        {selected ? (
+        {inspected ? (
           <NodePanel
-            node={selected}
+            node={inspected}
             viewport={view.viewport}
             // The dock is not part of the board, so the panel may not reach
             // under it: it would cover the one control the person needs next.
             bounds={{ width: board.width, height: board.height - dockSize.height }}
-            onClose={() => setSelectedId(null)}
+            onClose={() => setInspectedId(null)}
             onMention={mention}
             onReuse={reuse}
             onDelete={() => {
-              remove(selected.id)
-              setSelectedId(null)
+              remove(inspected.id)
+              select(null)
             }}
           />
         ) : null}

@@ -52,3 +52,26 @@ export function placeFree(taken: Rect[], preferred: Point, size: Size): Point {
 export function siblingPosition(anchor: Rect, index: number): Point {
   return { x: anchor.x + index * (anchor.width + NODE_GAP), y: anchor.y }
 }
+
+/** Every rectangle one request will occupy, in output order. */
+export function siblingRects(anchor: Rect, count: number): Rect[] {
+  return Array.from({ length: count }, (_, index) => ({
+    ...siblingPosition(anchor, index),
+    width: anchor.width,
+    height: anchor.height,
+  }))
+}
+
+/**
+ * The footprint a request of `count` outputs will occupy.
+ *
+ * A request for four has to reserve room for four before the first one lands.
+ * Reserving one and letting the other three appear later means they land on top
+ * of whatever was next to it, on a board the person may have arranged by hand.
+ */
+export function rowFootprint(size: Size, count: number): Size {
+  return {
+    width: size.width * count + NODE_GAP * (count - 1),
+    height: size.height,
+  }
+}

@@ -2,6 +2,7 @@ import { findAssetsByJob } from '@genny/assets/repository.ts'
 import { siblingPosition } from '@genny/canvas/placement.ts'
 import type { Database } from '@genny/db/client.ts'
 import {
+  deleteNode,
   fillNode,
   insertNode,
   listNodes,
@@ -39,9 +40,10 @@ export async function materializeJob(
       continue
     }
     /*
-     * A sibling of the same request, so it goes in the row rather than into the
-     * first gap the layout can find. Same size as the anchor: one generation
-     * cannot return two different shapes.
+     * A sibling the submit did not reserve, because fal returned more than were
+     * asked for. It goes in the row rather than into the first gap the layout can
+     * find; same size as the anchor, since one generation cannot return two
+     * different shapes.
      */
     await insertNode(tx, {
       projectId: context.projectId,
@@ -53,6 +55,17 @@ export async function materializeJob(
       outputIndex: index,
       assetId: asset.id,
     })
+  }
+
+  /*
+   * Rectangles reserved for outputs that never came. A model asked for four and
+   * refusing one of them on content leaves a box that would spin forever, so the
+   * board takes back the room rather than lying about work still in flight.
+   */
+  for (const spare of placed) {
+    if (spare.outputIndex >= outputs.length && !spare.assetId) {
+      await deleteNode(tx, spare.id)
+    }
   }
 }
 

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { NODE_GAP, NODE_LONG_EDGE, nodeSize, placeFree, siblingPosition } from './placement.ts'
+import {
+  NODE_GAP,
+  NODE_LONG_EDGE,
+  nodeSize,
+  placeFree,
+  rowFootprint,
+  siblingPosition,
+} from './placement.ts'
 
 describe('nodeSize', () => {
   it('gives portrait and landscape the same long edge', () => {
@@ -55,5 +62,25 @@ describe('siblingPosition', () => {
     const anchor = { x: 10, y: 20, width: NODE_LONG_EDGE, height: 200 }
     expect(siblingPosition(anchor, 0)).toEqual({ x: 10, y: 20 })
     expect(siblingPosition(anchor, 2)).toEqual({ x: 10 + 2 * (NODE_LONG_EDGE + NODE_GAP), y: 20 })
+  })
+})
+
+describe('rowFootprint', () => {
+  it('is the node itself for a single output', () => {
+    expect(rowFootprint({ width: 100, height: 80 }, 1)).toEqual({ width: 100, height: 80 })
+  })
+
+  it('counts the gaps between siblings, not after the last one', () => {
+    expect(rowFootprint({ width: 100, height: 80 }, 4)).toEqual({
+      width: 400 + NODE_GAP * 3,
+      height: 80,
+    })
+  })
+
+  it('agrees with where the last sibling actually goes', () => {
+    const size = { width: 100, height: 80 }
+    const anchor = { x: 0, y: 0, ...size }
+    const last = siblingPosition(anchor, 3)
+    expect(last.x + size.width).toBe(rowFootprint(size, 4).width)
   })
 })

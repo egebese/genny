@@ -57,3 +57,21 @@ export function outputAspect(
   // guess for a placeholder that has to be some shape.
   return modality === 'video' ? { width: 16, height: 9 } : { width: 1, height: 1 }
 }
+
+/**
+ * How many outputs the request will come back with.
+ *
+ * Here rather than in the pricing module because it is the same question as the
+ * aspect: what is about to arrive, known before anything is generated. The board
+ * reserves one rectangle per output, and reserving one for four is the version
+ * where three results appear out of nowhere.
+ */
+export function outputCount(settings: Record<string, unknown>): number {
+  const raw = Number(settings.num_images ?? settings.num_outputs)
+  if (!Number.isFinite(raw) || raw < 1) return 1
+  return Math.min(Math.floor(raw), MAX_OUTPUTS)
+}
+
+/** A rail, not a rule: no endpoint in the catalog returns more, and an absurd
+ * count from a tampered client should not paper the board. */
+const MAX_OUTPUTS = 16

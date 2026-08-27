@@ -1,6 +1,7 @@
 'use server'
 
 import { createBilling } from '@genny/billing/provider.ts'
+import { siblingRects } from '@genny/canvas/placement.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { insertNode } from '@genny/db/repositories/canvas-nodes.ts'
@@ -10,6 +11,7 @@ import { env } from '@genny/env/env.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
 import { submitJob } from '@genny/fal/queue.ts'
 import { falWebhookUrl } from '@genny/fal/webhook-url.ts'
+import { outputCount } from '@genny/models/aspect.ts'
 import { creditsFor, estimateUnits } from '@genny/models/credits.ts'
 import { type CanvasGenerationRequest, canvasGenerationRequest } from '@genny/models/request.ts'
 import type { ModelDefinition } from '@genny/models/schema.ts'
@@ -46,7 +48,15 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
   const held = await billing.hold(actorId, String(quote(model, payload)))
   if (!held.ok) return refuse(held.reason, false)
 
-  const { job, nodeId } = await withActor(db, actorId, async (tx) => {
+  /*
+   * One placeholder per output, not one per request. The count comes from the
+   * validated payload rather than from the client: the browser needs it too, for
+   * the layout, but the row that gets written has to agree with what fal was
+   * actually asked for.
+   */
+  const rects = siblingRects(request.node, outputCount(payload))
+
+  const { job, nodeIds } = await withActor(db, actorId, async (tx) => {
     const job = await createJob(tx, {
       ownerId: actorId,
       endpointId: model.endpointId,
@@ -54,14 +64,19 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
       input: payload,
       creditsHeld: billing.tracksCredits ? held.held : undefined,
     })
-    const node = await insertNode(tx, {
-      projectId: request.projectId,
-      ownerId: actorId,
-      ...request.node,
-      jobId: job.id,
-    })
+    const nodeIds: string[] = []
+    for (const [index, rect] of rects.entries()) {
+      const node = await insertNode(tx, {
+        projectId: request.projectId,
+        ownerId: actorId,
+        ...rect,
+        jobId: job.id,
+        outputIndex: index,
+      })
+      if (node) nodeIds.push(node.id)
+    }
     await touchProject(tx, request.projectId)
-    return { job, nodeId: node?.id ?? null }
+    return { job, nodeIds }
   })
 
   try {
@@ -75,7 +90,7 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
     return {
       ok: true,
       jobId: job.id,
-      nodeId,
+      nodeIds,
       ...(prepared.dropped.length > 0 ? { dropped: prepared.dropped } : {}),
     }
   } catch (error) {

@@ -39,10 +39,51 @@ test.describe('@live against real fal', () => {
   })
 
   /*
-   * The one path a mocked suite has never run. Nothing in the fake fal ever
-   * finishes, so ingest, capture and the fill that turns a placeholder into a
-   * node only ever execute here.
+   * The three below are the only place these can be proved. The mocked suite
+   * never completes a job, so a placeholder never fills, an info button never
+   * appears and there is nothing to inspect.
    */
+  test('a request for several reserves a box for each of them @live', async ({ page }) => {
+    await generate(page, 'schnell', 'a folded paper crane on grey concrete, top down', {
+      count: 2,
+    })
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    // Before the first result exists. Reserving one box and letting the second
+    // appear later drops it wherever the layout has room by then.
+    await expect(nodes).toHaveCount(2)
+    await expect(nodes.first().getByText('Generating')).toBeVisible()
+    await expect(nodes.nth(1).getByText('Generating')).toBeVisible()
+
+    await expect(nodes.first().locator('img')).toBeVisible({ timeout: 300_000 })
+    await expect(nodes.nth(1).locator('img')).toBeVisible({ timeout: 300_000 })
+    await expect(nodes).toHaveCount(2)
+  })
+
+  test('the prompt survives sending it @live', async ({ page }) => {
+    const prompt = 'a brass compass on a folded map, overhead'
+    await generate(page, 'schnell', prompt)
+    // Most of the next prompt is this one with a word changed.
+    await expect(page.getByLabel('Prompt', { exact: true })).toHaveValue(prompt)
+  })
+
+  test('details open from the icon on the result, not from selecting it @live', async ({
+    page,
+  }) => {
+    await generate(page, 'schnell', 'a single brass key on black velvet, overhead')
+    const node = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first()
+    await expect(node.locator('img')).toBeVisible({ timeout: 300_000 })
+
+    const panel = page.getByRole('complementary', { name: 'Generation details' })
+    await node.click()
+    // Selecting is for dragging and deleting. Opening a panel over the thing
+    // being dragged is what made the two the same click a mistake.
+    await expect(panel).toHaveCount(0)
+
+    await node.getByRole('button', { name: 'Generation details' }).click()
+    await expect(panel).toBeVisible()
+    await expect(panel.getByText('fal-ai/flux/schnell')).toBeVisible()
+  })
+
   test('the node keeps its place while it fills @live', async ({ page }) => {
     await generate(page, 'schnell', 'a brass key on black velvet, overhead')
     const node = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first()
@@ -52,7 +93,12 @@ test.describe('@live against real fal', () => {
   })
 })
 
-async function generate(page: Page, model: string, prompt: string): Promise<void> {
+async function generate(
+  page: Page,
+  model: string,
+  prompt: string,
+  options: { count?: number } = {},
+): Promise<void> {
   await page.goto('/c')
 
   // Through the route rather than the form: Next's dev logger prints server
@@ -77,5 +123,6 @@ async function generate(page: Page, model: string, prompt: string): Promise<void
 
   // Exact: a model control called "Prompt strength" would otherwise match too.
   await page.getByLabel('Prompt', { exact: true }).fill(prompt)
+  if (options.count) await page.getByLabel('Images').fill(String(options.count))
   await page.getByRole('button', { name: /^Generate/ }).click()
 }
