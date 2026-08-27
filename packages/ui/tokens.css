@@ -24,6 +24,10 @@
   --radius-control: 0.625rem;
   --radius-panel: 1rem;
 
+  /* The dock floats over the feed rather than sitting in a bar, so it needs to
+     read as lifted off the page at a glance. */
+  --shadow-dock: 0 1px 2px oklch(0 0 0 / 0.16), 0 12px 32px oklch(0 0 0 / 0.28);
+
   /* Mobile lives behind a home indicator and a notch. */
   --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
   --spacing-safe-top: env(safe-area-inset-top, 0px);
@@ -41,6 +45,8 @@
     --color-surface: oklch(0.97 0.003 264);
     --color-surface-hover: oklch(0.94 0.004 264);
     --color-line: oklch(0.89 0.005 264);
+    /* Softer on a light page, where the dark-theme shadow reads as a smudge. */
+    --shadow-dock: 0 1px 2px oklch(0 0 0 / 0.06), 0 10px 28px oklch(0 0 0 / 0.1);
     --color-ink: oklch(0.22 0.01 264);
     --color-ink-muted: oklch(0.45 0.012 264);
     --color-ink-faint: oklch(0.6 0.01 264);

@@ -103,7 +103,7 @@ export function PromptDock(props: PromptDockProps) {
   const needsReference = model.requiresReference && mentionedLabels(prompt).length === 0
 
   return (
-    <div className="rounded-(--radius-panel) border border-line bg-surface">
+    <div className="rounded-(--radius-panel) border border-line bg-surface shadow-(--shadow-dock)">
       {mentions.active ? (
         <MentionList
           candidates={mentions.candidates}
@@ -151,21 +151,26 @@ export function PromptDock(props: PromptDockProps) {
         className="max-h-40 w-full resize-none bg-transparent px-4 pt-3 text-ink text-sm outline-none placeholder:text-ink-faint"
       />
 
-      <div className="flex flex-wrap items-center gap-2 border-line border-t px-3 py-2">
-        <ModelPicker models={props.models} selected={model} onSelect={props.onModelChange} />
-        {model.inputs.map((input) => (
-          <SettingField
-            key={input.name}
-            input={input}
-            value={settings[input.name]}
-            onChange={(value) => props.onSettingChange(input.name, value)}
-          />
-        ))}
+      <div className="flex items-center gap-2 px-2 pt-1 pb-2">
+        {/* One line that scrolls sideways rather than a block that wraps: a
+            second row of controls pushes the prompt up the screen on a phone,
+            and the controls are adjustments, not the point. */}
+        <div className="-mx-0.5 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto px-0.5 py-0.5 [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] [scrollbar-width:none]">
+          <ModelPicker models={props.models} selected={model} onSelect={props.onModelChange} />
+          {model.inputs.map((input) => (
+            <SettingField
+              key={input.name}
+              input={input}
+              value={settings[input.name]}
+              onChange={(value) => props.onSettingChange(input.name, value)}
+            />
+          ))}
+        </div>
         <Button
           type="button"
           tone="primary"
           size="sm"
-          className="ml-auto"
+          className="shrink-0"
           disabled={pending || prompt.trim().length === 0 || needsReference}
           onClick={submit}
         >

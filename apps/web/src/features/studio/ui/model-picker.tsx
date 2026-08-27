@@ -36,8 +36,8 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
       <PopoverTrigger
         aria-label={`Model: ${selected.displayName}`}
         className={cn(
-          'inline-flex h-9 items-center gap-2 rounded-(--radius-control) border border-line',
-          'bg-surface px-3 text-sm text-ink transition-colors hover:bg-surface-hover',
+          'inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border',
+          'border-line bg-surface px-3 text-sm text-ink transition-colors hover:bg-surface-hover',
         )}
       >
         <span className="max-w-40 truncate">{selected.displayName}</span>
@@ -74,7 +74,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
                 {visible.map((model) => (
                   <CommandItem
                     key={model.endpointId}
-                    value={`${model.displayName} ${model.group}`}
+                    value={`${model.displayName} ${model.group} ${model.description}`}
                     onSelect={() => {
                       onSelect(model)
                       setOpen(false)
@@ -83,11 +83,16 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
                   >
                     <ModelThumb model={model} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium text-sm">
-                        {model.displayName}
+                      <span className="flex items-baseline gap-2">
+                        <span className="truncate font-medium text-sm">{model.displayName}</span>
+                        <span className="shrink-0 text-ink-faint text-xs tabular-nums">
+                          {model.priceLabel}
+                        </span>
                       </span>
-                      <span className="block truncate text-ink-faint text-xs">
-                        {model.priceLabel}
+                      {/* What it is for. Picking between eleven models on price
+                          alone is picking on the only axis that does not matter. */}
+                      <span className="line-clamp-2 text-ink-muted text-xs">
+                        {model.description}
                       </span>
                     </span>
                     {model.endpointId === selected.endpointId ? (

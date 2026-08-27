@@ -30,12 +30,26 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
   const error = live?.error ?? item.error
   const labels = live?.assetLabels ?? item.assetLabels
 
+  /*
+   * The output is the card. A bordered box with a caption block underneath made
+   * a page of generations read as a list of records; here the media carries the
+   * row and the prompt is one quiet line under it, which is what every studio
+   * worth copying does.
+   */
   return (
-    <li className="overflow-hidden rounded-(--radius-panel) border border-line bg-surface">
+    // min-w-0 because a grid track is minmax(auto, 1fr) and an image's auto
+    // minimum is its intrinsic width: without it one wide result stretches the
+    // column past the viewport and the whole page scrolls sideways.
+    <li className="min-w-0">
       {status === 'completed' && urls.length > 0 ? (
-        <ul className={cn('grid gap-1', urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
+        <ul
+          className={cn(
+            'grid gap-1 overflow-hidden rounded-(--radius-panel) bg-surface',
+            urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1',
+          )}
+        >
           {urls.map((url, index) => (
-            <li key={url} className="group relative">
+            <li key={url} className="group relative min-w-0">
               <Media url={url} alt={item.prompt} />
               <span className="absolute inset-x-0 bottom-0 flex gap-1 p-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                 <a
@@ -62,9 +76,9 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
         <Placeholder status={status} error={error} queuePosition={live?.queuePosition ?? null} />
       )}
 
-      <div className="space-y-1 p-3">
-        <p className="line-clamp-2 text-sm text-ink">{item.prompt}</p>
-        <p className="text-ink-faint text-xs">{item.modelName}</p>
+      <div className="mt-2 flex items-baseline gap-3 px-0.5">
+        <p className="min-w-0 flex-1 truncate text-ink-muted text-xs">{item.prompt}</p>
+        <p className="shrink-0 text-ink-faint text-xs">{item.modelName}</p>
       </div>
     </li>
   )
@@ -116,8 +130,8 @@ function Placeholder({
   return (
     <div
       className={cn(
-        'flex aspect-square items-center justify-center px-4 text-center text-sm',
-        failed ? 'bg-danger/10 text-danger' : 'animate-pulse bg-canvas text-ink-faint',
+        'flex aspect-square items-center justify-center rounded-(--radius-panel) px-4 text-center text-sm',
+        failed ? 'bg-danger/10 text-danger' : 'animate-pulse bg-surface text-ink-faint',
       )}
       role="status"
       aria-live="polite"

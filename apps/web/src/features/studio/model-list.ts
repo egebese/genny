@@ -8,6 +8,8 @@ import type { ModelDefinition, ModelInput } from '@genny/models/schema.ts'
 export type PickableModel = {
   endpointId: string
   displayName: string
+  /** One line on what the model is for. Shown under the name in the picker. */
+  description: string
   group: string
   thumbnailUrl: string | null
   priceLabel: string
@@ -23,6 +25,7 @@ export function toPickable(model: ModelDefinition): PickableModel {
   return {
     endpointId: model.endpointId,
     displayName: model.displayName,
+    description: model.description,
     group: model.group,
     thumbnailUrl: model.thumbnailUrl ?? null,
     priceLabel: `$${model.pricing.unitPriceUsd} / ${model.pricing.unit}`,

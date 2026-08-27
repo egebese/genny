@@ -94,7 +94,7 @@ test.describe('image studio', () => {
     test.skip(mode !== 'byok', 'saas mode uses the server key')
     await page.goto('/image')
     await expect(page.getByLabel('Paste your fal key to start')).toBeVisible()
-    await expect(page.getByLabel('Prompt')).toHaveCount(0)
+    await expect(page.getByLabel('Prompt', { exact: true })).toHaveCount(0)
   })
 
   test('byok refuses a key with whitespace in it', async ({ page, request }) => {
@@ -116,7 +116,7 @@ test.describe('image studio', () => {
   test('saas goes straight to the prompt', async ({ page }) => {
     test.skip(mode !== 'saas', 'byok mode needs a key first')
     await page.goto('/image')
-    await expect(page.getByLabel('Prompt')).toBeVisible()
+    await expect(page.getByLabel('Prompt', { exact: true })).toBeVisible()
     await expect(page.getByLabel('Paste your fal key to start')).toHaveCount(0)
   })
 
@@ -398,7 +398,7 @@ test.describe('characters', () => {
     // Enter here used to fall through and start a paid generation.
     await prompt.press('Enter')
     await expect(prompt).toHaveValue('a portrait of @nothingmatchesthis')
-    await expect(page.locator('main ul li')).toHaveCount(0)
+    await expect(page.getByRole('list', { name: 'Generations' })).toHaveCount(0)
   })
 })
 

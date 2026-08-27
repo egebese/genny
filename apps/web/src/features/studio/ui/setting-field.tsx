@@ -8,8 +8,16 @@ type SettingFieldProps = {
   onChange: (value: unknown) => void
 }
 
-const control =
-  'h-9 rounded-(--radius-control) border border-line bg-canvas px-2 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-accent'
+/*
+ * Every control is the same pill: a faint label and the value, side by side, at
+ * the height of the model button next to it. Labelled form rows made the dock
+ * read as a settings panel with a prompt attached, when the prompt is the point
+ * and these are adjustments to it.
+ */
+const pill =
+  'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-canvas px-2.5 text-xs transition-colors hover:bg-surface-hover focus-within:ring-2 focus-within:ring-accent'
+const label = 'text-ink-faint'
+const field = 'bg-transparent text-ink outline-none'
 
 /**
  * Renders one control from the model's catalog entry. The catalog decides what
@@ -21,11 +29,13 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
 
   if (input.type === 'enum' && input.enum) {
     return (
-      <label htmlFor={id} className="flex items-center gap-1.5 text-ink-muted text-xs">
-        <span className="sr-only sm:not-sr-only">{input.label}</span>
+      <span className={pill}>
+        <label htmlFor={id} className={label}>
+          {input.label}
+        </label>
         <select
           id={id}
-          className={control}
+          className={`${field} -mr-1 cursor-pointer appearance-none pr-3`}
           value={String(value ?? input.default ?? input.enum[0])}
           onChange={(event) => onChange(event.target.value)}
         >
@@ -35,19 +45,26 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
             </option>
           ))}
         </select>
-      </label>
+        <span aria-hidden className="-ml-2 pointer-events-none text-ink-faint">
+          ▾
+        </span>
+      </span>
     )
   }
 
   if (input.type === 'boolean') {
+    const on = Boolean(value ?? input.default)
     return (
-      <label htmlFor={id} className="flex items-center gap-1.5 text-ink-muted text-xs">
+      <label
+        htmlFor={id}
+        className={`${pill} cursor-pointer ${on ? 'border-accent text-ink' : 'text-ink-faint'}`}
+      >
         <input
           id={id}
           type="checkbox"
-          checked={Boolean(value ?? input.default)}
+          className="sr-only"
+          checked={on}
           onChange={(event) => onChange(event.target.checked)}
-          className="size-4 accent-[var(--color-accent)]"
         />
         {input.label}
       </label>
@@ -56,12 +73,14 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
 
   if (input.type === 'integer' || input.type === 'number') {
     return (
-      <label htmlFor={id} className="flex items-center gap-1.5 text-ink-muted text-xs">
-        <span>{input.label}</span>
+      <span className={pill}>
+        <label htmlFor={id} className={label}>
+          {input.label}
+        </label>
         <input
           id={id}
           type="number"
-          className={`${control} w-20`}
+          className={`${field} w-10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`}
           value={String(value ?? input.default ?? '')}
           min={input.min}
           max={input.max}
@@ -71,20 +90,22 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
             onChange(parsed)
           }}
         />
-      </label>
+      </span>
     )
   }
 
   return (
-    <label htmlFor={id} className="flex items-center gap-1.5 text-ink-muted text-xs">
-      <span>{input.label}</span>
+    <span className={pill}>
+      <label htmlFor={id} className={label}>
+        {input.label}
+      </label>
       <input
         id={id}
         type="text"
-        className={`${control} w-32`}
+        className={`${field} w-24`}
         value={String(value ?? input.default ?? '')}
         onChange={(event) => onChange(event.target.value)}
       />
-    </label>
+    </span>
   )
 }

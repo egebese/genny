@@ -133,6 +133,8 @@ export function Studio({
   return (
     <>
       <ResultFeed
+        modality={modality}
+        onSuggest={setPrompt}
         results={results}
         cursor={cursor}
         loadingMore={loadingMore}
