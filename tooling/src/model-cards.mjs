@@ -53,6 +53,7 @@ const PROVIDERS = [
   ['fal-ai/ideogram', 'ideogram'],
   ['fal-ai/stable-audio', 'stability'],
   ['fal-ai/bytedance', 'bytedance'],
+  ['fal-ai/pixverse', 'pixverse'],
   ['fal-ai/flux', 'flux'],
   ['fal-ai/gemini', 'gemini'],
   ['fal-ai/veo', 'gemini'],
@@ -63,6 +64,8 @@ const PROVIDERS = [
   ['fal-ai/topaz', 'topazlabs'],
   ['fal-ai/openai', 'openai'],
   ['fal-ai/gpt-image', 'openai'],
+  // Labs that publish under their own namespace rather than fal-ai/.
+  ['bria/', 'briaai'],
 ]
 
 /** One hue per modality, so a glance at the grid separates stills from clips. */

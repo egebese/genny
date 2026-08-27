@@ -79,3 +79,22 @@ describe('megapixelsFor', () => {
     expect(megapixelsFor(1000, 1000, 3)).toBe(3)
   })
 })
+
+describe('durations however the endpoint spells them', () => {
+  const perSecond = { pricing: { unit: 'seconds' as const, unitPriceUsd: 0.1 } }
+
+  it('reads a number, a numeric string and a suffixed one alike', () => {
+    expect(estimateUnits(perSecond, { duration: 8 })).toBe(8)
+    expect(estimateUnits(perSecond, { duration: '8' })).toBe(8)
+    // Veo and friends offer "4s" / "6s" / "8s". Number() gives NaN here, the
+    // hold falls back to five, and settle never captures more than it held, so
+    // the extra three seconds would be free every time.
+    expect(estimateUnits(perSecond, { duration: '8s' })).toBe(8)
+  })
+
+  it('still falls back when there is no number in there at all', () => {
+    expect(estimateUnits(perSecond, { duration: 'auto' })).toBe(5)
+    expect(estimateUnits(perSecond, {})).toBe(5)
+    expect(estimateUnits(perSecond, { duration: -3 })).toBe(5)
+  })
+})

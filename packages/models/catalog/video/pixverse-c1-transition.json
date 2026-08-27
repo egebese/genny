@@ -1,0 +1,82 @@
+{
+  "endpointId": "fal-ai/pixverse/c1/transition",
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "PixVerse C1 Transition",
+  "description": "Create seamless cinematic transitions between two images with PixVerse C1, with native audio and up to 1080p.",
+  "sortOrder": 3,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.05,
+    "note": "720p without audio, which is the tier this entry pins. fal's prose opens with the 360p price ($0.030) and climbs to $0.120 at 1080p with audio, so the sync report will read a smaller number than this one and be wrong about it. `genmedia pricing` answers $0.005, a base unit no request is ever charged."
+  },
+  "creditMultiplier": 1.2,
+  "inputs": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
+    {
+      "name": "duration",
+      "type": "integer",
+      "label": "Length (seconds)",
+      "default": 5,
+      "min": 1,
+      "max": 15
+    },
+    {
+      "name": "aspect_ratio",
+      "type": "enum",
+      "label": "Aspect",
+      "default": "16:9",
+      "enum": ["16:9", "4:3", "1:1", "3:4", "9:16", "2:3", "3:2", "21:9"]
+    },
+    {
+      "name": "resolution",
+      "type": "enum",
+      "label": "Resolution",
+      "default": "720p",
+      "enum": ["720p"],
+      "hidden": true
+    },
+    {
+      "name": "generate_audio_switch",
+      "type": "boolean",
+      "label": "Generate audio",
+      "default": false,
+      "hidden": true
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
+  ],
+  "references": [
+    {
+      "field": "first_image_url",
+      "role": "start-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    },
+    {
+      "field": "end_image_url",
+      "role": "end-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "thumbnailUrl": "/models/pixverse-c1-transition.svg"
+}

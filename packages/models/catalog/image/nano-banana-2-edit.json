@@ -44,9 +44,30 @@
   "references": [
     {
       "field": "image_urls",
+      "role": "input-images",
+      "accepts": ["image"],
       "array": true,
       "maxCount": 8,
-      "token": "keep-label"
+      "token": "keep-label",
+      "required": false
+    },
+    {
+      "field": "video_url",
+      "role": "reference",
+      "accepts": ["video"],
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "required": false
+    },
+    {
+      "field": "audio_url",
+      "role": "reference",
+      "accepts": ["audio"],
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "required": false
     }
   ],
   "capabilities": {

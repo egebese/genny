@@ -1,0 +1,53 @@
+{
+  "endpointId": "bria/fibo-edit-1.5/edit",
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "FIBO Edit 1.5",
+  "description": "Commercially safe, multi-reference image editing model. Follows natural language instructions alone or with up to 4 reference images, purpose-built for complex object and character combinations, virtual try-on, background replacement, style transfer, and more.",
+  "sortOrder": 27,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.04,
+    "note": "`genmedia pricing` on 2026-08-27. fal publishes no pricing prose for this endpoint, so the sync report has nothing to compare against and this is the only source."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "instruction",
+  "inputs": [
+    {
+      "name": "instruction",
+      "type": "string",
+      "label": "Instruction",
+      "required": true
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
+  ],
+  "references": [
+    {
+      "field": "image_urls",
+      "role": "input-images",
+      "accepts": ["image"],
+      "required": false,
+      "array": true,
+      "maxCount": 4,
+      "token": "keep-label"
+    },
+    {
+      "field": "mask_url",
+      "role": "mask",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "thumbnailUrl": "/models/bria-fibo-edit-1-5-edit.svg"
+}

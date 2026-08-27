@@ -34,7 +34,7 @@ describe('slotsFor', () => {
   it('offers only the slots that take the kind on offer', () => {
     const subject = model([
       slot({ field: 'image_url', role: 'start-frame', accepts: ['image'] }),
-      slot({ field: 'audio_url', role: 'source-audio', accepts: ['audio'] }),
+      slot({ field: 'audio_url', role: 'driving-audio', accepts: ['audio'] }),
     ])
     expect(slotsFor(subject, 'image').map((s) => s.field)).toEqual(['image_url'])
     expect(slotsFor(subject, 'audio').map((s) => s.field)).toEqual(['audio_url'])
@@ -62,7 +62,42 @@ describe('slotsFor', () => {
   })
 })
 
+describe('a model that takes both ends of the clip', () => {
+  it('offers two items, each saying which end it fills', () => {
+    const items = slotsFor(
+      model([
+        slot({ field: 'first_image_url', role: 'start-frame', required: true }),
+        slot({ field: 'end_image_url', role: 'end-frame', required: true }),
+      ]),
+      'image',
+    )
+    expect(items.map((s) => s.field)).toEqual(['first_image_url', 'end_image_url'])
+    // Both take a still, so the copy is the only thing telling them apart. Two
+    // items reading the same would leave the pick to chance.
+    expect(items.map((s) => s.label)).toEqual(['Use as start frame', 'Use as end frame'])
+  })
+})
+
+describe('a model whose slots take different kinds', () => {
+  it('shows each kind only the slot that will hold it', () => {
+    const lipsync = model([
+      slot({ field: 'video_url', role: 'source', accepts: ['video'] }),
+      slot({ field: 'audio_url', role: 'driving-audio', accepts: ['audio'] }),
+    ])
+    expect(slotsFor(lipsync, 'video').map((s) => s.label)).toEqual(['Use as input'])
+    expect(slotsFor(lipsync, 'audio').map((s) => s.label)).toEqual(['Use as driving audio'])
+    expect(slotsFor(lipsync, 'image')).toEqual([])
+  })
+})
+
 describe('capacityFor', () => {
+  it('counts an array slot for what it holds, not for one', () => {
+    const editor = model([
+      slot({ field: 'image_urls', role: 'input-images', array: true, maxCount: 3 }),
+    ])
+    expect(capacityFor(editor, 'image')).toBe(3)
+  })
+
   it('adds up every slot that fits, because a selection can fill more than one', () => {
     const subject = model([
       slot({ field: 'image_url', role: 'start-frame' }),
@@ -77,8 +112,8 @@ describe('capacityFor', () => {
 describe('acceptsAll', () => {
   it('is true only when every kind has somewhere to go', () => {
     const lipsync = model([
-      slot({ field: 'video_url', role: 'source-video', accepts: ['video'] }),
-      slot({ field: 'audio_url', role: 'source-audio', accepts: ['audio'] }),
+      slot({ field: 'video_url', role: 'source', accepts: ['video'] }),
+      slot({ field: 'audio_url', role: 'driving-audio', accepts: ['audio'] }),
     ])
     expect(acceptsAll(lipsync, ['video', 'audio'])).toBe(true)
     expect(acceptsAll(lipsync, ['video', 'image'])).toBe(false)

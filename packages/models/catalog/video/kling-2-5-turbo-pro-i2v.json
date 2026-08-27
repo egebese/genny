@@ -43,7 +43,18 @@
   "references": [
     {
       "field": "image_url",
+      "role": "start-frame",
+      "accepts": ["image"],
       "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    },
+    {
+      "field": "tail_image_url",
+      "role": "end-frame",
+      "accepts": ["image"],
+      "required": false,
       "array": false,
       "maxCount": 1,
       "token": "strip"

@@ -24,16 +24,19 @@ export const pricingUnit = z.enum([
  * image_url" is not a menu anyone can read. Closed rather than free text so the
  * board can decide what a slot accepts without asking the catalog author to also
  * write the UI copy.
+ *
+ * One role per sentence the menu can say. A reference is a reference whether it
+ * is a still, a clip or a take, so the media kind lives in `accepts` and not in
+ * a second role that would read identically.
  */
 export const referenceRole = z.enum([
   'source',
   'start-frame',
   'end-frame',
-  'reference-image',
+  'reference',
   'input-images',
   'style-reference',
-  'source-video',
-  'source-audio',
+  'driving-audio',
   'voice-sample',
   'mask',
 ])

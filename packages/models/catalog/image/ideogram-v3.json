@@ -67,6 +67,8 @@
   "references": [
     {
       "field": "image_urls",
+      "role": "style-reference",
+      "accepts": ["image"],
       "array": true,
       "maxCount": 3,
       "token": "keep-label",

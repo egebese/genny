@@ -1,0 +1,83 @@
+{
+  "endpointId": "fal-ai/wan/v2.7/image-to-video",
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "Wan 2.7 Image to Video",
+  "description": "Wan 2.7 is the latest generation AI video model, delivering enhanced motion smoothness, superior scene fidelity, and greater visual coherence.",
+  "sortOrder": 4,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.1,
+    "note": "720p, which is the tier this entry pins; 1080p is $0.15 per second. fal's prose and `genmedia pricing` agree on $0.10."
+  },
+  "creditMultiplier": 1.2,
+  "inputs": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
+    {
+      "name": "duration",
+      "type": "integer",
+      "label": "Length (seconds)",
+      "default": 5,
+      "min": 2,
+      "max": 15
+    },
+    {
+      "name": "negative_prompt",
+      "type": "string",
+      "label": "Avoid"
+    },
+    {
+      "name": "resolution",
+      "type": "enum",
+      "label": "Resolution",
+      "default": "720p",
+      "enum": ["720p"],
+      "hidden": true
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "start-frame",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    },
+    {
+      "field": "end_image_url",
+      "role": "end-frame",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    },
+    {
+      "field": "audio_url",
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "thumbnailUrl": "/models/wan-v2-7-image-to-video.svg"
+}

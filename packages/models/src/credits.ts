@@ -55,8 +55,15 @@ export function estimateUnits(model: PricedModel, input: Record<string, unknown>
   }
 }
 
-/** A missing or nonsensical value bills as the model's default, never as zero. */
+/**
+ * A missing or nonsensical value bills as the model's default, never as zero.
+ *
+ * `parseFloat`, not `Number`: fal endpoints spell durations `5`, `"5"` and
+ * `"8s"`, and the last one makes `Number` return NaN. That failure is silent and
+ * permanent, because the estimate becomes the hold and `settle` never captures
+ * more than it held: an eight second clip would be charged as five, forever.
+ */
 function positiveNumber(value: unknown, fallback: number): number {
-  const parsed = Number(value)
+  const parsed = Number.parseFloat(String(value))
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }

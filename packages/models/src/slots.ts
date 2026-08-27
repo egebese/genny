@@ -6,11 +6,10 @@ const ROLE_LABELS: Record<ReferenceRole, string> = {
   source: 'Use as input',
   'start-frame': 'Use as start frame',
   'end-frame': 'Use as end frame',
-  'reference-image': 'Use as reference',
+  reference: 'Use as reference',
   'input-images': 'Add to input images',
   'style-reference': 'Use as style reference',
-  'source-video': 'Use as source video',
-  'source-audio': 'Use as source audio',
+  'driving-audio': 'Use as driving audio',
   'voice-sample': 'Use as voice sample',
   mask: 'Use as mask',
 }

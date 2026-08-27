@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600" role="img" aria-label="PixVerse C1 Transition">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101d24"/>
+      <stop offset="1" stop-color="#0b0b0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="600" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="899" height="599" fill="none" stroke="#ffffff" stroke-opacity="0.10"/>
+  <svg x="330" y="180" width="240" height="240" viewBox="0 0 24 24" fill="#99edff"><path d="M10.998 23.837L5 21.015V5.569c0-.733.32-1.547.84-2.065l1.386-1.387 6.064 19.729c.426 1.377-.987 2.605-2.292 1.991z" opacity=".8"></path><path d="M19.36 8.43L12.517.905A2.765 2.765 0 008.517.81L5.84 3.504c-.511.584-.803 1.198-.803 1.93V20.88l13.699-8.219a2.765 2.765 0 00.623-4.23" opacity=".8"></path></svg>
+  <rect x="60" y="56" rx="26" height="52" width="250" fill="#ffffff" fill-opacity="0.08"/>
+  <text x="80" y="90" font-family="ui-monospace, 'SF Mono', monospace" font-size="23" fill="#99edff" letter-spacing="1.5">IMAGE TO VIDEO</text>
+</svg>
