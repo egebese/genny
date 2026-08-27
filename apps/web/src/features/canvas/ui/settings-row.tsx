@@ -3,6 +3,7 @@
 import { cn } from '@genny/ui/cn.ts'
 import { Icon } from '@genny/ui/icon.tsx'
 import { useRef, useState } from 'react'
+import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 import { ModelPicker } from './model-picker.tsx'
 import { SettingField } from './setting-field.tsx'
@@ -11,10 +12,12 @@ import { isPrimary } from './settings/priority.ts'
 import { useOverflow } from './settings/use-overflow.ts'
 
 type SettingsRowProps = {
-  models: PickableModel[]
+  families: PickableFamily[]
+  family: PickableFamily
+  /** The endpoint the attachments resolved to; its controls are what show. */
   model: PickableModel
   settings: Record<string, unknown>
-  onModelChange: (model: PickableModel) => void
+  onModelChange: (family: PickableFamily) => void
   onSettingChange: (name: string, value: unknown) => void
 }
 
@@ -59,7 +62,11 @@ export function SettingsRow(props: SettingsRowProps) {
           edges.left && 'mask-l',
         )}
       >
-        <ModelPicker models={props.models} selected={props.model} onSelect={props.onModelChange} />
+        <ModelPicker
+          models={props.families}
+          selected={props.family}
+          onSelect={props.onModelChange}
+        />
         {primary.map(control)}
 
         {secondary.length > 0 ? (

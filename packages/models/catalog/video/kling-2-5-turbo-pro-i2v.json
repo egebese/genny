@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/kling-video/v2.5-turbo/pro/image-to-video",
+  "family": {
+    "id": "kling-25-turbo-pro",
+    "name": "Kling 2.5 Turbo Pro"
+  },
   "modality": "video",
   "group": "Image to Video",
   "displayName": "Kling 2.5 Turbo Pro (from an image)",

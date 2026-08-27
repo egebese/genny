@@ -8,6 +8,10 @@ import { allSlots, type ReferenceSlot } from '@genny/models/slots.ts'
  */
 export type PickableModel = {
   endpointId: string
+  /** The model this endpoint is one task of. The picker shows families. */
+  family: { id: string; name: string }
+  /** Slots this endpoint refuses to run without, so the resolver can skip it. */
+  required: ReferenceSlot[]
   modality: ModelDefinition['modality']
   displayName: string
   /** One line on what the model is for. Shown under the name in the picker. */
@@ -39,6 +43,8 @@ export type PickableModel = {
 export function toPickable(model: ModelDefinition): PickableModel {
   return {
     endpointId: model.endpointId,
+    family: model.family,
+    required: allSlots(model).filter((slot) => slot.required),
     modality: model.modality,
     displayName: model.displayName,
     description: model.description,

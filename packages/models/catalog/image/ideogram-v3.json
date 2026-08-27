@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/ideogram/v3",
+  "family": {
+    "id": "ideogram-v3",
+    "name": "Ideogram v3"
+  },
   "modality": "image",
   "group": "Text to Image",
   "displayName": "Ideogram Text to Image",

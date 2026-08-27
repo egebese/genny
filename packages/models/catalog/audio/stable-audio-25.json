@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/stable-audio-25/text-to-audio",
+  "family": {
+    "id": "stable-audio-25",
+    "name": "Stable Audio 2.5"
+  },
   "modality": "audio",
   "group": "Text to Audio",
   "displayName": "Stable Audio 2.5",

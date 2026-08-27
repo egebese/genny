@@ -1,5 +1,9 @@
 {
   "endpointId": "bria/fibo-edit-1.5/edit",
+  "family": {
+    "id": "fibo-edit",
+    "name": "Fibo Edit 1.5"
+  },
   "modality": "image",
   "group": "Editing",
   "displayName": "FIBO Edit 1.5",

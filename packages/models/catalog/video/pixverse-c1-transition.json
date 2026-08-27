@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/pixverse/c1/transition",
+  "family": {
+    "id": "pixverse-c1",
+    "name": "PixVerse C1"
+  },
   "modality": "video",
   "group": "Image to Video",
   "displayName": "PixVerse C1 Transition",

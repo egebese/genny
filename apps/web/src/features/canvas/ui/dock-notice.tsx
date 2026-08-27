@@ -1,68 +1,67 @@
 'use client'
 
+import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 
-export type DockBlock =
-  | { kind: 'needs-reference' }
-  | { kind: 'cannot-take'; instead: PickableModel | null }
-  | null
+export type DockBlock = { kind: 'needs-reference' } | { kind: 'cannot-take' } | null
 
 /**
- * Why generate is disabled, and what to do instead.
+ * Why generate is disabled.
  *
- * Both of these are things the dock already knows from the model's own catalog
- * entry, and both used to be found out by spending: an editing model answered
- * 422 from fal, and a text to image model quietly ran without the reference and
- * reported the drop after the money.
+ * Both cases are things the dock already knows from the catalog, and both used
+ * to be found out by spending: an editing endpoint answered 422 from fal, and a
+ * text to image endpoint quietly ran without the reference and reported the
+ * drop after the money.
+ *
+ * There used to be a third case here, and a button offering a different model
+ * to fix it. Attaching an image to Nano Banana 2 now simply reaches Nano Banana
+ * 2's edit endpoint, so there is nothing to offer and nothing to explain.
  */
 export function whyBlocked(context: {
-  model: PickableModel
-  suggestion: PickableModel | null
+  family: PickableFamily
+  model: PickableModel | null
   mentionCount: number
   attachmentCount: number
   carrying: boolean
 }): DockBlock {
-  const { model } = context
-  if (context.carrying && model.slots.length === 0) {
-    return { kind: 'cannot-take', instead: context.suggestion }
+  /*
+   * Two ways nothing resolves, and they are opposite problems. Nothing was
+   * handed over and every task in the family insists on something: that model
+   * needs an image. Something was handed over and no task can take it: that
+   * model cannot use it. Saying the second when the first is true tells someone
+   * their empty prompt is the wrong shape.
+   */
+  if (!context.model) {
+    return context.carrying ? { kind: 'cannot-take' } : { kind: 'needs-reference' }
   }
-  if (model.requiresReference && context.mentionCount === 0 && context.attachmentCount === 0) {
+  if (
+    context.model.requiresReference &&
+    context.mentionCount === 0 &&
+    context.attachmentCount === 0
+  ) {
     return { kind: 'needs-reference' }
   }
   return null
 }
 
-export function DockNotice(props: {
-  block: DockBlock
-  model: PickableModel
-  onModelChange: (model: PickableModel) => void
-}) {
+export function DockNotice(props: { block: DockBlock; family: PickableFamily }) {
   if (!props.block) return null
 
   if (props.block.kind === 'needs-reference') {
     return (
       <p className="border-line border-t px-4 py-2 text-ink-muted text-sm">
-        {props.model.displayName} edits an image. Mention one with{' '}
-        <span className="font-mono">@</span> to say which.
+        {props.family.name} works from an image. Mention one with{' '}
+        <span className="font-mono">@</span> or attach one to say which.
       </p>
     )
   }
 
-  const instead = props.block.instead
   return (
-    <p className="flex flex-wrap items-center gap-2 border-line border-t px-4 py-2 text-ink-muted text-sm">
-      <span>
-        {props.model.displayName} makes images from text alone and cannot use a reference.
-      </span>
-      {instead ? (
-        <button
-          type="button"
-          onClick={() => props.onModelChange(instead)}
-          className="rounded-(--radius-control) bg-control px-2 py-1 text-ink text-xs outline-none hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          Use {instead.displayName}
-        </button>
-      ) : null}
+    <p className="border-line border-t px-4 py-2 text-ink-muted text-sm">
+      {props.family.name} has no way to take that.{' '}
+      {props.family.accepts.length > 0
+        ? `It works from ${props.family.accepts.join(' or ')}.`
+        : 'It writes from text alone.'}
     </p>
   )
 }

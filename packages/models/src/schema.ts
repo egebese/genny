@@ -89,6 +89,19 @@ export const modelInput = z.object({
 
 export const modelDefinition = z.object({
   endpointId: z.string().min(1),
+  /**
+   * The model this endpoint is one task of.
+   *
+   * fal splits a model across endpoints by what you hand it:
+   * `fal-ai/nano-banana-2` writes from text and `fal-ai/nano-banana-2/edit`
+   * works from an image. They are one model to everyone except a URL, and a
+   * picker with both in it made "Nano Banana 2 takes no image" a sentence the
+   * product could say about a model that plainly does.
+   *
+   * The name is repeated on every member and checked for agreement, because the
+   * alternative is deriving it from whichever member happens to sort first.
+   */
+  family: z.object({ id: z.string().min(1), name: z.string().min(1) }),
   modality: z.enum(['image', 'video', 'audio']),
   /** Studio grouping in the picker, e.g. "Text to Image", "Editing". */
   group: z.string().min(1),

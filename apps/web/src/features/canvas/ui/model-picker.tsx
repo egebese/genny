@@ -11,13 +11,13 @@ import {
 } from '@genny/ui/vendor/ui/command.tsx'
 import { Popover, PopoverContent, PopoverTrigger } from '@genny/ui/vendor/ui/popover.tsx'
 import { useMemo, useRef, useState } from 'react'
-import type { PickableModel } from '../model-list.ts'
+import type { PickableFamily } from '../family-list.ts'
 import { ModelCard } from './model-card.tsx'
 
 type ModelPickerProps = {
-  models: PickableModel[]
-  selected: PickableModel
-  onSelect: (model: PickableModel) => void
+  models: PickableFamily[]
+  selected: PickableFamily
+  onSelect: (model: PickableFamily) => void
 }
 
 /**
@@ -49,7 +49,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
     >
       <PopoverTrigger
         ref={trigger}
-        aria-label={`Model: ${selected.displayName}`}
+        aria-label={`Model: ${selected.name}`}
         // Exactly the setting chips beside it, one size up in text: the model is
         // a setting too, and giving it its own shape made it read as chrome.
         className={cn(
@@ -61,7 +61,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
         {selected.markUrl ? (
           <img src={selected.markUrl} alt="" className="size-3.5 shrink-0" />
         ) : null}
-        <span className="max-w-40 truncate">{selected.displayName}</span>
+        <span className="max-w-40 truncate">{selected.name}</span>
         <span aria-hidden className="text-ink-faint">
           ▾
         </span>
@@ -109,15 +109,15 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
               <CommandGroup className="p-2 [&_[cmdk-group-items]]:grid [&_[cmdk-group-items]]:grid-cols-2 [&_[cmdk-group-items]]:gap-2 lg:[&_[cmdk-group-items]]:grid-cols-3">
                 {visible.map((model) => (
                   <CommandItem
-                    key={model.endpointId}
-                    value={`${model.displayName} ${model.group} ${model.description}`}
+                    key={model.id}
+                    value={`${model.name} ${model.group}`}
                     onSelect={() => {
                       onSelect(model)
                       setOpen(false)
                     }}
                     className="cursor-pointer rounded-(--radius-control) p-1 data-[selected=true]:bg-surface-hover"
                   >
-                    <ModelCard model={model} current={model.endpointId === selected.endpointId} />
+                    <ModelCard model={model} current={model.id === selected.id} />
                   </CommandItem>
                 ))}
               </CommandGroup>

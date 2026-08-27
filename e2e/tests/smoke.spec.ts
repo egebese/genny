@@ -299,7 +299,22 @@ test.describe('the dock', () => {
     expect(await priced()).toBeCloseTo(standard * 2, 4)
   })
 
-  test('a model that takes no reference says so before it is paid for', async ({ page }) => {
+  test('the picker lists models, not the endpoints they are split across', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+
+    /*
+     * fal splits one model across endpoints by what you hand it, so the catalog
+     * carries more entries than there are models. Nano Banana 2 appeared twice
+     * and one of the two could truthfully say it takes no image.
+     */
+    const cards = page.locator('[cmdk-group-items] [role=option]')
+    await expect(cards.filter({ hasText: 'Nano Banana 2' })).toHaveCount(1)
+    await expect(cards.filter({ hasText: 'Kling 2.5 Turbo Pro' })).toHaveCount(1)
+  })
+
+  test('attaching an image to a text model reaches its edit endpoint', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
 
     await page.goto('/assets')
@@ -307,21 +322,15 @@ test.describe('the dock', () => {
     await expect(page.locator('ul.grid li').first()).toBeVisible()
 
     await openCanvas(page)
-    /*
-     * The board opens on Nano Banana 2, which declares no reference slot. This
-     * used to run anyway: the mention was dropped, a picture came back that
-     * ignored it, and the warning arrived after the money.
-     */
+    // The board opens on Nano Banana 2, whose base endpoint declares no slot.
+    // Mentioning something used to leave generate disabled and offer a swap;
+    // now the model simply takes it, on the URL that can.
     await fillPrompt(page, 'make it a sketch of @')
     await page.locator('#mention-list [role=option]').first().click()
 
-    const generate = page.getByRole('button', { name: /^Generate/ })
-    await expect(generate).toBeDisabled()
-    await expect(page.getByText(/cannot use a reference/)).toBeVisible()
-
-    // And it offers the sibling that can, rather than leaving you to find it.
-    await page.getByRole('button', { name: /^Use Nano Banana 2 Edit/ }).click()
-    await expect(generate).toBeEnabled()
+    await expect(page.getByRole('button', { name: /^Generate/ })).toBeEnabled()
+    await expect(page.getByText(/cannot use a reference/)).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /^Model:/ })).toContainText('Nano Banana 2')
   })
 
   test('the price follows the size, because fal bills this model by area', async ({ page }) => {

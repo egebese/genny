@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/elevenlabs/tts/multilingual-v2",
+  "family": {
+    "id": "elevenlabs-multilingual-v2",
+    "name": "ElevenLabs Multilingual v2"
+  },
   "modality": "audio",
   "group": "Text to Speech",
   "displayName": "ElevenLabs Multilingual v2",

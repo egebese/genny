@@ -1,10 +1,8 @@
 'use client'
 
 import type { Guide } from '@genny/canvas/snap.ts'
-import { suggestFor } from '@genny/models/slots.ts'
 import { useCallback, useRef, useState } from 'react'
-import { defaultModel } from '../default-model.ts'
-import type { PickableModel } from '../model-list.ts'
+
 import { persistViewport } from '../server/actions.ts'
 import type { ProjectPage } from '../server/project-page.ts'
 import { Board } from './board.tsx'
@@ -15,21 +13,18 @@ import { JobTracker } from './job-tracker.tsx'
 import type { ReuseRequest } from './node-panel.tsx'
 import { useAttachments } from './use-attachments.ts'
 import { useBoardNodes } from './use-board-nodes.ts'
+import { kindsOf, useComposer } from './use-composer.ts'
 import { useGenerate } from './use-generate.ts'
 import { useMentionables, useResolvedMentions } from './use-mentionables.ts'
 import { useSelection } from './use-selection.ts'
 import { useSize } from './use-size.ts'
+import { useSubmit } from './use-submit.ts'
 import { useSurfaces } from './use-surfaces.ts'
 import { useViewport } from './use-viewport.ts'
 
 export function Canvas(props: ProjectPage) {
   const surface = useRef<HTMLDivElement>(null)
   const dock = useRef<HTMLDivElement>(null)
-  const [model, setModel] = useState<PickableModel>(defaultModel(props.models))
-  const [settings, setSettings] = useState<Record<string, unknown>>({})
-  const [prompt, setPrompt] = useState('')
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [ready, setReady] = useState(props.hasCredentials)
   const [guides, setGuides] = useState<Guide[]>([])
 
@@ -47,12 +42,21 @@ export function Canvas(props: ProjectPage) {
     props.nodes,
     handles.learn,
   )
+  const pinned = useAttachments()
+  const composer = useComposer(props.models, pinned.clear)
+  const { families, family, settings, prompt } = composer
   const mentions = useResolvedMentions(handles.resolve, prompt)
   const pick = useSelection({ nodes, viewport: view.viewport, toLocal: view.toLocal })
-  const pinned = useAttachments()
   const surfaces = useSurfaces()
   const board = useSize(surface)
   const dockSize = useSize(dock)
+
+  /*
+   * The picker chooses the model; what is attached chooses the endpoint. Nano
+   * Banana 2 with an image on it is Nano Banana 2's edit endpoint, and nobody
+   * should have to know that the URL is different.
+   */
+  const model = composer.resolve(kindsOf(pinned.attachments, mentions.chips.length))
 
   const generate = useGenerate({
     projectId,
@@ -60,42 +64,21 @@ export function Canvas(props: ProjectPage) {
     mentionables: handles.mentionables,
     centreOfView: view.centreOfView,
   })
+  const { pending, error, submit } = useSubmit({ generate, onPlaced: add })
 
-  async function submit(text: string) {
-    setPending(true)
-    setError(null)
-    const outcome = await generate(model, text, settings, pinned.forRequest())
-    setPending(false)
-    if (!outcome.ok) {
-      setError(outcome.reason)
-      return
-    }
-    setError(outcome.warning)
-    add(outcome.nodes)
-    // The prompt and its attachments stay. Most of the next generation is this
-    // one with a word changed, and clearing them made people redo the setup.
-  }
-
-  function chooseModel(next: PickableModel) {
-    setModel(next)
-    setSettings({})
-    // The fields change with the model, so a pin to `image_url` on the last one
-    // means nothing here and would be sent somewhere nobody asked for.
-    pinned.clear()
-  }
-
-  function mention(label: string) {
-    setPrompt((current) => (current.trimEnd() ? `${current.trimEnd()} @${label} ` : `@${label} `))
-  }
+  const mention = (label: string) =>
+    composer.setPrompt((current) =>
+      current.trimEnd() ? `${current.trimEnd()} @${label} ` : `@${label} `,
+    )
 
   function reuse(request: ReuseRequest) {
-    const found = props.models.find((candidate) => candidate.endpointId === request.modelId)
-    if (found) chooseModel(found)
-    setSettings(request.settings)
-    setPrompt(request.prompt)
+    const found = composer.familyOf(request.modelId)
+    if (found) composer.choose(found)
+    composer.setSettings(request.settings)
+    composer.setPrompt(request.prompt)
   }
 
-  function removeNodes(ids: string[]) {
+  const removeNodes = (ids: string[]) => {
     for (const id of ids) remove(id)
     pick.clear()
     surfaces.clear()
@@ -156,13 +139,22 @@ export function Canvas(props: ProjectPage) {
         <BoardOverlays
           menu={menu}
           inspected={inspected}
-          model={model}
+          family={family}
           models={props.models}
           showCost={props.credits !== null}
           viewport={view.viewport}
           bounds={bounds}
           onAttach={(field, chosen) => {
-            pinned.attach(model, field, chosen)
+            /*
+             * The slot came from the family, so the endpoint that owns it is the
+             * one being attached to. Using whatever is resolved right now would
+             * pin to a field that endpoint may not have: before the first
+             * attachment the resolved one is the text-only task.
+             */
+            const owner = family.variants.find((variant) =>
+              variant.slots.some((slot) => slot.field === field),
+            )
+            if (owner) pinned.attach(owner, field, chosen)
             surfaces.closeMenu()
           }}
           onMention={mention}
@@ -175,18 +167,17 @@ export function Canvas(props: ProjectPage) {
 
       <CanvasDock
         ref={dock}
-        {...{ models: props.models, model, settings, prompt, pending, error, ready }}
+        {...{ families, family, model, settings, prompt, pending, error, ready }}
         mentionables={handles.mentionables}
         mentions={mentions.chips}
         resolvable={mentions.resolvable}
-        suggestion={suggestFor(props.models, model, ['image'])}
         attachments={pinned.attachments}
         credits={props.credits}
         onRemoveAttachment={pinned.remove}
-        onModelChange={chooseModel}
-        onSettingChange={(name, value) => setSettings((c) => ({ ...c, [name]: value }))}
-        onPromptChange={setPrompt}
-        onSubmit={(text) => void submit(text)}
+        onModelChange={composer.choose}
+        onSettingChange={composer.set}
+        onPromptChange={composer.setPrompt}
+        onSubmit={(text) => void submit(model, text, settings, pinned.forRequest())}
         onReady={() => setReady(true)}
       />
     </>

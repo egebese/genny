@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/nano-banana-pro",
+  "family": {
+    "id": "nano-banana-pro",
+    "name": "Nano Banana Pro"
+  },
   "modality": "image",
   "group": "Text to Image",
   "displayName": "Nano Banana Pro",

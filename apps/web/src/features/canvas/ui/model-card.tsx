@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@genny/ui/cn.ts'
-import type { PickableModel } from '../model-list.ts'
+import type { PickableFamily } from '../family-list.ts'
 
 /** One per modality, so the grid separates stills from clips before you read it. */
 const TINT = {
@@ -19,7 +19,7 @@ const TINT = {
  * size the grid draws them. Now the art and the mark are the two files, and
  * everything with an edge you might want to move is CSS.
  */
-export function ModelCard({ model, current }: { model: PickableModel; current: boolean }) {
+export function ModelCard({ model, current }: { model: PickableFamily; current: boolean }) {
   return (
     <span className="flex w-full min-w-0 flex-col gap-2">
       <span
@@ -71,8 +71,8 @@ export function ModelCard({ model, current }: { model: PickableModel; current: b
       </span>
 
       <span className="flex min-w-0 flex-col">
-        <span className="truncate font-medium text-ink text-sm" title={model.displayName}>
-          {model.displayName}
+        <span className="truncate font-medium text-ink text-sm" title={model.name}>
+          {model.name}
         </span>
         <span className="truncate text-ink-faint text-xs tabular-nums">{model.priceLabel}</span>
       </span>

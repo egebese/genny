@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/nano-banana-2/edit",
+  "family": {
+    "id": "nano-banana-2",
+    "name": "Nano Banana 2"
+  },
   "modality": "image",
   "group": "Editing",
   "displayName": "Nano Banana 2 Edit",

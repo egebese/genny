@@ -1,4 +1,4 @@
-import type { PickableModel } from './model-list.ts'
+import type { PickableFamily } from './family-list.ts'
 
 /**
  * A board starts with a still: an image model, whichever is featured.
@@ -7,7 +7,9 @@ import type { PickableModel } from './model-list.ts'
  * featured model of any modality meant a text to speech endpoint was the
  * default, so the first prompt someone typed got read aloud.
  */
-export function defaultModel(models: PickableModel[]): PickableModel {
+export function defaultFamily(models: PickableFamily[]): PickableFamily {
   const images = models.filter((candidate) => candidate.modality === 'image')
-  return (images.find((candidate) => candidate.featured) ?? images[0] ?? models[0]) as PickableModel
+  return (images.find((candidate) => candidate.variants.some((v) => v.featured)) ??
+    images[0] ??
+    models[0]) as PickableFamily
 }

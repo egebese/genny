@@ -5,7 +5,7 @@ import type { Point } from '@genny/canvas/geometry.ts'
 import { slotsAccepting } from '@genny/models/slots.ts'
 import { cn } from '@genny/ui/cn.ts'
 import { useEffect, useRef } from 'react'
-import type { PickableModel } from '../model-list.ts'
+import type { PickableFamily } from '../family-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
 
 const MENU = { width: 232, height: 260 }
@@ -14,7 +14,7 @@ export type NodeMenuTarget = { at: Point; nodes: CanvasNodeView[] }
 
 type NodeMenuProps = {
   target: NodeMenuTarget
-  model: PickableModel
+  family: PickableFamily
   bounds: { width: number; height: number }
   onAttach: (field: string) => void
   onMention: () => void
@@ -31,7 +31,7 @@ type NodeMenuProps = {
  * offers neither, and a model added next month brings its own items.
  */
 export function NodeMenu(props: NodeMenuProps) {
-  const { target, model } = props
+  const { target, family } = props
   const menu = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -45,7 +45,14 @@ export function NodeMenu(props: NodeMenuProps) {
   // One kind at a time. A selection of a still and a clip has no slot that takes
   // both, and an item that silently drops half the picks is worse than no item.
   const kind = kinds.size === 1 ? [...kinds][0] : null
-  const slots = kind ? slotsAccepting(model.slots, kind) : []
+  /*
+   * Across the whole model, not one endpoint of it. Nano Banana 2 has no slot
+   * and its edit endpoint has three, and the menu used to say "Nano Banana 2
+   * takes no image" while standing on an image the model can plainly take.
+   */
+  const slots = kind
+    ? family.variants.flatMap((variant) => slotsAccepting(variant.slots, kind))
+    : []
   const count = target.nodes.length
 
   const position = anchorPanel({ ...target.at, width: 0, height: 0 }, MENU, props.bounds, 8)
@@ -76,7 +83,7 @@ export function NodeMenu(props: NodeMenuProps) {
 
       {slots.length === 0 ? (
         <p className="px-3 py-2 text-ink-faint text-xs">
-          {kind ? `${model.displayName} takes no ${kind}.` : 'Pick one kind of result at a time.'}
+          {kind ? `${family.name} takes no ${kind}.` : 'Pick one kind of result at a time.'}
         </p>
       ) : null}
 

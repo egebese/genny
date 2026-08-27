@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/flux-pro/kontext",
+  "family": {
+    "id": "flux-kontext",
+    "name": "FLUX.1 Kontext [pro]"
+  },
   "modality": "image",
   "group": "Editing",
   "displayName": "FLUX.1 Kontext [pro]",

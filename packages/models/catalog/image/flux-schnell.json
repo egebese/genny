@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/flux/schnell",
+  "family": {
+    "id": "flux-schnell",
+    "name": "FLUX.1 [schnell]"
+  },
   "modality": "image",
   "group": "Text to Image",
   "displayName": "FLUX.1 [schnell]",

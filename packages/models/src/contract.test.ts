@@ -20,6 +20,7 @@ describe('the catalog contract', () => {
       'slots-are-describable',
       'priced-in-a-unit-we-can-estimate',
       'conditional-rates-are-decided',
+      'family-agrees-on-its-name',
       'has-a-provider-mark',
     ])
   })
@@ -53,5 +54,14 @@ describe('the catalog contract', () => {
     expect(contractViolations([broken]).map((v) => v.rule)).toContain(
       'conditional-rates-are-decided',
     )
+  })
+
+  it('catches two endpoints of one model disagreeing about its name', async () => {
+    const [first, second] = await loadCatalog()
+    if (!first || !second) throw new Error('the catalog is too small to test this')
+
+    const a = { ...first, definition: { ...first.definition, family: { id: 'x', name: 'One' } } }
+    const b = { ...second, definition: { ...second.definition, family: { id: 'x', name: 'Two' } } }
+    expect(contractViolations([a, b]).map((v) => v.rule)).toContain('family-agrees-on-its-name')
   })
 })

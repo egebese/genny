@@ -100,6 +100,10 @@ const RULES: {
     },
   },
   {
+    rule: 'family-agrees-on-its-name',
+    check: () => null,
+  },
+  {
     rule: 'has-a-provider-mark',
     check: ({ definition }) =>
       definition.markUrl ? null : 'no provider mark, so the picker draws a hole',
@@ -112,6 +116,32 @@ export function contractViolations(entries: readonly CatalogEntry[]): Violation[
     for (const { rule, check } of RULES) {
       const detail = check(entry)
       if (detail) found.push({ endpointId: entry.definition.endpointId, rule, detail })
+    }
+  }
+  return [...found, ...familyViolations(entries)]
+}
+
+/**
+ * A family is a set, so its rule is about the set rather than about one entry.
+ *
+ * The name is repeated on every member because deriving it would mean picking
+ * whichever member happens to sort first; repeating it means they can disagree,
+ * so they are checked.
+ */
+function familyViolations(entries: readonly CatalogEntry[]): Violation[] {
+  const names = new Map<string, string>()
+  const found: Violation[] = []
+
+  for (const { definition } of entries) {
+    const seen = names.get(definition.family.id)
+    if (seen === undefined) {
+      names.set(definition.family.id, definition.family.name)
+    } else if (seen !== definition.family.name) {
+      found.push({
+        endpointId: definition.endpointId,
+        rule: 'family-agrees-on-its-name',
+        detail: `calls its family "${definition.family.name}" where another member calls it "${seen}"`,
+      })
     }
   }
   return found

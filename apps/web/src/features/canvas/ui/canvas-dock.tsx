@@ -3,6 +3,7 @@
 import { Dock } from '@genny/ui/dock.tsx'
 import type { Ref } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
+import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 import type { Attachment, MentionChip } from './attachment-strip.tsx'
 import { KeyGate } from './key-gate.tsx'
@@ -10,13 +11,14 @@ import { PromptDock } from './prompt-dock.tsx'
 
 type CanvasDockProps = {
   ref: Ref<HTMLDivElement>
-  models: PickableModel[]
-  model: PickableModel
+  families: PickableFamily[]
+  family: PickableFamily
+  /** Null when nothing in the family can take what is attached. */
+  model: PickableModel | null
   mentionables: MentionableView[]
   attachments: Attachment[]
   mentions: MentionChip[]
   resolvable: ReadonlySet<string>
-  suggestion: PickableModel | null
   settings: Record<string, unknown>
   prompt: string
   pending: boolean
@@ -24,7 +26,7 @@ type CanvasDockProps = {
   ready: boolean
   credits: { balance: string; holdBalance: string; perUsd: number } | null
   onRemoveAttachment: (index: number) => void
-  onModelChange: (model: PickableModel) => void
+  onModelChange: (family: PickableFamily) => void
   onSettingChange: (name: string, value: unknown) => void
   onPromptChange: (next: string) => void
   onSubmit: (prompt: string) => void
@@ -43,13 +45,13 @@ export function CanvasDock(props: CanvasDockProps) {
       <Dock>
         {props.ready ? (
           <PromptDock
-            models={props.models}
+            families={props.families}
+            family={props.family}
             model={props.model}
             mentionables={props.mentionables}
             attachments={props.attachments}
             mentions={props.mentions}
             resolvable={props.resolvable}
-            suggestion={props.suggestion}
             onRemoveAttachment={props.onRemoveAttachment}
             onModelChange={props.onModelChange}
             settings={props.settings}

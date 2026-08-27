@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/nano-banana-pro/edit",
+  "family": {
+    "id": "nano-banana-pro",
+    "name": "Nano Banana Pro"
+  },
   "modality": "image",
   "group": "Editing",
   "displayName": "Nano Banana Pro Edit",

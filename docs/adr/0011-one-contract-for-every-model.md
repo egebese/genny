@@ -21,6 +21,10 @@ be right and nothing checked any of them together:
   the generation anyway, dropped the reference, returned a picture that ignored
   it and reported the drop after the money.
 - **The picker.** No provider mark meant a hole in the grid, found by looking.
+  Worse, it listed endpoints rather than models. fal splits one model across
+  URLs by what you hand it, so Nano Banana 2 appeared twice and one of the two
+  could truthfully say "Nano Banana 2 takes no image" while standing on an image
+  the model plainly takes.
 
 ## Decision
 
@@ -40,6 +44,13 @@ Price gets two mechanisms rather than one:
   the values billed at a different rate. Applied to the units, not to the price,
   so the hold, the capture and the number on the button are one calculation and
   cannot drift apart.
+
+A catalog entry names its `family`, and the picker shows families. Which
+endpoint a generation goes to is worked out from what is attached: nothing
+reaches the text task, an image reaches the edit task, and of the endpoints that
+fit, the one that uses the most of what was given wins. The URL is an
+implementation detail of fal's routing and nobody should have to know which one
+they are on.
 
 The reference rule is enforced on both sides of the wire from one function.
 `unusableKinds` takes slots rather than a model, so the server's
@@ -61,6 +72,11 @@ the server refuses before holding anything. Neither is trusted alone.
   an endpoint may honestly charge one rate at every size.
 
 ## Rejected
+
+**Deriving the family name from its members.** It would mean picking whichever
+member sorts first, and `fal-ai/nano-banana-2` sorting before its own `/edit` is
+luck rather than design. Every member repeats the name and the contract checks
+they agree.
 
 **Deriving the catalog from the schema at boot.** fal's OpenAPI has the fields
 and the types and none of the rest: which control is a shape, what a slot means,

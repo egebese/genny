@@ -1,5 +1,9 @@
 {
   "endpointId": "fal-ai/wan/v2.7/image-to-video",
+  "family": {
+    "id": "wan-27",
+    "name": "Wan 2.7"
+  },
   "modality": "video",
   "group": "Image to Video",
   "displayName": "Wan 2.7 Image to Video",

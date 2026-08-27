@@ -1,6 +1,7 @@
 'use client'
 
 import type { Viewport } from '@genny/canvas/geometry.ts'
+import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
 import { NodeMenu, type NodeMenuTarget } from './node-menu.tsx'
@@ -12,8 +13,8 @@ type OverlayProps = {
   menu: NodeMenuTarget | null
   inspected: CanvasNodeView | null
   /** The chosen model, which is what the menu's items come from. */
-  model: PickableModel
-  /** All of them, so the panel can mark whichever model made the node it shows. */
+  family: PickableFamily
+  /** Every endpoint, so the panel can mark whichever one made the node it shows. */
   models: PickableModel[]
   showCost: boolean
   viewport: Viewport
@@ -38,7 +39,7 @@ export function BoardOverlays(props: OverlayProps) {
       {menu ? (
         <NodeMenu
           target={menu}
-          model={props.model}
+          family={props.family}
           bounds={props.bounds}
           onAttach={(field) => props.onAttach(field, menu.nodes)}
           onMention={() => {
