@@ -30,6 +30,10 @@ export function whyBlocked(context: {
    * needs an image. Something was handed over and no task can take it: that
    * model cannot use it. Saying the second when the first is true tells someone
    * their empty prompt is the wrong shape.
+   *
+   * Neither branch is reachable from today's catalog: every family shipped has
+   * a task that runs on text alone, which is the point of grouping them. They
+   * are here for the model that does not, and for the moment fal adds one.
    */
   if (!context.model) {
     return context.carrying ? { kind: 'cannot-take' } : { kind: 'needs-reference' }

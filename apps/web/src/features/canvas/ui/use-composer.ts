@@ -59,11 +59,15 @@ export function useComposer(models: PickableModel[], clearAttachments: () => voi
   }
 }
 
-/** Which media kinds this generation is carrying, from both routes in. */
+/**
+ * What this generation is carrying, one entry per item.
+ *
+ * Not deduplicated: the resolver counts. Two images reach a transition endpoint
+ * that needs a first and a last frame, one image reaches the one that animates
+ * a still, and collapsing them to "an image" sends the first case to a 422.
+ */
 export function kindsOf(attachments: Attachment[], mentionCount: number): MediaKind[] {
-  const kinds = attachments.map((attachment) => attachment.kind)
   // A mention resolves to an image today: `listMentionablesFor` only offers
   // images and characters, and a character is a bundle of them.
-  if (mentionCount > 0) kinds.push('image')
-  return [...new Set(kinds)]
+  return [...attachments.map((attachment) => attachment.kind), ...Array(mentionCount).fill('image')]
 }

@@ -1,0 +1,70 @@
+{
+  "endpointId": "fal-ai/pixverse/c1/image-to-video",
+  "family": {
+    "id": "pixverse-c1",
+    "name": "PixVerse C1"
+  },
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "PixVerse C1 Image to Video",
+  "description": "PixVerse C1 animating a still.",
+  "sortOrder": 72,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.05,
+    "note": "Same tier and the same caveat as PixVerse C1 text to video: 720p without audio, and `genmedia pricing` answers a $0.005 base unit no request is ever charged."
+  },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
+    {
+      "name": "duration",
+      "type": "integer",
+      "label": "Length (seconds)",
+      "default": 5,
+      "min": 1,
+      "max": 10
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    },
+    {
+      "name": "resolution",
+      "type": "enum",
+      "label": "Resolution",
+      "default": "720p",
+      "enum": ["720p"],
+      "hidden": true
+    },
+    {
+      "name": "generate_audio_switch",
+      "type": "boolean",
+      "label": "Audio",
+      "default": false,
+      "hidden": true
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "start-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/pixverse.svg",
+  "artUrl": "/models/art/pixverse-c1-image-to-video.webp"
+}

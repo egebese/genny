@@ -799,20 +799,34 @@ test.describe('a generation that never reaches fal', () => {
 })
 
 test.describe('models that require a reference', () => {
-  test('an editing model blocks generate until an image is mentioned', async ({ page }) => {
+  test('a model with both tasks writes from text and edits when given an image', async ({
+    page,
+  }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await openCanvas(page)
 
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    await openCanvas(page)
     await page.getByRole('button', { name: /^Model:/ }).click()
     await page.getByPlaceholder('Search models').fill('Kontext')
-    await page
-      .getByRole('option', { name: /Kontext/ })
-      .first()
-      .click()
+    await page.locator('[cmdk-group-items] [role=option]').first().click()
 
-    await fillPrompt(page, 'make it a pencil sketch')
-    await expect(page.getByText(/Mention one with/)).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Generate/ })).toBeDisabled()
+    /*
+     * Kontext used to be an editing endpoint in the picker, so it blocked until
+     * something was mentioned. It is a model now, with a text task and an edit
+     * task, and which one runs is decided by what is attached rather than by
+     * which URL was chosen.
+     */
+    const generate = page.getByRole('button', { name: /^Generate/ })
+    await fillPrompt(page, 'a pencil sketch of a bicycle')
+    await expect(generate).toBeEnabled()
+
+    await fillPrompt(page, 'make it a pencil sketch of @')
+    await page.locator('#mention-list [role=option]').first().click()
+    await expect(generate).toBeEnabled()
+    await expect(page.getByText(/Mention one with/)).toHaveCount(0)
   })
 
   test('mentioning an image unblocks it', async ({ page }) => {

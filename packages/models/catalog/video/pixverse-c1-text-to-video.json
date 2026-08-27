@@ -1,0 +1,67 @@
+{
+  "endpointId": "fal-ai/pixverse/c1/text-to-video",
+  "family": {
+    "id": "pixverse-c1",
+    "name": "PixVerse C1"
+  },
+  "modality": "video",
+  "group": "Text to Video",
+  "displayName": "PixVerse C1 Text to Video",
+  "description": "PixVerse C1 generating video from a prompt alone.",
+  "sortOrder": 71,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.05,
+    "note": "720p without audio, the tier this entry pins. fal's prose opens with the 360p price ($0.030) and climbs to $0.120 at 1080p with audio, so the sync report reads a smaller number and is wrong about it. `genmedia pricing` answers $0.005, a base unit no request is ever charged."
+  },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
+    {
+      "name": "duration",
+      "type": "integer",
+      "label": "Length (seconds)",
+      "default": 5,
+      "min": 1,
+      "max": 10
+    },
+    {
+      "name": "aspect_ratio",
+      "type": "enum",
+      "label": "Aspect",
+      "default": "16:9",
+      "enum": ["16:9", "4:3", "1:1", "3:4", "9:16", "2:3", "3:2", "21:9"]
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    },
+    {
+      "name": "resolution",
+      "type": "enum",
+      "label": "Resolution",
+      "default": "720p",
+      "enum": ["720p"],
+      "hidden": true
+    },
+    {
+      "name": "generate_audio_switch",
+      "type": "boolean",
+      "label": "Audio",
+      "default": false,
+      "hidden": true
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/pixverse.svg",
+  "artUrl": "/models/art/pixverse-c1-text-to-video.webp"
+}

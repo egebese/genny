@@ -1,0 +1,94 @@
+{
+  "endpointId": "fal-ai/flux/dev/image-to-image",
+  "family": {
+    "id": "flux-dev",
+    "name": "FLUX.1 [dev]"
+  },
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "FLUX.1 [dev] Image to Image",
+  "description": "FLUX.1 [dev] redrawing an image towards a prompt, with adjustable strength.",
+  "sortOrder": 31,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.03,
+    "note": "`genmedia pricing` only; fal does not list this endpoint in its model search and publishes no prose for it. A little above the $0.025 of plain flux/dev, which is what an image-to-image pass costs."
+  },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
+    {
+      "name": "strength",
+      "type": "number",
+      "label": "Strength",
+      "default": 0.95,
+      "min": 0.01,
+      "max": 1
+    },
+    {
+      "name": "num_inference_steps",
+      "type": "integer",
+      "label": "Steps",
+      "default": 40,
+      "min": 1,
+      "max": 50
+    },
+    {
+      "name": "guidance_scale",
+      "type": "number",
+      "label": "Guidance",
+      "default": 3.5,
+      "min": 1,
+      "max": 20
+    },
+    {
+      "name": "num_images",
+      "type": "integer",
+      "label": "Images",
+      "default": 1,
+      "min": 1,
+      "max": 4
+    },
+    {
+      "name": "output_format",
+      "type": "enum",
+      "label": "Format",
+      "default": "jpeg",
+      "enum": ["jpeg", "png"]
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    },
+    {
+      "name": "enable_safety_checker",
+      "type": "boolean",
+      "label": "Safety checker",
+      "default": true,
+      "hidden": true
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 4
+  },
+  "markUrl": "/models/marks/flux.svg",
+  "artUrl": "/models/art/flux-dev-image-to-image.webp"
+}

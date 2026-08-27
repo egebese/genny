@@ -1,20 +1,20 @@
 {
-  "endpointId": "fal-ai/wan/v2.7/image-to-video",
+  "endpointId": "fal-ai/wan/v2.7/text-to-video",
   "family": {
     "id": "wan-27",
     "name": "Wan 2.7"
   },
   "modality": "video",
-  "group": "Image to Video",
-  "displayName": "Wan 2.7 Image to Video",
-  "description": "Wan 2.7 is the latest generation AI video model, delivering enhanced motion smoothness, superior scene fidelity, and greater visual coherence.",
-  "sortOrder": 4,
+  "group": "Text to Video",
+  "displayName": "Wan 2.7 Text to Video",
+  "description": "Wan 2.7 generating video from a prompt alone, with optional audio.",
+  "sortOrder": 61,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.1,
     "note": "720p, which is the tier this entry pins; 1080p is $0.15 per second. fal's prose and `genmedia pricing` agree on $0.10."
   },
-  "creditMultiplier": 1.2,
+  "creditMultiplier": 1.25,
   "inputs": [
     {
       "name": "prompt",
@@ -31,9 +31,21 @@
       "max": 15
     },
     {
+      "name": "aspect_ratio",
+      "type": "enum",
+      "label": "Aspect",
+      "default": "16:9",
+      "enum": ["16:9", "9:16", "1:1", "4:3", "3:4"]
+    },
+    {
       "name": "negative_prompt",
       "type": "string",
       "label": "Avoid"
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
     },
     {
       "name": "resolution",
@@ -42,32 +54,9 @@
       "default": "720p",
       "enum": ["720p"],
       "hidden": true
-    },
-    {
-      "name": "seed",
-      "type": "integer",
-      "label": "Seed"
     }
   ],
   "references": [
-    {
-      "field": "image_url",
-      "role": "start-frame",
-      "accepts": ["image"],
-      "required": true,
-      "array": false,
-      "maxCount": 1,
-      "token": "strip"
-    },
-    {
-      "field": "end_image_url",
-      "role": "end-frame",
-      "accepts": ["image"],
-      "required": false,
-      "array": false,
-      "maxCount": 1,
-      "token": "strip"
-    },
     {
       "field": "audio_url",
       "role": "driving-audio",
@@ -80,9 +69,8 @@
   ],
   "capabilities": {
     "supportsNegativePrompt": true,
-    "supportsSeed": true,
     "maxOutputs": 1
   },
   "markUrl": "/models/marks/alibaba.svg",
-  "artUrl": "/models/art/wan-v2-7-image-to-video.webp"
+  "artUrl": "/models/art/wan-v2-7-text-to-video.webp"
 }

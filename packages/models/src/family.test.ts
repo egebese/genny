@@ -69,3 +69,38 @@ describe('familyAccepts', () => {
     expect(familyAccepts([t2i])).toEqual([])
   })
 })
+
+describe('resolveTask counts what it was given', () => {
+  const one = task(
+    'fal-ai/pixverse/c1/image-to-video',
+    [slot({ required: true })],
+    [slot({ required: true })],
+  )
+  const two = task(
+    'fal-ai/pixverse/c1/transition',
+    [
+      slot({ field: 'first_image_url', required: true }),
+      slot({ field: 'end_image_url', required: true }),
+    ],
+    [
+      slot({ field: 'first_image_url', required: true }),
+      slot({ field: 'end_image_url', required: true }),
+    ],
+  )
+
+  it('sends one image to the endpoint that wants one', () => {
+    // The transition endpoint would take it and then answer 422 for the frame
+    // nobody gave it.
+    expect(resolveTask([two, one], ['image'])?.endpointId).toBe('fal-ai/pixverse/c1/image-to-video')
+  })
+
+  it('sends two images to the endpoint that wants two', () => {
+    expect(resolveTask([one, two], ['image', 'image'])?.endpointId).toBe(
+      'fal-ai/pixverse/c1/transition',
+    )
+  })
+
+  it('has nothing for an endpoint that needs one when none was given', () => {
+    expect(resolveTask([one, two], [])).toBeNull()
+  })
+})

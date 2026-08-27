@@ -26,28 +26,47 @@ export type Task<T extends Slotted> = T & {
  *   - of what remains, the one that uses the most of what was given wins, so
  *     handing over an image reaches the edit endpoint rather than the one that
  *     merely tolerates being handed nothing
+ *
+ * `given` is counted, not deduplicated, and the count is load-bearing: PixVerse
+ * C1 has a transition endpoint insisting on two images and an image-to-video
+ * endpoint taking one, and one image sent to the first is a 422 for the end
+ * frame nobody gave it.
  */
 export function resolveTask<T extends Slotted>(
   variants: readonly Task<T>[],
   given: readonly MediaKind[],
 ): T | null {
-  const kinds = [...new Set(given)]
+  const count = new Map<MediaKind, number>()
+  for (const kind of given) count.set(kind, (count.get(kind) ?? 0) + 1)
+  const kinds = [...count.keys()]
 
   const usable = variants.filter((variant) => {
     const takesEverything = kinds.every((kind) => slotsAccepting(variant.slots, kind).length > 0)
-    const nothingMissing = variant.required.every((slot) =>
-      slot.accepts.some((kind) => kinds.includes(kind)),
-    )
-    return takesEverything && nothingMissing
+    const enoughOfEach = KINDS.every((kind) => requiredOf(variant, kind) <= (count.get(kind) ?? 0))
+    return takesEverything && enoughOfEach
   })
 
   if (usable.length === 0) return null
   return (
     usable
       .slice()
-      .sort((a, b) => uses(b, kinds) - uses(a, kinds) || a.endpointId.length - b.endpointId.length)
+      .sort(
+        (a, b) =>
+          uses(b, kinds) - uses(a, kinds) ||
+          // Between two that both fit, the one asking for more of what is on
+          // offer is the one being aimed at: two images mean the transition.
+          b.required.length - a.required.length ||
+          a.endpointId.length - b.endpointId.length,
+      )
       .at(0) ?? null
   )
+}
+
+const KINDS: MediaKind[] = ['image', 'video', 'audio']
+
+/** Slots of this kind the endpoint refuses to run without. */
+function requiredOf(variant: Task<Slotted>, kind: MediaKind): number {
+  return variant.required.filter((slot) => slot.accepts.includes(kind)).length
 }
 
 /** How many of the given kinds this endpoint actually has somewhere to put. */
@@ -57,8 +76,7 @@ function uses(variant: Slotted, kinds: readonly MediaKind[]): number {
 
 /** Everything the model can take, across all of its endpoints. */
 export function familyAccepts(variants: readonly Slotted[]): MediaKind[] {
-  const kinds: MediaKind[] = ['image', 'video', 'audio']
-  return kinds.filter((kind) =>
+  return KINDS.filter((kind) =>
     variants.some((variant) => slotsAccepting(variant.slots, kind).length > 0),
   )
 }
