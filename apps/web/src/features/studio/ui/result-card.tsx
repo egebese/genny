@@ -2,6 +2,7 @@
 
 import { mediaKindFromUrl } from '@genny/assets/media.ts'
 import { cn } from '@genny/ui/cn.ts'
+import { Sparkle } from '@genny/ui/sparkle.tsx'
 import type { JobProgress } from './use-job-stream.ts'
 
 export type ResultItem = {
@@ -76,9 +77,12 @@ export function ResultCard({ item, live, onMention }: ResultCardProps) {
         <Placeholder status={status} error={error} queuePosition={live?.queuePosition ?? null} />
       )}
 
-      <div className="mt-2.5 space-y-0.5 px-0.5">
-        <p className="truncate text-ink text-sm">{item.prompt}</p>
-        <p className="truncate text-ink-faint text-xs">{item.modelName}</p>
+      <div className="mt-2.5 space-y-1 px-0.5">
+        <p className="truncate text-ink text-sm lowercase">{item.prompt}</p>
+        <p className="flex items-center gap-1.5 truncate font-mono text-[11px] text-ink-faint uppercase tracking-[0.06em]">
+          <Sparkle className="size-2.5 shrink-0" />
+          {item.modelName}
+        </p>
       </div>
     </li>
   )

@@ -16,3 +16,7 @@ blob-report/
 docker/volumes/
 apps/web/.env
 next-env.d.ts
+
+# Design exploration: generated snapshots, renders and galleries. Multi-megabyte
+# and regenerable, so it stays local.
+.fal-concepts/

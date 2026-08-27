@@ -14,21 +14,21 @@
  * only saturated thing on screen.
  */
 @theme {
-  --color-canvas: oklch(0.145 0 0);
-  --color-surface: oklch(0.196 0 0);
-  --color-surface-hover: oklch(0.245 0 0);
-  --color-line: oklch(0.27 0 0);
-  --color-ink: oklch(0.985 0 0);
-  --color-ink-muted: oklch(0.7 0 0);
-  --color-ink-faint: oklch(0.52 0 0);
+  --color-canvas: #000000;
+  --color-surface: #0d0d0d;
+  --color-surface-hover: #1a1a1a;
+  --color-line: rgb(255 255 255 / 0.12);
+  --color-ink: #ffffff;
+  --color-ink-muted: #a0a0a0;
+  --color-ink-faint: #8a8a8a;
 
   /*
    * The primary action is white. A saturated fill on near-black is the single
    * thing that makes one of these tools look like every other one, and white is
    * the only colour that cannot compete with the output.
    */
-  --color-primary: oklch(0.985 0 0);
-  --color-primary-ink: oklch(0.16 0 0);
+  --color-primary: #ffffff;
+  --color-primary-ink: #0d0d0d;
 
   /* Accent is for state, not for furniture: a live number, a selected row. */
   --color-accent: oklch(0.75 0.15 152);
@@ -38,11 +38,27 @@
 
   --radius-control: 0.625rem;
   --radius-panel: 1rem;
+  /* The dock is a capsule, not a card. */
+  --radius-dock: 1.75rem;
+
+  /*
+   * The one saturated thing in the furniture, and it is only ever a one pixel
+   * edge or a fill on the single button that spends money. Everything else is
+   * black and grey so the generated media has the colour to itself.
+   */
+  --gradient-chrome: linear-gradient(
+    105deg,
+    #ffb6d5 0%,
+    #e8a0ff 25%,
+    #a8e8ff 50%,
+    #c8b8ff 75%,
+    #ffe0a8 100%
+  );
 
   /* The dock floats over the feed rather than sitting in a bar, so it needs to
-     read as lifted off the page at a glance. On near-black, a shadow alone does
-     not carry that: the hairline does most of the work. */
-  --shadow-dock: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 16px 40px oklch(0 0 0 / 0.55);
+     read as lifted off the page at a glance. On black, the glow does that
+     without a shadow, which would be invisible. */
+  --shadow-dock: 0 0 0 1px rgb(255 255 255 / 0.06), 0 24px 60px rgb(0 0 0 / 0.9);
 
   /* Mobile lives behind a home indicator and a notch. */
   --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -78,4 +94,23 @@
  */
 :root {
   color-scheme: dark;
+}
+
+/*
+ * Two utilities rather than raw gradients in components: a whitelabel operator
+ * changes --gradient-chrome once and the wordmark, the border and the button
+ * all follow.
+ */
+.chrome-text {
+  background-image: var(--gradient-chrome);
+  background-clip: text;
+  color: transparent;
+}
+
+/* A one pixel gradient edge on a rounded box, without a wrapper element. */
+.chrome-edge {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--color-canvas), var(--color-canvas)) padding-box,
+    var(--gradient-chrome) border-box;
 }

@@ -15,7 +15,7 @@ type SettingFieldProps = {
  * and these are adjustments to it.
  */
 const pill =
-  'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-canvas px-2.5 text-xs transition-colors hover:bg-surface-hover focus-within:ring-2 focus-within:ring-accent'
+  'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-2.5 text-xs transition-colors hover:bg-surface-hover focus-within:ring-2 focus-within:ring-accent'
 const label = 'text-ink-faint'
 const field = 'bg-transparent text-ink outline-none'
 

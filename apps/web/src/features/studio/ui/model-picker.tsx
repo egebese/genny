@@ -50,7 +50,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
         align="start"
         sideOffset={8}
         aria-label="Choose a model"
-        className="w-[min(34rem,calc(100vw-2rem))] overflow-hidden rounded-(--radius-panel) border-line bg-surface p-0"
+        className="chrome-edge w-[min(34rem,calc(100vw-2rem))] overflow-hidden rounded-(--radius-panel) p-0"
       >
         <Command className="bg-transparent">
           <CommandInput placeholder="Search models" className="border-line" />

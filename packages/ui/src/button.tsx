@@ -8,6 +8,9 @@ const button = cva(
     variants: {
       tone: {
         primary: 'bg-primary text-primary-ink hover:brightness-95',
+        // The only fill in the product that carries the gradient: the button
+        // that spends money, so it is the thing the eye lands on.
+        chrome: 'bg-(image:--gradient-chrome) text-primary-ink hover:brightness-105 font-semibold',
         neutral: 'bg-surface text-ink hover:bg-surface-hover',
         ghost: 'text-ink-muted hover:bg-surface hover:text-ink',
         danger: 'bg-danger text-ink hover:brightness-110',

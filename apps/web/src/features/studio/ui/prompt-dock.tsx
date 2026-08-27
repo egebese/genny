@@ -103,7 +103,7 @@ export function PromptDock(props: PromptDockProps) {
   const needsReference = model.requiresReference && mentionedLabels(prompt).length === 0
 
   return (
-    <div className="rounded-(--radius-panel) border border-line bg-surface shadow-(--shadow-dock)">
+    <div className="chrome-edge rounded-(--radius-dock) shadow-(--shadow-dock)">
       {mentions.active ? (
         <MentionList
           candidates={mentions.candidates}
@@ -168,9 +168,9 @@ export function PromptDock(props: PromptDockProps) {
         </div>
         <Button
           type="button"
-          tone="primary"
+          tone="chrome"
           size="sm"
-          className="shrink-0"
+          className="shrink-0 rounded-full"
           disabled={pending || prompt.trim().length === 0 || needsReference}
           onClick={submit}
         >
