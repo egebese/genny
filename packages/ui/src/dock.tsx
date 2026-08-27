@@ -22,7 +22,13 @@ export function Dock({ children, className }: DockProps) {
   return (
     <div
       className={cn(
-        'pointer-events-none relative z-10 w-full pb-3 pb-(--spacing-safe-bottom)',
+        /*
+         * One padding, not two. `pb-3 pb-(--spacing-safe-bottom)` looks like a
+         * gap plus the home indicator; tailwind-merge keeps only the last, and
+         * the safe area is 0px anywhere without a notch, so the dock sat flush
+         * against the bottom of the window.
+         */
+        'pointer-events-none relative z-10 w-full pb-[calc(1.25rem+var(--spacing-safe-bottom))]',
         className,
       )}
     >
