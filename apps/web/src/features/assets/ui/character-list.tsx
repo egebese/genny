@@ -22,7 +22,7 @@ export function CharacterList({ characters, onDeleted }: CharacterListProps) {
         {characters.map((character) => (
           <li
             key={character.id}
-            className="flex items-center gap-2 rounded-full border border-line bg-surface py-1 pr-2 pl-1"
+            className="flex items-center gap-2 rounded-(--radius-control) bg-control py-1 pr-2 pl-1"
           >
             {character.previewUrl ? (
               <img
@@ -32,7 +32,7 @@ export function CharacterList({ characters, onDeleted }: CharacterListProps) {
                 className="size-7 rounded-full object-cover"
               />
             ) : (
-              <span className="size-7 rounded-full bg-canvas" />
+              <span className="size-7 rounded-full bg-control" />
             )}
             <span className="font-mono text-ink text-sm">@{character.label}</span>
             <span className="text-ink-faint text-xs">{character.count}</span>
@@ -40,7 +40,7 @@ export function CharacterList({ characters, onDeleted }: CharacterListProps) {
               type="button"
               onClick={() => void remove(character.id)}
               aria-label={`Delete character ${character.label}`}
-              className="rounded-full px-1.5 text-ink-faint hover:text-danger outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="rounded-(--radius-control) px-1.5 text-ink-faint outline-none hover:text-danger focus-visible:ring-2 focus-visible:ring-accent"
             >
               ×
             </button>

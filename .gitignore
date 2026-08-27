@@ -20,3 +20,7 @@ next-env.d.ts
 # Design exploration: generated snapshots, renders and galleries. Multi-megabyte
 # and regenerable, so it stays local.
 .fal-concepts/
+
+# Agent research dumps. Provenance for a change, not the change: whatever
+# survives review lands in the catalog, and the rest goes stale in a week.
+.research/

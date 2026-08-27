@@ -10,7 +10,7 @@ import {
   CommandList,
 } from '@genny/ui/vendor/ui/command.tsx'
 import { Popover, PopoverContent, PopoverTrigger } from '@genny/ui/vendor/ui/popover.tsx'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { PickableModel } from '../model-list.ts'
 import { ModelCard } from './model-card.tsx'
 
@@ -28,17 +28,33 @@ type ModelPickerProps = {
 export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
   const [open, setOpen] = useState(false)
   const [group, setGroup] = useState<string | null>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
+  const [offset, setOffset] = useState(8)
 
   const groups = useMemo(() => [...new Set(models.map((m) => m.group))], [models])
   const visible = group ? models.filter((m) => m.group === group) : models
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        /*
+         * Clear the whole dock, not just the chip. The trigger sits at the
+         * bottom of the dock, so an offset measured from it opens the picker
+         * flush against the prompt with nothing between them.
+         */
+        if (next) setOffset(dockClearance(trigger.current))
+        setOpen(next)
+      }}
+    >
       <PopoverTrigger
+        ref={trigger}
         aria-label={`Model: ${selected.displayName}`}
+        // Exactly the setting chips beside it, one size up in text: the model is
+        // a setting too, and giving it its own shape made it read as chrome.
         className={cn(
-          'inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap rounded-full border',
-          'border-line bg-surface px-3 text-sm text-ink transition-colors hover:bg-surface-hover',
+          'inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap rounded-(--radius-control)',
+          'bg-control px-2.5 text-ink text-xs transition-colors hover:bg-surface-hover',
           'outline-none focus-visible:ring-2 focus-visible:ring-accent',
         )}
       >
@@ -50,14 +66,20 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
 
       <PopoverContent
         align="start"
-        sideOffset={8}
+        sideOffset={offset}
+        /*
+         * The dock sits on the bottom edge, so without this the popover opens
+         * flush against the frame with nothing under it. Radix measures the
+         * viewport, not our layout, and does not know the dock is there.
+         */
+        collisionPadding={16}
         aria-label="Choose a model"
         /*
          * A fixed size, not a maximum. The card used to grow and shrink with
          * whatever the filter left in it, so every click moved the thing you
          * were about to click next.
          */
-        className="chrome-edge h-[min(30rem,70dvh)] w-[min(54rem,calc(100vw-2rem))] overflow-hidden rounded-(--radius-panel) p-0"
+        className="panel h-[min(30rem,70dvh)] w-[min(54rem,calc(100vw-2rem))] overflow-hidden rounded-(--radius-panel) p-0"
       >
         <Command className="flex h-full flex-col bg-transparent">
           <CommandInput placeholder="Search models" className="border-line" />
@@ -102,6 +124,13 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
       </PopoverContent>
     </Popover>
   )
+}
+
+/** How far above the trigger the dock's own top edge is, plus room to breathe. */
+function dockClearance(trigger: HTMLElement | null): number {
+  const dock = trigger?.closest('[data-dock]')
+  if (!trigger || !dock) return 8
+  return Math.max(8, trigger.getBoundingClientRect().top - dock.getBoundingClientRect().top + 12)
 }
 
 function CategoryButton({

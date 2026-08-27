@@ -88,7 +88,7 @@ export function PromptDock(props: PromptDockProps) {
     props.attachments.length === 0
 
   return (
-    <div className="chrome-edge rounded-(--radius-dock) shadow-(--shadow-dock)">
+    <div data-dock className="panel rounded-(--radius-dock) shadow-(--shadow-dock)">
       {mentions.active ? (
         <MentionList
           candidates={mentions.candidates}

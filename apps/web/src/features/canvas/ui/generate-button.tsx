@@ -40,9 +40,9 @@ export function GenerateButton(props: {
   return (
     <Button
       type="button"
-      tone="chrome"
+      tone="primary"
       size="md"
-      className="shrink-0 rounded-full px-5"
+      className="shrink-0 px-5"
       disabled={props.disabled || props.pending}
       onClick={props.onClick}
     >

@@ -44,7 +44,7 @@ export function NodeMedia({ node }: { node: CanvasNodeView }) {
 
   if (node.kind === 'audio') {
     return (
-      <div className="flex h-full w-full flex-col justify-center gap-2 border border-line bg-surface px-3">
+      <div className="flex h-full w-full flex-col justify-center gap-2 bg-surface px-3">
         <span className="truncate font-mono text-[10px] text-ink-faint uppercase tracking-wider">
           {node.label}
         </span>

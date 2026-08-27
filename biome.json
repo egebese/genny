@@ -13,6 +13,7 @@
       "!**/dist",
       "!**/*.tsbuildinfo",
       "!apps/web/public/models",
+      "!.research",
       "!**/next-env.d.ts"
     ]
   },

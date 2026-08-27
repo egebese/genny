@@ -9,13 +9,16 @@ type SettingFieldProps = {
 }
 
 /*
- * Every control is the same pill: a faint label and the value, side by side, at
+ * Every control is the same chip: a faint label and the value, side by side, at
  * the height of the model button next to it. Labelled form rows made the dock
  * read as a settings panel with a prompt attached, when the prompt is the point
  * and these are adjustments to it.
+ *
+ * No border. Inside a panel these already sit one shade up from what is behind
+ * them, and an outline on top of that is a second way of saying the same thing.
  */
 const pill =
-  'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-2.5 text-xs transition-colors hover:bg-surface-hover focus-within:ring-2 focus-within:ring-accent'
+  'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-(--radius-control) bg-control px-2.5 text-xs transition-colors hover:bg-surface-hover focus-within:ring-2 focus-within:ring-accent'
 const label = 'text-ink-faint'
 const field = 'bg-transparent text-ink outline-none'
 
@@ -57,7 +60,7 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
     return (
       <label
         htmlFor={id}
-        className={`${pill} cursor-pointer ${on ? 'border-accent text-ink' : 'text-ink-faint'}`}
+        className={`${pill} cursor-pointer ${on ? 'text-accent' : 'text-ink-faint'}`}
       >
         <input
           id={id}

@@ -67,7 +67,7 @@ export function CharacterBar({ selectedIds, onCreated, onClear }: CharacterBarPr
           value={label}
           onChange={(event) => setLabel(event.target.value)}
           placeholder="ayse"
-          className="h-(--size-touch) min-w-0 flex-1 rounded-(--radius-control) border border-line bg-canvas px-3 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="h-(--size-touch) min-w-0 flex-1 rounded-(--radius-control) border border-line bg-control px-3 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
         <Button type="submit" tone="primary" disabled={pending || label.trim().length === 0}>
           {pending ? 'Creating' : 'Create character'}

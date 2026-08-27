@@ -45,7 +45,7 @@ export function KeyGate({ onReady }: KeyGateProps) {
 
   return (
     <form
-      className="rounded-(--radius-panel) border border-line bg-surface p-4"
+      className="panel rounded-(--radius-panel) p-4"
       onSubmit={(event) => {
         event.preventDefault()
         submit()
@@ -79,7 +79,7 @@ export function KeyGate({ onReady }: KeyGateProps) {
           placeholder="key-id:key-secret"
           aria-invalid={error !== null}
           aria-describedby={error ? 'fal-key-error' : undefined}
-          className="h-(--size-touch) min-w-0 flex-1 rounded-(--radius-control) border border-line bg-canvas px-3 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="h-(--size-touch) min-w-0 flex-1 rounded-(--radius-control) border border-line bg-control px-3 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
         <Button type="submit" tone="primary" disabled={pending || key.trim().length < 20}>
           {pending ? 'Checking' : 'Start generating'}

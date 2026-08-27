@@ -8,13 +8,13 @@ const button = cva(
   {
     variants: {
       tone: {
-        primary: 'bg-primary text-primary-ink hover:brightness-95',
-        // The only fill in the product that carries the gradient: the button
-        // that spends money, so it is the thing the eye lands on.
-        chrome: 'bg-(image:--gradient-chrome) text-primary-ink hover:brightness-105 font-semibold',
-        neutral: 'bg-surface text-ink hover:bg-surface-hover',
-        ghost: 'text-ink-muted hover:bg-surface hover:text-ink',
-        danger: 'bg-danger text-ink hover:brightness-110',
+        // White, and the only white fill on the page, so the eye lands on it
+        // without the furniture having to be colourful.
+        primary: 'bg-primary text-primary-ink shadow-xs hover:bg-primary/90',
+        neutral: 'bg-control text-ink shadow-xs hover:bg-surface-hover',
+        outline: 'border border-line bg-transparent text-ink hover:bg-control',
+        ghost: 'text-ink-muted hover:bg-control hover:text-ink',
+        danger: 'bg-danger text-ink shadow-xs hover:bg-danger/90',
       },
       size: {
         // Never below --size-touch: this is the primary action on a phone.

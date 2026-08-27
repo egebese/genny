@@ -46,7 +46,7 @@ export function AssetCard({ asset, selected, onToggle }: AssetCardProps) {
             </span>
           )}
           {selected ? (
-            <span className="absolute top-2 right-2 rounded-full bg-accent px-2 py-0.5 text-accent-ink text-xs">
+            <span className="absolute top-2 right-2 rounded-(--radius-control) bg-accent px-2 py-0.5 text-accent-ink text-xs">
               picked
             </span>
           ) : null}

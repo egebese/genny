@@ -33,7 +33,7 @@ export function ProjectGrid({ projects }: { projects: ProjectCard[] }) {
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="font-semibold text-2xl tracking-tight">Canvases</h1>
-        <Button type="button" tone="chrome" pending={creating} onClick={create}>
+        <Button type="button" tone="primary" pending={creating} onClick={create}>
           New canvas
         </Button>
       </div>

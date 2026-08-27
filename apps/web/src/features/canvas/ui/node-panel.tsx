@@ -69,7 +69,7 @@ export function NodePanel(props: NodePanelProps) {
       aria-label="Generation details"
       data-overlay
       style={{ left: position.x, top: position.y, width: PANEL.width, maxHeight: PANEL.height }}
-      className="absolute z-20 flex flex-col overflow-hidden rounded-(--radius-panel) border border-line bg-surface/95 shadow-(--shadow-dock) backdrop-blur"
+      className="panel absolute z-20 flex flex-col overflow-hidden rounded-(--radius-panel)"
     >
       <header className="flex items-center justify-between gap-2 border-line border-b px-3 py-2">
         <h2 className="truncate font-medium text-ink text-sm">

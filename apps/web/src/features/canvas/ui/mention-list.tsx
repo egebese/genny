@@ -67,7 +67,7 @@ export function MentionList({ candidates, highlighted, query, onChoose }: Mentio
 
 function Thumb({ item }: { item: MentionableView }) {
   if (!item.previewUrl) {
-    return <span className="size-8 shrink-0 rounded-(--radius-control) bg-canvas" />
+    return <span className="size-8 shrink-0 rounded-(--radius-control) bg-control" />
   }
   return (
     <img

@@ -58,7 +58,7 @@ export function NodeMenu(props: NodeMenuProps) {
       tabIndex={-1}
       aria-label="Result actions"
       style={{ left: position.x, top: position.y, width: MENU.width }}
-      className="absolute z-30 flex flex-col overflow-hidden rounded-(--radius-control) border border-line bg-surface/95 py-1 shadow-(--shadow-dock) outline-none backdrop-blur"
+      className="panel absolute z-30 flex flex-col overflow-hidden rounded-(--radius-panel) py-1 outline-none"
     >
       <p className="px-3 py-1 font-mono text-[10px] text-ink-faint uppercase tracking-wider">
         {count === 1 ? (kind ?? 'result') : `${count} selected`}

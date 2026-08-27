@@ -539,6 +539,35 @@ test.describe('the board', () => {
   })
 })
 
+test.describe('a generation that never reaches fal', () => {
+  test.skip(mode !== 'saas', 'the dock needs credentials to render')
+
+  test('says so, and leaves no rectangle behind', async ({ page }) => {
+    await openCanvas(page)
+    await fillPrompt(page, 'a smooth river stone')
+    await page.getByRole('button', { name: /^Generate/ }).click()
+
+    // The placeholder is written before the submit, so that it exists is not the
+    // question; that it is taken back is. No request id came out of fal, so
+    // nothing ran, and the board is for work rather than for failures to start it.
+    await expect(page.locator('main [role="alert"]').first()).toBeVisible()
+    await expect(board(page).getByRole('option')).toHaveCount(0)
+  })
+
+  test('gives the credits back too', async ({ page }) => {
+    await openCanvas(page)
+    const meter = page.getByRole('link', { name: /credits/ })
+    const before = await meter.textContent()
+
+    await fillPrompt(page, 'a smooth river stone')
+    await page.getByRole('button', { name: /^Generate/ }).click()
+    await expect(page.locator('main [role="alert"]').first()).toBeVisible()
+
+    await page.reload()
+    await expect(meter).toHaveText(before ?? '')
+  })
+})
+
 test.describe('models that require a reference', () => {
   test('an editing model blocks generate until an image is mentioned', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')

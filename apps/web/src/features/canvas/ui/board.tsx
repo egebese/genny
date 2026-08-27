@@ -110,7 +110,7 @@ export function Board(props: BoardProps) {
 
       {props.children}
 
-      <div className="pointer-events-auto absolute top-3 right-3 flex items-center gap-1 rounded-(--radius-control) border border-line bg-surface/80 p-1 backdrop-blur">
+      <div className="panel pointer-events-auto absolute top-3 right-3 flex items-center gap-1 rounded-(--radius-panel) p-1">
         <Button
           type="button"
           tone="ghost"

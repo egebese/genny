@@ -35,7 +35,7 @@ export function CredentialsForm(props: CredentialsFormProps) {
           autoComplete="email"
           autoCapitalize="none"
           spellCheck={false}
-          className="h-(--size-touch) w-full rounded-(--radius-control) border border-line bg-canvas px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="h-(--size-touch) w-full rounded-(--radius-control) border border-line bg-control px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
       </label>
 
@@ -48,7 +48,7 @@ export function CredentialsForm(props: CredentialsFormProps) {
           required
           minLength={8}
           autoComplete={props.mode === 'signup' ? 'new-password' : 'current-password'}
-          className="h-(--size-touch) w-full rounded-(--radius-control) border border-line bg-canvas px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="h-(--size-touch) w-full rounded-(--radius-control) border border-line bg-control px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
         {props.mode === 'signup' ? (
           <span className="block text-ink-faint text-xs">At least 8 characters.</span>

@@ -4,7 +4,7 @@ import { createBilling } from '@genny/billing/provider.ts'
 import { siblingRects } from '@genny/canvas/placement.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
-import { insertNode } from '@genny/db/repositories/canvas-nodes.ts'
+import { deleteNode, insertNode } from '@genny/db/repositories/canvas-nodes.ts'
 import { attachFalRequest, createJob, failJob } from '@genny/db/repositories/jobs.ts'
 import { findProject, touchProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
@@ -96,10 +96,20 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
   } catch (error) {
     const failure = error instanceof FalFailure ? error : null
     const message = failure?.userMessage ?? 'The generation could not be started.'
-    // Nothing ran, so nothing is owed. The node stays and shows the failure:
-    // deleting it would make the board silently forget the attempt.
+    /*
+     * The submit never reached fal, so there is no request id and nothing ran.
+     * Nothing is owed and nothing is shown: the rectangles go back, next to the
+     * credits, and the dock says why.
+     *
+     * A job that fal did accept and then failed is the other case entirely. That
+     * one keeps its node, because something was attempted and the board is where
+     * you find out what happened to it.
+     */
     await billing.release(actorId, held.held)
-    await withActor(db, actorId, (tx) => failJob(tx, job.id, message))
+    await withActor(db, actorId, async (tx) => {
+      for (const nodeId of nodeIds) await deleteNode(tx, nodeId)
+      await failJob(tx, job.id, message)
+    })
     return refuse(message, failure?.retryable ?? true)
   }
 }

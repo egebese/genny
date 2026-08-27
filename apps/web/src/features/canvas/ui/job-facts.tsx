@@ -24,7 +24,7 @@ export function JobFacts({ detail }: { detail: JobDetail }) {
             {detail.references.map((reference) => (
               <li
                 key={reference.id}
-                className="rounded-full border border-line px-2 py-0.5 font-mono text-ink-muted text-xs"
+                className="rounded-(--radius-control) bg-control px-2 py-0.5 font-mono text-ink-muted text-xs"
               >
                 {reference.token}
               </li>

@@ -35,7 +35,7 @@ export function AttachmentStrip({
       {attachments.map((attachment, index) => (
         <li
           key={`${attachment.field}:${attachment.assetId}:${index}`}
-          className="flex items-center gap-2 rounded-(--radius-control) border border-line bg-surface py-1 pr-1 pl-2"
+          className="flex items-center gap-2 rounded-(--radius-control) bg-control py-1 pr-1 pl-2"
         >
           <span className="font-mono text-[10px] text-ink-faint uppercase tracking-wider">
             {attachment.slotLabel}

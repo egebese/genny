@@ -17,13 +17,20 @@
  * only saturated thing on screen.
  */
 @theme {
-  --color-canvas: #000000;
-  --color-surface: #0d0d0d;
-  --color-surface-hover: #1a1a1a;
-  --color-line: rgb(255 255 255 / 0.12);
-  --color-ink: #ffffff;
-  --color-ink-muted: #a0a0a0;
-  --color-ink-faint: #8a8a8a;
+  /*
+   * Four steps, and depth is the only thing separating them: the page is the
+   * darkest, a panel sits on it, a control sits in the panel, and hover is one
+   * step up again. Nothing here is a decision about brand, so a whitelabel
+   * operator shifts all four together and the hierarchy survives.
+   */
+  --color-canvas: #08080a;
+  --color-surface: #121215;
+  --color-control: #1a1a1e;
+  --color-surface-hover: #232328;
+  --color-line: rgb(255 255 255 / 0.07);
+  --color-ink: #fafafa;
+  --color-ink-muted: #a1a1aa;
+  --color-ink-faint: #8b8b95;
 
   /*
    * The primary action is white. A saturated fill on near-black is the single
@@ -39,29 +46,23 @@
   --color-danger: oklch(0.65 0.2 22);
   --color-warning: oklch(0.78 0.15 78);
 
-  --radius-control: 0.625rem;
-  --radius-panel: 1rem;
-  /* The dock is a capsule, not a card. */
-  --radius-dock: 1.75rem;
+  /*
+   * 4px, near enough to square. A capsule reads as a toy and a 16px card reads
+   * as a marketing page; this is furniture and it should get out of the way.
+   * Panels take one step more only so a nested control looks contained.
+   */
+  --radius-control: 0.25rem;
+  --radius-panel: 0.5rem;
+  --radius-dock: 0.5rem;
 
   /*
-   * The one saturated thing in the furniture, and it is only ever a one pixel
-   * edge or a fill on the single button that spends money. Everything else is
-   * black and grey so the generated media has the colour to itself.
+   * Soft and layered, not a glow. There used to be an iridescent gradient here,
+   * on the wordmark, on every floating edge and on the generate button; on a
+   * page whose whole job is showing generated media, the furniture was the most
+   * saturated thing on screen.
    */
-  --gradient-chrome: linear-gradient(
-    105deg,
-    #ffb6d5 0%,
-    #e8a0ff 25%,
-    #a8e8ff 50%,
-    #c8b8ff 75%,
-    #ffe0a8 100%
-  );
-
-  /* The dock floats over the feed rather than sitting in a bar, so it needs to
-     read as lifted off the page at a glance. On black, the glow does that
-     without a shadow, which would be invisible. */
-  --shadow-dock: 0 0 0 1px rgb(255 255 255 / 0.06), 0 24px 60px rgb(0 0 0 / 0.9);
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 12px rgb(0 0 0 / 0.35);
+  --shadow-dock: 0 2px 4px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.55);
 
   /* Mobile lives behind a home indicator and a notch. */
   --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -75,20 +76,12 @@
 }
 
 /*
- * Two utilities rather than raw gradients in components: a whitelabel operator
- * changes --gradient-chrome once and the wordmark, the border and the button
- * all follow.
+ * Anything that floats: the dock, the model picker, the node menu, the details
+ * panel. One class so they cannot drift apart, and so a whitelabel operator
+ * restyles every floating surface by editing two tokens.
  */
-.chrome-text {
-  background-image: var(--gradient-chrome);
-  background-clip: text;
-  color: transparent;
-}
-
-/* A one pixel gradient edge on a rounded box, without a wrapper element. */
-.chrome-edge {
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--color-canvas), var(--color-canvas)) padding-box,
-    var(--gradient-chrome) border-box;
+.panel {
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
 }
