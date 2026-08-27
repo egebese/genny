@@ -4,7 +4,11 @@ import type { ModelDefinition } from './schema.ts'
 
 const ref = (label: string, url: string): PromptReference => ({ token: `@${label}`, label, url })
 
-const withMapping = (references: ModelDefinition['references']): ModelDefinition =>
+/** The catalog defaults these; the inferred output type does not, so tests do. */
+type PartialMapping = Omit<ModelDefinition['references'][number], 'role' | 'accepts'> &
+  Partial<Pick<ModelDefinition['references'][number], 'role' | 'accepts'>>
+
+const withMapping = (mappings: PartialMapping[]): ModelDefinition =>
   ({
     endpointId: 'fal-ai/test',
     modality: 'image',
@@ -16,7 +20,11 @@ const withMapping = (references: ModelDefinition['references']): ModelDefinition
     pricing: { unit: 'images', unitPriceUsd: 0.08 },
     creditMultiplier: 1,
     inputs: [{ name: 'prompt', type: 'string', label: 'Prompt', required: true, hidden: false }],
-    references,
+    references: mappings.map((mapping) => ({
+      role: 'source' as const,
+      accepts: ['image' as const],
+      ...mapping,
+    })),
     capabilities: { supportsNegativePrompt: false, supportsSeed: false, maxOutputs: 1 },
   }) as ModelDefinition
 

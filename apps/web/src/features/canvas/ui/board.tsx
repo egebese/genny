@@ -1,6 +1,6 @@
 'use client'
 
-import type { Viewport } from '@genny/canvas/geometry.ts'
+import type { Rect, Viewport } from '@genny/canvas/geometry.ts'
 import { Button } from '@genny/ui/button.tsx'
 import { cn } from '@genny/ui/cn.ts'
 import type { ReactNode, RefObject } from 'react'
@@ -10,12 +10,17 @@ import { CanvasNode } from './canvas-node.tsx'
 type BoardProps = {
   surface: RefObject<HTMLDivElement | null>
   nodes: CanvasNodeView[]
-  selectedId: string | null
+  selected: ReadonlySet<string>
+  marquee: Rect | null
   viewport: Viewport
   panning: boolean
-  onSelect: (id: string | null) => void
+  /** True while space is down, which is when a drag pans instead of selecting. */
+  panMode: boolean
+  onSelect: (id: string, additive: boolean) => void
   onInspect: (id: string) => void
+  onContextMenu: (id: string, at: { clientX: number; clientY: number }) => void
   onPan: (event: React.PointerEvent) => void
+  onMarquee: (event: React.PointerEvent, additive: boolean) => void
   onKey: (key: string) => boolean
   onMove: (id: string, position: { x: number; y: number }) => void
   onCommit: (id: string, position: { x: number; y: number }) => void
@@ -35,7 +40,7 @@ export function Board(props: BoardProps) {
       ref={props.surface}
       className={cn(
         'absolute inset-0 touch-none overflow-hidden bg-canvas',
-        props.panning ? 'cursor-grabbing' : 'cursor-grab',
+        props.panning ? 'cursor-grabbing' : props.panMode ? 'cursor-grab' : 'cursor-default',
       )}
       style={{
         // The dots ride along with the board, which is what makes panning read
@@ -45,9 +50,19 @@ export function Board(props: BoardProps) {
         backgroundPosition: `${viewport.x}px ${viewport.y}px`,
       }}
       onPointerDown={(event) => {
-        if (event.target !== event.currentTarget) return
-        props.onSelect(null)
-        props.onPan(event)
+        /*
+         * The transform layer covers the whole surface, so a click on empty board
+         * lands on it rather than here. Asking what was actually hit is the only
+         * test that means what it looks like it means.
+         *
+         * The overlays matter as much as the nodes: they render inside the
+         * surface, so without this a press on a menu item clears the surfaces and
+         * unmounts the button before its click can land.
+         */
+        if ((event.target as HTMLElement).closest('[role="option"], [data-overlay]')) return
+        // Space, or the middle button, pans. Everything else draws a band.
+        if (props.panMode || event.button === 1) props.onPan(event)
+        else props.onMarquee(event, event.shiftKey || event.metaKey)
       }}
     >
       <div
@@ -67,16 +82,31 @@ export function Board(props: BoardProps) {
           <CanvasNode
             key={node.id}
             node={node}
-            selected={node.id === props.selectedId}
+            selected={props.selected.has(node.id)}
             viewport={viewport}
-            onSelect={() => props.onSelect(node.id)}
+            panMode={props.panMode}
+            onSelect={(additive) => props.onSelect(node.id, additive)}
             onInspect={() => props.onInspect(node.id)}
+            onContextMenu={(at) => props.onContextMenu(node.id, at)}
             onMove={(position) => props.onMove(node.id, position)}
             onCommit={(position) => props.onCommit(node.id, position)}
             onDelete={() => props.onDelete(node.id)}
           />
         ))}
       </div>
+
+      {props.marquee ? (
+        <div
+          aria-hidden
+          style={{
+            left: props.marquee.x,
+            top: props.marquee.y,
+            width: props.marquee.width,
+            height: props.marquee.height,
+          }}
+          className="pointer-events-none absolute border border-accent bg-accent/10"
+        />
+      ) : null}
 
       {props.children}
 

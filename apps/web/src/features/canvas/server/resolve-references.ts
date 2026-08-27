@@ -4,6 +4,7 @@ import { withActor } from '@genny/db/actor.ts'
 import type { appDb } from '@genny/db/connection.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
 import { uploadReference } from '@genny/fal/upload.ts'
+import type { ResolvedAttachment } from '@genny/models/attachments.ts'
 import type { PromptReference } from '@genny/models/references.ts'
 import { storage } from '@/features/storage.ts'
 
@@ -58,6 +59,44 @@ export async function resolveReferences(
         url: await uploadReference(credentials, bytes, member.mime),
       })
     }
+  }
+  return resolved
+}
+
+/**
+ * The same trip to fal, for assets pinned to a named field rather than mentioned
+ * in the prompt.
+ *
+ * The lookup goes through withActor, so RLS decides what this actor may attach.
+ * An id belonging to somebody else is simply not found and the attachment is
+ * skipped, which is why the ids arriving from the client need no ownership check.
+ */
+export async function resolveAttachments(
+  db: ReturnType<typeof appDb>,
+  actorId: string,
+  credentials: FalCredentials,
+  requested: { field: string; assetId: string }[],
+): Promise<ResolvedAttachment[]> {
+  if (requested.length === 0) return []
+
+  const found = await withActor(db, actorId, (tx) =>
+    findAssetsByIds(
+      tx,
+      requested.map((item) => item.assetId),
+    ),
+  )
+  const byId = new Map(found.map((asset) => [asset.id, asset]))
+
+  const bucket = storage()
+  const resolved: ResolvedAttachment[] = []
+  for (const item of requested) {
+    const asset = byId.get(item.assetId)
+    if (!asset) continue
+    const bytes = await bucket.get(asset.storageKey)
+    resolved.push({
+      field: item.field,
+      url: await uploadReference(credentials, bytes, asset.mime),
+    })
   }
   return resolved
 }

@@ -30,7 +30,12 @@ export type SubmitOutcome =
  */
 export function useGenerate({ projectId, nodes, mentionables, centreOfView }: Options) {
   return useCallback(
-    async (model: PickableModel, prompt: string, settings: Record<string, unknown>) => {
+    async (
+      model: PickableModel,
+      prompt: string,
+      settings: Record<string, unknown>,
+      attachments: { field: string; assetId: string }[],
+    ) => {
       /*
        * Room for every output, found before the first one exists. A request for
        * four that reserves one rectangle drops the other three wherever the
@@ -75,6 +80,7 @@ export function useGenerate({ projectId, nodes, mentionables, centreOfView }: Op
         prompt,
         settings,
         references,
+        attachments,
         node: anchor,
       })
       if (!result.ok) return { ok: false, reason: result.reason } satisfies SubmitOutcome
@@ -90,6 +96,7 @@ export function useGenerate({ projectId, nodes, mentionables, centreOfView }: Op
         ok: true,
         nodes: rects.map((rect, index) => ({
           id: result.nodeIds[index] ?? `${result.jobId}:${index}`,
+          assetId: null,
           ...rect,
           jobId: result.jobId,
           status: 'pending' as const,

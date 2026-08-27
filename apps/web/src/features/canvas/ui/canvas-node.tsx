@@ -9,8 +9,12 @@ type CanvasNodeProps = {
   node: CanvasNodeView
   selected: boolean
   viewport: Viewport
-  onSelect: () => void
+  /** Space is down, so this drag belongs to the board rather than to the node. */
+  panMode: boolean
+  onSelect: (additive: boolean) => void
   onInspect: () => void
+  /** Raw client coordinates; only the board knows where its own top left is. */
+  onContextMenu: (at: { clientX: number; clientY: number }) => void
   onMove: (position: { x: number; y: number }) => void
   onCommit: (position: { x: number; y: number }) => void
   onDelete: () => void
@@ -31,8 +35,10 @@ export function CanvasNode(props: CanvasNodeProps) {
     // Left button only, and never from inside a media control.
     if (event.button !== 0) return
     if ((event.target as HTMLElement).closest('video, audio, a, button')) return
+    // Space turns the whole board into a pan surface, nodes included.
+    if (props.panMode) return
     event.stopPropagation()
-    props.onSelect()
+    props.onSelect(event.shiftKey || event.metaKey)
 
     const origin = { x: event.clientX, y: event.clientY }
     const start = { x: node.x, y: node.y }
@@ -65,7 +71,18 @@ export function CanvasNode(props: CanvasNodeProps) {
       aria-label={describe(node)}
       aria-selected={selected}
       onPointerDown={startDrag}
-      onFocus={props.onSelect}
+      onContextMenu={(event) => {
+        event.preventDefault()
+        props.onContextMenu({ clientX: event.clientX, clientY: event.clientY })
+      }}
+      /*
+       * Only when it is not already picked. A right-click focuses the node
+       * before its menu opens, and collapsing a marquee selection to one at that
+       * moment is how "attach these four" turns into "attach this one".
+       */
+      onFocus={() => {
+        if (!selected) props.onSelect(false)
+      }}
       onKeyDown={(event) => {
         const step = event.shiftKey ? 40 : 8
         const nudge: Record<string, { x: number; y: number }> = {

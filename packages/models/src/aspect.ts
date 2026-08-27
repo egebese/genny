@@ -1,5 +1,8 @@
 export type Size = { width: number; height: number }
 
+/** The three things fal returns, and the three a slot can accept. */
+export type MediaKind = 'image' | 'video' | 'audio'
+
 /** fal's named sizes, in pixels. One table, so pricing and layout never disagree. */
 export const IMAGE_SIZES: Record<string, Size> = {
   square: { width: 512, height: 512 },
@@ -34,10 +37,7 @@ const AUDIO_ASPECT: Size = { width: 4, height: 1 }
  * wrong shape reflows the board the moment the real thing lands, and it lands
  * while the person is looking somewhere else on the canvas.
  */
-export function outputAspect(
-  modality: 'image' | 'video' | 'audio',
-  settings: Record<string, unknown>,
-): Size {
+export function outputAspect(modality: MediaKind, settings: Record<string, unknown>): Size {
   if (modality === 'audio') return AUDIO_ASPECT
 
   const size = settings.image_size

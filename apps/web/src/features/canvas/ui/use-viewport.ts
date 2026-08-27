@@ -9,6 +9,7 @@ import {
   zoomAt,
 } from '@genny/canvas/geometry.ts'
 import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import { useSpaceHeld } from './use-space-held.ts'
 
 /** Trackpad deltas are small and continuous; this maps one notch to a sane step. */
 const WHEEL_ZOOM = 0.0025
@@ -31,6 +32,7 @@ type Options = {
 export function useViewport({ initial, surface, onPersist }: Options) {
   const [viewport, setViewport] = useState<Viewport>(initial)
   const [panning, setPanning] = useState(false)
+  const spaceHeld = useSpaceHeld()
   const latest = useRef(viewport)
   latest.current = viewport
 
@@ -140,7 +142,26 @@ export function useViewport({ initial, surface, onPersist }: Options) {
     return toCanvas(centre, latest.current)
   }, [surface])
 
-  return { viewport, panning, startPan, handleKey, zoomBy, fit, centreOfView }
+  /** Screen coordinates relative to the board, which is what every gesture wants. */
+  const toLocal = useCallback(
+    (event: { clientX: number; clientY: number }): Point => {
+      const rect = surface.current?.getBoundingClientRect()
+      return { x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) }
+    },
+    [surface],
+  )
+
+  return {
+    viewport,
+    panning,
+    spaceHeld,
+    startPan,
+    handleKey,
+    zoomBy,
+    fit,
+    centreOfView,
+    toLocal,
+  }
 }
 
 function sizeOf(element: HTMLElement | null) {

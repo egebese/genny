@@ -1,4 +1,5 @@
 import type { ModelDefinition, ModelInput } from '@genny/models/schema.ts'
+import { allSlots, type ReferenceSlot } from '@genny/models/slots.ts'
 
 /**
  * What the picker and the dock need to know about a model. Deliberately not the
@@ -18,6 +19,12 @@ export type PickableModel = {
   /** On the client so the button can price the request without a round trip. */
   creditMultiplier: number
   inputs: ModelInput[]
+  /**
+   * Where media can be pinned on this model. Crosses to the client whole,
+   * because the right-click menu is built from it: a model added next month
+   * brings its own menu items and the board learns nothing new.
+   */
+  slots: ReferenceSlot[]
   acceptsReferences: boolean
   /** True when the endpoint refuses to run without one. */
   requiresReference: boolean
@@ -39,6 +46,7 @@ export function toPickable(model: ModelDefinition): PickableModel {
     // the model two places to read the same thing from and the person one too
     // many to fill in.
     inputs: model.inputs.filter((input) => !input.hidden && input.name !== model.promptField),
+    slots: allSlots(model),
     acceptsReferences: model.references.length > 0,
     requiresReference: model.references.some((mapping) => mapping.required),
     featured: model.featured,

@@ -2,6 +2,7 @@ import type { Database } from '@genny/db/client.ts'
 import { ownerDb } from '@genny/db/connection.ts'
 import { findActor } from '@genny/db/repositories/actors.ts'
 import { env } from '@genny/env/env.ts'
+import { applyAttachments } from '@genny/models/attachments.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
 import { buildInputSchema } from '@genny/models/input.ts'
 import { missingRequiredReferences, resolvePrompt } from '@genny/models/references.ts'
@@ -11,7 +12,7 @@ import { createPostgresLimiter } from '@genny/ratelimit/postgres-limiter.ts'
 import { generationRule, tierOf } from '@genny/ratelimit/rules.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
 import type { GenerationResult } from '../schema.ts'
-import { resolveReferences } from './resolve-references.ts'
+import { resolveAttachments, resolveReferences } from './resolve-references.ts'
 
 export type Prepared = {
   model: ModelDefinition
@@ -62,20 +63,28 @@ export async function prepareGeneration(context: {
    * reference. An id belonging to somebody else simply is not found, which is
    * also why the ids arriving from the client need no ownership check here.
    */
-  const references = await resolveReferences(db, actorId, credentials, request.references)
+  const [references, attachments] = await Promise.all([
+    resolveReferences(db, actorId, credentials, request.references),
+    resolveAttachments(db, actorId, credentials, request.attachments),
+  ])
 
   // Editing models refuse to run without an image and answer 422, which is
   // invisible from our side. Say it before spending the round trip.
-  if (missingRequiredReferences(model, references).length > 0) {
-    return refuse(`${model.displayName} needs an image. Mention one with @.`, false)
+  if (attachments.length === 0 && missingRequiredReferences(model, references).length > 0) {
+    return refuse(`${model.displayName} needs an image. Attach one or mention it with @.`, false)
   }
 
   const resolved = resolvePrompt(model, request.prompt, references)
+  // After the prompt and allowed to overwrite it: someone who pinned an asset to
+  // the end frame said something the prompt has no way of saying.
+  const pinned = applyAttachments(model, attachments)
+
   const payload = buildInputSchema(model).safeParse({
     ...request.settings,
     // Text to speech calls it `text`; every model names its own field.
     [model.promptField]: resolved.text,
     ...resolved.patch,
+    ...pinned.patch,
   })
   if (!payload.success) return refuse('The model rejected these settings.', false)
 
@@ -83,7 +92,9 @@ export async function prepareGeneration(context: {
     model,
     credentials,
     payload: payload.data,
-    dropped: [...new Set(resolved.dropped.map((reference) => reference.label))],
+    dropped: [
+      ...new Set([...resolved.dropped.map((reference) => reference.label), ...pinned.dropped]),
+    ],
   }
 }
 

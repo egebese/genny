@@ -1,26 +1,26 @@
 'use client'
 
-import { Dock } from '@genny/ui/dock.tsx'
 import { useCallback, useRef, useState } from 'react'
 import type { PickableModel } from '../model-list.ts'
 import { persistViewport } from '../server/actions.ts'
 import type { ProjectPage } from '../server/project-page.ts'
 import { Board } from './board.tsx'
+import { BoardOverlays } from './board-overlays.tsx'
+import { CanvasDock } from './canvas-dock.tsx'
 import { EmptyHint } from './empty-hint.tsx'
 import { JobTracker } from './job-tracker.tsx'
-import { KeyGate } from './key-gate.tsx'
-import { NodePanel, type ReuseRequest } from './node-panel.tsx'
-import { PromptDock } from './prompt-dock.tsx'
+import type { ReuseRequest } from './node-panel.tsx'
+import { useAttachments } from './use-attachments.ts'
 import { useBoardNodes } from './use-board-nodes.ts'
 import { useGenerate } from './use-generate.ts'
+import { useSelection } from './use-selection.ts'
 import { useSize } from './use-size.ts'
+import { useSurfaces } from './use-surfaces.ts'
 import { useViewport } from './use-viewport.ts'
 
 export function Canvas(props: ProjectPage) {
   const surface = useRef<HTMLDivElement>(null)
   const dock = useRef<HTMLDivElement>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [inspectedId, setInspectedId] = useState<string | null>(null)
   const [model, setModel] = useState<PickableModel>(defaultModel(props.models))
   const [settings, setSettings] = useState<Record<string, unknown>>({})
   const [prompt, setPrompt] = useState('')
@@ -40,6 +40,9 @@ export function Canvas(props: ProjectPage) {
     projectId,
     props.nodes,
   )
+  const pick = useSelection({ nodes, viewport: view.viewport, toLocal: view.toLocal })
+  const pinned = useAttachments()
+  const surfaces = useSurfaces()
   const board = useSize(surface)
   const dockSize = useSize(dock)
 
@@ -53,7 +56,7 @@ export function Canvas(props: ProjectPage) {
   async function submit(text: string) {
     setPending(true)
     setError(null)
-    const outcome = await generate(model, text, settings)
+    const outcome = await generate(model, text, settings, pinned.forRequest())
     setPending(false)
     if (!outcome.ok) {
       setError(outcome.reason)
@@ -61,8 +64,16 @@ export function Canvas(props: ProjectPage) {
     }
     setError(outcome.warning)
     add(outcome.nodes)
-    // The prompt stays. Most of the next one is the last one with a word
-    // changed, and clearing it made the person retype what they had just typed.
+    // The prompt and its attachments stay. Most of the next generation is this
+    // one with a word changed, and clearing them made people redo the setup.
+  }
+
+  function chooseModel(next: PickableModel) {
+    setModel(next)
+    setSettings({})
+    // The fields change with the model, so a pin to `image_url` on the last one
+    // means nothing here and would be sent somewhere nobody asked for.
+    pinned.clear()
   }
 
   function mention(label: string) {
@@ -71,102 +82,98 @@ export function Canvas(props: ProjectPage) {
 
   function reuse(request: ReuseRequest) {
     const found = props.models.find((candidate) => candidate.endpointId === request.modelId)
-    if (found) setModel(found)
+    if (found) chooseModel(found)
     setSettings(request.settings)
     setPrompt(request.prompt)
   }
 
-  const inspected = nodes.find((node) => node.id === inspectedId) ?? null
-
-  function select(id: string | null) {
-    setSelectedId(id)
-    // Inspecting follows the selection rather than surviving it: a panel still
-    // describing the node you just clicked away from is a panel that lies.
-    if (id !== inspectedId) setInspectedId(null)
+  function removeNodes(ids: string[]) {
+    for (const id of ids) remove(id)
+    pick.clear()
+    surfaces.clear()
   }
 
-  function inspect(id: string) {
-    setSelectedId(id)
-    setInspectedId((current) => (current === id ? null : id))
-  }
+  const inspected = nodes.find((node) => node.id === surfaces.inspectedId) ?? null
+  const menu = surfaces.menu
+  const bounds = { width: board.width, height: board.height - dockSize.height }
 
   return (
     <>
       {running.map((jobId) => (
-        <JobTracker
-          key={jobId}
-          jobId={jobId as string}
-          onSettled={() => void settle(jobId as string)}
-        />
+        <JobTracker key={jobId} jobId={jobId} onSettled={() => void settle(jobId)} />
       ))}
 
       <Board
         surface={surface}
         nodes={nodes}
-        selectedId={selectedId}
+        selected={pick.selected}
+        marquee={pick.marquee}
         viewport={view.viewport}
         panning={view.panning}
-        onSelect={select}
-        onInspect={inspect}
-        onPan={view.startPan}
+        panMode={view.spaceHeld}
+        onSelect={(id, additive) => {
+          pick.select(id, additive)
+          surfaces.clear()
+        }}
+        onInspect={surfaces.inspect}
+        onContextMenu={(id, at) => {
+          // Right-clicking outside the selection acts on what was clicked, the
+          // way it does everywhere else, rather than on what happened to be picked.
+          const chosen = pick.selected.has(id) ? [...pick.selected] : [id]
+          if (!pick.selected.has(id)) pick.select(id, false)
+          surfaces.openMenu(
+            view.toLocal(at),
+            nodes.filter((node) => chosen.includes(node.id)),
+          )
+        }}
+        onPan={(event) => {
+          surfaces.clear()
+          view.startPan(event)
+        }}
+        onMarquee={(event, additive) => {
+          surfaces.clear()
+          pick.startMarquee(event, additive)
+        }}
         onKey={(key) => view.handleKey(key, nodes)}
         onMove={move}
         onCommit={commit}
-        onDelete={(id) => {
-          remove(id)
-          select(null)
-        }}
+        onDelete={(id) => removeNodes([id])}
         onZoom={view.zoomBy}
         onFit={() => view.fit(nodes)}
       >
         {nodes.length === 0 ? <EmptyHint /> : null}
-        {inspected ? (
-          <NodePanel
-            node={inspected}
-            viewport={view.viewport}
-            // The dock is not part of the board, so the panel may not reach
-            // under it: it would cover the one control the person needs next.
-            bounds={{ width: board.width, height: board.height - dockSize.height }}
-            onClose={() => setInspectedId(null)}
-            onMention={mention}
-            onReuse={reuse}
-            onDelete={() => {
-              remove(inspected.id)
-              select(null)
-            }}
-          />
-        ) : null}
+
+        <BoardOverlays
+          menu={menu}
+          inspected={inspected}
+          model={model}
+          viewport={view.viewport}
+          bounds={bounds}
+          onAttach={(field, chosen) => {
+            pinned.attach(model, field, chosen)
+            surfaces.closeMenu()
+          }}
+          onMention={mention}
+          onReuse={reuse}
+          onRemove={removeNodes}
+          onCloseMenu={surfaces.closeMenu}
+          onCloseInspector={surfaces.closeInspector}
+        />
       </Board>
 
-      {/* pointer-events-none so the strip either side of the dock still pans the
-          board. The dock's own card turns them back on. */}
-      <div ref={dock} className="pointer-events-none">
-        <Dock>
-          {ready ? (
-            <PromptDock
-              models={props.models}
-              model={model}
-              mentionables={props.mentionables}
-              onModelChange={(next) => {
-                setModel(next)
-                setSettings({})
-              }}
-              settings={settings}
-              onSettingChange={(name, value) =>
-                setSettings((current) => ({ ...current, [name]: value }))
-              }
-              pending={pending}
-              error={error}
-              credits={props.credits ? { enabled: true, perUsd: props.credits.perUsd } : null}
-              prompt={prompt}
-              onPromptChange={setPrompt}
-              onSubmit={(text) => void submit(text)}
-            />
-          ) : (
-            <KeyGate onReady={() => setReady(true)} />
-          )}
-        </Dock>
-      </div>
+      <CanvasDock
+        ref={dock}
+        {...{ models: props.models, model, settings, prompt, pending, error, ready }}
+        mentionables={props.mentionables}
+        attachments={pinned.attachments}
+        credits={props.credits}
+        onRemoveAttachment={pinned.remove}
+        onModelChange={chooseModel}
+        onSettingChange={(name, value) => setSettings((c) => ({ ...c, [name]: value }))}
+        onPromptChange={setPrompt}
+        onSubmit={(text) => void submit(text)}
+        onReady={() => setReady(true)}
+      />
     </>
   )
 }
@@ -179,7 +186,6 @@ export function Canvas(props: ProjectPage) {
  * default, so the first prompt someone typed got read aloud.
  */
 function defaultModel(models: PickableModel[]): PickableModel {
-  const images = models.filter((model) => model.modality === 'image')
-  const preferred = images.find((model) => model.featured) ?? images[0] ?? models[0]
-  return preferred as PickableModel
+  const images = models.filter((candidate) => candidate.modality === 'image')
+  return (images.find((candidate) => candidate.featured) ?? images[0] ?? models[0]) as PickableModel
 }

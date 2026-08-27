@@ -16,9 +16,43 @@ export const pricingUnit = z.enum([
  * component never learns that one endpoint wants `image_url` and another wants
  * `image_urls`.
  */
+/**
+ * What a reference slot is for, from a closed vocabulary.
+ *
+ * The field name cannot carry this: `image_url` is a start frame on one endpoint
+ * and the thing being edited on another, and a right-click menu offering "Use as
+ * image_url" is not a menu anyone can read. Closed rather than free text so the
+ * board can decide what a slot accepts without asking the catalog author to also
+ * write the UI copy.
+ */
+export const referenceRole = z.enum([
+  'source',
+  'start-frame',
+  'end-frame',
+  'reference-image',
+  'input-images',
+  'style-reference',
+  'source-video',
+  'source-audio',
+  'voice-sample',
+  'mask',
+])
+
 export const referenceMapping = z.object({
   /** Input field that receives the reference url(s). */
   field: z.string().min(1),
+  /** What the slot is for. Drives the menu item and what it will accept. */
+  role: referenceRole.default('source'),
+  /**
+   * Media kinds this slot takes. A start frame is an image even on a video
+   * model, and offering a clip for it wastes a round trip to find that out.
+   */
+  accepts: z
+    .array(z.enum(['image', 'video', 'audio']))
+    .nonempty()
+    .default(['image']),
+  /** Menu label, sentence case. Falls back to the role when absent. */
+  label: z.string().min(1).optional(),
   /**
    * True when the endpoint refuses to run without it. Editing models often do:
    * fal answers 422 and the reason is invisible from our side, so the studio has
@@ -93,3 +127,4 @@ export const modelDefinition = z.object({
 export type ModelDefinition = z.infer<typeof modelDefinition>
 export type ModelInput = z.infer<typeof modelInput>
 export type ReferenceMapping = z.infer<typeof referenceMapping>
+export type ReferenceRole = z.infer<typeof referenceRole>

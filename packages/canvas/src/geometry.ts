@@ -90,3 +90,13 @@ export function visibleRect(viewport: Viewport, size: Size): Rect {
 export function overlaps(a: Rect, b: Rect): boolean {
   return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
 }
+
+/** The rectangle between two points, whichever corner the drag started from. */
+export function rectBetween(a: Point, b: Point): Rect {
+  return {
+    x: Math.min(a.x, b.x),
+    y: Math.min(a.y, b.y),
+    width: Math.abs(a.x - b.x),
+    height: Math.abs(a.y - b.y),
+  }
+}

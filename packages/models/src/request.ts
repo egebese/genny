@@ -21,6 +21,18 @@ export const generationRequest = z.object({
     )
     .max(16)
     .default([]),
+  /**
+   * Assets pinned to a named input field, rather than left to the prompt.
+   *
+   * `@mention` cannot say which of two image slots it means, and a model that
+   * takes both a first and a last frame is exactly the case where the order they
+   * were typed in is not the answer. These win over anything the prompt mapped
+   * into the same field.
+   */
+  attachments: z
+    .array(z.object({ field: z.string().min(1).max(64), assetId: z.uuid() }))
+    .max(16)
+    .default([]),
   /** Values for the model's own controls. Shape checked per model. */
   settings: z.record(z.string(), z.unknown()).default({}),
 })

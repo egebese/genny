@@ -67,6 +67,7 @@ export function NodePanel(props: NodePanelProps) {
   return (
     <aside
       aria-label="Generation details"
+      data-overlay
       style={{ left: position.x, top: position.y, width: PANEL.width, maxHeight: PANEL.height }}
       className="absolute z-20 flex flex-col overflow-hidden rounded-(--radius-panel) border border-line bg-surface/95 shadow-(--shadow-dock) backdrop-blur"
     >

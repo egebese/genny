@@ -9,6 +9,8 @@ import type { NodeRecord } from '@genny/db/repositories/canvas-nodes.ts'
  */
 export type CanvasNodeView = {
   id: string
+  /** Null while the generation is running. Needed to pin the result to an input. */
+  assetId: string | null
   x: number
   y: number
   width: number
@@ -30,6 +32,7 @@ export function toNodeView(node: NodeRecord): CanvasNodeView {
 
   return {
     id: node.id,
+    assetId: node.assetId,
     x: node.x,
     y: node.y,
     width: node.width,

@@ -1,11 +1,11 @@
 'use client'
 
-import { estimateUnits } from '@genny/models/credits.ts'
 import { mentionedLabels } from '@genny/models/mention.ts'
-import { Button } from '@genny/ui/button.tsx'
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
+import { type Attachment, AttachmentStrip } from './attachment-strip.tsx'
+import { GenerateButton } from './generate-button.tsx'
 import { MentionList } from './mention-list.tsx'
 import { ModelPicker } from './model-picker.tsx'
 import { SettingField } from './setting-field.tsx'
@@ -23,6 +23,9 @@ type PromptDockProps = {
   model: PickableModel
   onModelChange: (model: PickableModel) => void
   mentionables: MentionableView[]
+  /** Assets pinned to a named input, rather than named in the sentence. */
+  attachments: Attachment[]
+  onRemoveAttachment: (index: number) => void
   settings: Record<string, unknown>
   onSettingChange: (name: string, value: unknown) => void
   pending: boolean
@@ -36,13 +39,6 @@ type PromptDockProps = {
 }
 
 const MAX_ROWS = 6
-
-/** Sub-cent prices are the common case, so two decimals would read as free. */
-function formatCost(usd: number): string {
-  if (usd >= 1) return `$${usd.toFixed(2)}`
-  if (usd >= 0.01) return `$${usd.toFixed(3).replace(/0$/, '')}`
-  return `$${usd.toFixed(4)}`
-}
 
 export function PromptDock(props: PromptDockProps) {
   const { model, settings, pending, error, onSubmit, prompt } = props
@@ -62,19 +58,6 @@ export function PromptDock(props: PromptDockProps) {
       })
     },
   })
-
-  /*
-   * What this will cost, before committing to it. In byok mode that is fal's own
-   * price; in saas mode the same number becomes credits.
-   */
-  const cost = useMemo(
-    () => estimateUnits(model, settings) * model.pricing.unitPriceUsd,
-    [model, settings],
-  )
-
-  const priced = props.credits?.enabled
-    ? `${Math.ceil(cost * props.credits.perUsd)} cr`
-    : formatCost(cost)
 
   function submit() {
     const trimmed = prompt.trim()
@@ -99,7 +82,10 @@ export function PromptDock(props: PromptDockProps) {
    * An editing model cannot run without an image. Blocking here beats letting
    * fal answer 422 with a reason the person cannot see.
    */
-  const needsReference = model.requiresReference && mentionedLabels(prompt).length === 0
+  const needsReference =
+    model.requiresReference &&
+    mentionedLabels(prompt).length === 0 &&
+    props.attachments.length === 0
 
   return (
     <div className="chrome-edge rounded-(--radius-dock) shadow-(--shadow-dock)">
@@ -111,6 +97,8 @@ export function PromptDock(props: PromptDockProps) {
           onChoose={mentions.choose}
         />
       ) : null}
+
+      <AttachmentStrip attachments={props.attachments} onRemove={props.onRemoveAttachment} />
 
       <label htmlFor="prompt" className="sr-only">
         Prompt
@@ -165,16 +153,14 @@ export function PromptDock(props: PromptDockProps) {
             />
           ))}
         </div>
-        <Button
-          type="button"
-          tone="chrome"
-          size="md"
-          className="shrink-0 rounded-full px-5"
-          disabled={pending || prompt.trim().length === 0 || needsReference}
+        <GenerateButton
+          model={model}
+          settings={settings}
+          credits={props.credits}
+          pending={pending}
+          disabled={prompt.trim().length === 0 || needsReference}
           onClick={submit}
-        >
-          {pending ? 'Sending' : `Generate · ${priced}`}
-        </Button>
+        />
       </div>
 
       {needsReference ? (
