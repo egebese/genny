@@ -50,6 +50,32 @@ describe('loadCatalog', () => {
     }
   })
 
+  it('has decided, per entry, what a 4K option costs', async () => {
+    /*
+     * fal charges 4K at double on the models that offer it, and our estimate
+     * becomes the hold: `settle` captures held × produced ÷ expected and never
+     * more, so a missing factor is not a rounding error, it is half price
+     * forever on that setting.
+     *
+     * This asks for a decision rather than for a factor. A future endpoint may
+     * genuinely charge one rate at every size; what it may not do is offer 4K
+     * with nobody having looked.
+     */
+    for (const { definition } of await loadCatalog()) {
+      const offers4K = definition.inputs.some(
+        (input) => input.name === 'resolution' && input.enum?.includes('4K'),
+      )
+      if (!offers4K) continue
+
+      const decided =
+        definition.pricing.scale?.factors['4K'] !== undefined ||
+        (definition.pricing.note?.includes('4K') ?? false)
+      expect(decided, `${definition.endpointId} offers 4K and says nothing about its price`).toBe(
+        true,
+      )
+    }
+  })
+
   it('orders entries by sortOrder so the picker is deterministic', async () => {
     const orders = (await loadCatalog()).map((e) => e.definition.sortOrder)
     expect([...orders]).toEqual([...orders].sort((a, b) => a - b))

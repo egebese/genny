@@ -35,6 +35,25 @@ export function megapixelsFor(width: number, height: number, count: number): num
  * settles the difference against real usage.
  */
 export function estimateUnits(model: PricedModel, input: Record<string, unknown>): number {
+  return baseUnits(model, input) * rateFactor(model, input)
+}
+
+/**
+ * The multiplier for the setting that bills differently, or 1.
+ *
+ * Applied to the units rather than to the price so the whole calculation stays
+ * one number: what gets held, what gets captured and what the button says are
+ * all this, and they cannot drift apart if there is only one of them.
+ */
+function rateFactor(model: PricedModel, input: Record<string, unknown>): number {
+  const scale = model.pricing.scale
+  if (!scale) return 1
+  const chosen = input[scale.field]
+  if (typeof chosen !== 'string') return 1
+  return scale.factors[chosen] ?? 1
+}
+
+function baseUnits(model: PricedModel, input: Record<string, unknown>): number {
   const count = positiveNumber(input.num_images, 1)
 
   switch (model.pricing.unit) {

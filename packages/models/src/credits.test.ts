@@ -98,3 +98,34 @@ describe('durations however the endpoint spells them', () => {
     expect(estimateUnits(perSecond, { duration: -3 })).toBe(5)
   })
 })
+
+describe('options that bill at a different rate', () => {
+  const perImage = {
+    pricing: {
+      unit: 'images' as const,
+      unitPriceUsd: 0.08,
+      scale: { field: 'resolution', factors: { '4K': 2 } },
+    },
+  }
+
+  it('charges the standard rate for everything the exception does not name', () => {
+    expect(estimateUnits(perImage, { resolution: '1K' })).toBe(1)
+    expect(estimateUnits(perImage, { resolution: '2K' })).toBe(1)
+    expect(estimateUnits(perImage, {})).toBe(1)
+  })
+
+  it('charges double where fal charges double', () => {
+    // Without this the hold is half the cost, and settle captures
+    // held × produced ÷ expected, so it never catches up: a permanent discount.
+    expect(estimateUnits(perImage, { resolution: '4K' })).toBe(2)
+  })
+
+  it('multiplies the count as well, not instead of it', () => {
+    expect(estimateUnits(perImage, { resolution: '4K', num_images: 3 })).toBe(6)
+  })
+
+  it('ignores a value that is not one of the options', () => {
+    expect(estimateUnits(perImage, { resolution: 'enormous' })).toBe(1)
+    expect(estimateUnits(perImage, { resolution: 4 })).toBe(1)
+  })
+})

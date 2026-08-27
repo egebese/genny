@@ -268,6 +268,27 @@ test.describe('the dock', () => {
     await expect(panel.getByRole('button', { name: /ids for support/ })).toBeVisible()
   })
 
+  test('4K costs what fal charges for 4K, which is double', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+
+    const generate = page.getByRole('button', { name: /^Generate/ })
+    const resolution = page.getByLabel('Resolution')
+
+    /*
+     * The estimate becomes the hold, and settle captures held × produced ÷
+     * expected and never more, so an unscaled 4K is not a rounding error: it is
+     * half price forever on that setting.
+     */
+    await resolution.fill('1')
+    const standard = (await generate.textContent()) ?? ''
+    await resolution.fill('2')
+    expect(await generate.textContent()).toBe(standard)
+
+    await resolution.fill('3')
+    expect(await generate.textContent()).not.toBe(standard)
+  })
+
   test('the price follows the size, because fal bills this model by area', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await openCanvas(page)

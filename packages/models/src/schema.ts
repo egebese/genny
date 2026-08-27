@@ -120,6 +120,21 @@ export const modelDefinition = z.object({
      * in the file rather than rediscovered every week.
      */
     note: z.string().optional(),
+    /**
+     * Options that bill at a different rate from the rest.
+     *
+     * Some endpoints have one price and one exception: nano-banana charges per
+     * image and then charges double for 4K. Without this the estimate is right
+     * for three of four settings and half of what it should be for the fourth,
+     * and because `settle` captures held × produced ÷ expected, it never
+     * catches up. A permanent discount nobody chose.
+     */
+    scale: z
+      .object({
+        field: z.string().min(1),
+        factors: z.record(z.string(), z.number().positive()),
+      })
+      .optional(),
   }),
   /** Multiplier applied on top of the fal price. 1 means we resell at cost. */
   creditMultiplier: z.number().positive().default(1),

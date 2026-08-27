@@ -8,7 +8,14 @@
   "sortOrder": 20,
   "pricing": {
     "unit": "images",
-    "unitPriceUsd": 0.08
+    "unitPriceUsd": 0.08,
+    "scale": {
+      "field": "resolution",
+      "factors": {
+        "4K": 2
+      }
+    },
+    "note": "fal charges $0.08 per image and charges 4K at double that rate, which is why this entry carries a `scale` factor: the hold has to match or every 4K generation is half price forever."
   },
   "creditMultiplier": 1.25,
   "inputs": [
