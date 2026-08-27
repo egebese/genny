@@ -25,6 +25,14 @@ function fakeStorage(): Storage & { written: { key: string; mime: string; bytes:
     async get() {
       return new Uint8Array()
     },
+    async getStream() {
+      return {
+        body: new ReadableStream<Uint8Array>({ start: (c) => c.close() }),
+        contentType: undefined,
+        contentLength: 0,
+        contentRange: undefined,
+      }
+    },
     async presignUpload() {
       return 'https://example.invalid/upload'
     },

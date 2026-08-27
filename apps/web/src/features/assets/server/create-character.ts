@@ -3,8 +3,8 @@ import {
   createCharacter,
   takenCharacterLabels,
 } from '@genny/assets/characters.ts'
-import { publicUrlFor } from '@genny/assets/keys.ts'
 import { toLabelSlug, uniqueLabel } from '@genny/assets/labels.ts'
+import { assetUrl } from '@genny/assets/urls.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { env } from '@genny/env/env.ts'
@@ -57,7 +57,9 @@ function toMentionable(character: CharacterRecord): MentionableView {
     id: character.id,
     label: character.label,
     kind: 'character',
-    previewUrl: first ? publicUrlFor(env().S3_PUBLIC_URL, first.storageKey) : null,
+    previewUrl: first
+      ? assetUrl({ id: first.assetId, label: character.label, storageKey: first.storageKey })
+      : null,
     count: character.members.length,
   }
 }

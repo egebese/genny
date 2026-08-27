@@ -20,6 +20,21 @@ export type Storage = {
   put: (key: string, body: Uint8Array, mime: string) => Promise<void>
   /** Reads an object back, for handing a reference to a model provider. */
   get: (key: string) => Promise<Uint8Array>
+  /**
+   * Streams an object, optionally a byte range of it. Serving media to a browser
+   * goes through here rather than through `get`: a video may be half a gigabyte
+   * and buffering that to answer one request is how a self-hosted studio runs out
+   * of memory.
+   */
+  getStream: (
+    key: string,
+    range?: string | undefined,
+  ) => Promise<{
+    body: ReadableStream<Uint8Array>
+    contentType: string | undefined
+    contentLength: number | undefined
+    contentRange: string | undefined
+  }>
   /** A url the browser can PUT to directly, so large files skip our server. */
   presignUpload: (key: string, mime: string, expiresIn?: number) => Promise<string>
   presignDownload: (key: string, expiresIn?: number) => Promise<string>
@@ -62,6 +77,18 @@ export function createStorage(config: StorageConfig): Storage {
       const body = await response.Body?.transformToByteArray()
       if (!body) throw new Error(`storage object ${key} had no body`)
       return body
+    },
+    async getStream(key, range) {
+      const response = await client.send(
+        new GetObjectCommand({ Bucket, Key: key, ...(range ? { Range: range } : {}) }),
+      )
+      if (!response.Body) throw new Error(`storage object ${key} had no body`)
+      return {
+        body: response.Body.transformToWebStream(),
+        contentType: response.ContentType,
+        contentLength: response.ContentLength,
+        contentRange: response.ContentRange,
+      }
     },
     presignUpload(key, mime, expiresIn = 600) {
       // ContentType is part of the signature, so the browser cannot upload a

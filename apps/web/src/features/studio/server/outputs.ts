@@ -1,5 +1,4 @@
-import { publicUrlFor } from '@genny/assets/keys.ts'
-import { env } from '@genny/env/env.ts'
+import { assetUrl } from '@genny/assets/urls.ts'
 
 /**
  * What we add to a job's stored output: the assets we ingested, so the gallery
@@ -11,7 +10,7 @@ export type IngestedOutput = {
 }
 
 export function ingestedUrls(output: unknown): string[] {
-  return ingestedAssets(output).map((asset) => publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey))
+  return ingestedAssets(output).map((asset) => assetUrl(asset))
 }
 
 /** Handles of the ingested assets, so a past result stays mentionable. */

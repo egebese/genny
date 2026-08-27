@@ -82,6 +82,26 @@ Test it before taking money: `stripe listen --forward-to
 localhost:3000/api/webhooks/stripe` prints a signing secret for
 `STRIPE_WEBHOOK_SECRET`, and `stripe trigger invoice.paid` walks the whole path.
 
+## Media never comes from the bucket
+
+`S3_PUBLIC_URL` is what the server uses to reach storage. It is not what the
+browser is given: every asset is served from `/api/assets/<id>/<name>` on the
+app's own origin.
+
+That is not indirection for its own sake. A url naming the bucket breaks in
+three ordinary situations: opening the studio over a LAN address or a tunnel
+(the browser resolves the bucket host against itself, and Chrome refuses a
+public page fetching from loopback outright), a bucket that is not
+world-readable, which is the sane default on S3 and R2, and any deployment that
+forgot to add the bucket origin to its CSP.
+
+It also means RLS decides who may read a file, rather than a bucket policy
+nobody remembers configuring. Range requests are passed through, so video
+seeks.
+
+The cost is that media flows through the app. If that becomes the bottleneck,
+put a CDN in front of the route rather than exposing the bucket.
+
 ## Operational chores
 
 | Chore | Frequency | Why |

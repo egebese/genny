@@ -1,6 +1,6 @@
 import { listCharacters } from '@genny/assets/characters.ts'
-import { publicUrlFor } from '@genny/assets/keys.ts'
 import { type AssetRecord, listAssets } from '@genny/assets/repository.ts'
+import { assetUrl } from '@genny/assets/urls.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { env } from '@genny/env/env.ts'
@@ -47,8 +47,6 @@ export async function listAssetsFor(
  */
 export async function listMentionablesFor(actorId: string): Promise<MentionableView[]> {
   const db = appDb(env().DATABASE_URL)
-  const publicBase = env().S3_PUBLIC_URL
-
   const [characters, assets] = await withActor(db, actorId, async (tx) => [
     await listCharacters(tx),
     await listAssets(tx, { limit: 60, kind: 'image' }),
@@ -60,7 +58,11 @@ export async function listMentionablesFor(actorId: string): Promise<MentionableV
       label: character.label,
       kind: 'character' as const,
       previewUrl: character.members[0]
-        ? publicUrlFor(publicBase, character.members[0].storageKey)
+        ? assetUrl({
+            id: character.members[0].assetId,
+            label: character.label,
+            storageKey: character.members[0].storageKey,
+          })
         : null,
       count: character.members.length,
     })),
@@ -68,7 +70,7 @@ export async function listMentionablesFor(actorId: string): Promise<MentionableV
       id: asset.id,
       label: asset.label,
       kind: 'asset' as const,
-      previewUrl: publicUrlFor(publicBase, asset.storageKey),
+      previewUrl: assetUrl(asset),
       count: 1,
     })),
   ]
@@ -79,7 +81,7 @@ export function toView(asset: AssetRecord): AssetView {
     id: asset.id,
     label: asset.label,
     kind: asset.kind,
-    url: publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey),
+    url: assetUrl(asset),
     mime: asset.mime,
     bytes: asset.bytes,
     createdAt: asset.createdAt.toISOString(),

@@ -276,6 +276,42 @@ test.describe('assets and mentions', () => {
   })
 })
 
+test.describe('serving media', () => {
+  test('an asset is served from our own origin, not the bucket', async ({ page }) => {
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    const src = await page.locator('main img').first().getAttribute('src')
+    // Relative: a url naming the bucket's host breaks the moment the studio is
+    // opened over a LAN address, a tunnel, or with a bucket that is not public.
+    expect(src).toMatch(/^\/api\/assets\/[0-9a-f-]{36}\/.+\.png$/)
+
+    const response = await page.request.get(src as string)
+    expect(response.status()).toBe(200)
+    expect(response.headers()['content-type']).toBe('image/png')
+    // The filename is what `download` saves as, so it carries the handle.
+    expect(response.headers()['accept-ranges']).toBe('bytes')
+  })
+
+  test('a stranger cannot read it, whatever the filename says', async ({ page, browser }) => {
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+    const src = (await page.locator('main img').first().getAttribute('src')) as string
+
+    const stranger = await browser.newContext()
+    const response = await stranger.request.get(`${page.url().replace(/\/assets$/, '')}${src}`)
+    expect(response.status()).toBe(404)
+    await stranger.close()
+  })
+
+  test('a malformed id is refused before anything is looked up', async ({ request }) => {
+    const response = await request.get('/api/assets/not-a-uuid/whatever.png')
+    expect(response.status()).toBe(400)
+  })
+})
+
 test.describe('characters', () => {
   /** Two assets in the library, ready to bundle. */
   async function uploadTwo(page: import('@playwright/test').Page) {

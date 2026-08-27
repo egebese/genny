@@ -1,12 +1,11 @@
 import { ingestOutputs } from '@genny/assets/ingest.ts'
-import { publicUrlFor } from '@genny/assets/keys.ts'
 import type { Storage } from '@genny/assets/storage.ts'
+import { assetUrl } from '@genny/assets/urls.ts'
 import type { Billing } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { Database } from '@genny/db/client.ts'
 import { completeJob, failJob, findJob, type JobRecord } from '@genny/db/repositories/jobs.ts'
 import { claimJobSettlement } from '@genny/db/repositories/jobs-settlement.ts'
-import { env } from '@genny/env/env.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
 import { readJobResult } from '@genny/fal/queue.ts'
@@ -87,9 +86,7 @@ export async function finish(context: TrackContext): Promise<TrackEvent> {
     await withActor(db, actorId, (tx) => completeJob(tx, job.id, stored, actual))
 
     const urls =
-      ingested.assets.length > 0
-        ? ingested.assets.map((asset) => publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey))
-        : outputs.urls
+      ingested.assets.length > 0 ? ingested.assets.map((asset) => assetUrl(asset)) : outputs.urls
     return {
       status: 'completed',
       jobId: job.id,
@@ -166,16 +163,19 @@ async function report(context: TrackContext): Promise<TrackEvent> {
   return {
     status: 'completed',
     jobId: context.job.id,
-    urls: assets.map((asset) => publicUrlFor(env().S3_PUBLIC_URL, asset.storageKey)),
+    urls: assets.map((asset) => assetUrl(asset)),
     assetLabels: assets.map((asset) => asset.label),
   }
 }
 
-function storedAssets(output: unknown): { label: string; storageKey: string }[] {
+type StoredAsset = { id: string; label: string; storageKey: string }
+
+function storedAssets(output: unknown): StoredAsset[] {
   const genny = (output as { genny?: { assets?: unknown } } | null)?.genny
   if (!Array.isArray(genny?.assets)) return []
   return genny.assets.filter(
-    (asset): asset is { label: string; storageKey: string } =>
+    (asset): asset is StoredAsset =>
+      typeof (asset as { id?: unknown }).id === 'string' &&
       typeof (asset as { label?: unknown }).label === 'string' &&
       typeof (asset as { storageKey?: unknown }).storageKey === 'string',
   )

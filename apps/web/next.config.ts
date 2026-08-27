@@ -73,9 +73,27 @@ const config: NextConfig = {
     '@genny/ratelimit',
   ],
   poweredByHeader: false,
-  // The e2e suite drives the dev server over 127.0.0.1 rather than localhost.
-  allowedDevOrigins: ['127.0.0.1'],
   reactStrictMode: true,
+  /*
+   * The e2e suite drives the dev server over 127.0.0.1, and testing on a phone
+   * means opening it by its LAN address. Next answers 403 for every chunk unless
+   * the origin is listed, and the page still renders, so the symptom is an app
+   * that looks fine and does nothing.
+   *
+   * Private ranges only, and development only: this list is not in a production
+   * build.
+   */
+  allowedDevOrigins: [
+    'localhost',
+    '127.0.0.1',
+    '*.local',
+    '10.*.*.*',
+    '192.168.*.*',
+    '172.16.*.*',
+    // Tailscale and other CGNAT addresses, which is how a phone usually reaches
+    // a laptop that is not on the same wifi.
+    '100.*.*.*',
+  ],
   async headers() {
     return [
       {
