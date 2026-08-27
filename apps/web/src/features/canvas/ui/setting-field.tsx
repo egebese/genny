@@ -3,6 +3,11 @@
 import type { ModelInput } from '@genny/models/schema.ts'
 import { Icon } from '@genny/ui/icon.tsx'
 import { settingIcon } from './setting-icon.ts'
+import { AspectChip } from './settings/aspect-chip.tsx'
+import { CHIP, CHIP_GLYPH, CHIP_LABEL } from './settings/chip.ts'
+import { CountChip } from './settings/count-chip.tsx'
+import { ScaleChip } from './settings/scale-chip.tsx'
+import { SelectChip } from './settings/select-chip.tsx'
 
 type SettingFieldProps = {
   input: ModelInput
@@ -10,112 +15,102 @@ type SettingFieldProps = {
   onChange: (value: unknown) => void
 }
 
-/*
- * Every control is the same chip: a faint label and the value, side by side, at
- * the height of the model button next to it. Labelled form rows made the dock
- * read as a settings panel with a prompt attached, when the prompt is the point
- * and these are adjustments to it.
- *
- * No border. Inside a panel these already sit one shade up from what is behind
- * them, and an outline on top of that is a second way of saying the same thing.
- */
-const pill =
-  'inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-(--radius-control) bg-control px-2.5 text-xs transition-colors hover:bg-surface-hover focus-within:ring-2 focus-within:ring-accent'
-const label = 'text-ink-faint'
-const glyph = 'size-3.5 text-ink-faint'
-const field = 'bg-transparent text-ink outline-none'
+/** Ordered rungs rather than unordered choices, so a slider is the honest shape. */
+const SCALES = new Set(['resolution', 'rendering_speed'])
+const ASPECTS = new Set(['aspect_ratio', 'image_size', 'ratio'])
 
 /**
- * Renders one control from the model's catalog entry. The catalog decides what
- * exists, so adding a model never means touching this file, and a model without
- * an aspect ratio simply has no aspect ratio control.
+ * Renders one control from the model's catalog entry.
+ *
+ * The catalog decides what exists, so adding a model never means touching this
+ * file, and a model without an aspect ratio simply has no aspect ratio control.
+ * What this file decides is which *shape* of control each field gets, which is a
+ * fact about the field and not about the endpoint.
  */
 export function SettingField({ input, value, onChange }: SettingFieldProps) {
-  const id = `setting-${input.name}`
+  const current = value ?? input.default
 
   if (input.type === 'enum' && input.enum) {
+    const chosen = String(current ?? input.enum[0])
+    if (ASPECTS.has(input.name)) {
+      return (
+        <AspectChip label={input.label} value={chosen} options={input.enum} onChange={onChange} />
+      )
+    }
+    if (SCALES.has(input.name)) {
+      return (
+        <ScaleChip label={input.label} value={chosen} options={input.enum} onChange={onChange} />
+      )
+    }
     return (
-      <span className={pill}>
-        <Icon name={settingIcon(input.name)} className={glyph} />
-        <label htmlFor={id} className={label}>
-          {input.label}
-        </label>
-        <select
-          id={id}
-          className={`${field} -mr-1 cursor-pointer appearance-none pr-3`}
-          value={String(value ?? input.default ?? input.enum[0])}
-          onChange={(event) => onChange(event.target.value)}
-        >
-          {input.enum.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-        <span aria-hidden className="-ml-2 pointer-events-none text-ink-faint">
-          ▾
-        </span>
-      </span>
+      <SelectChip
+        icon={settingIcon(input.name)}
+        label={input.label}
+        value={chosen}
+        options={input.enum}
+        onChange={onChange}
+      />
+    )
+  }
+
+  if (input.name === 'num_images' && input.type === 'integer') {
+    return (
+      <CountChip
+        label={input.label}
+        value={Number(current ?? 1)}
+        min={input.min ?? 1}
+        max={input.max ?? 4}
+        onChange={onChange}
+      />
     )
   }
 
   if (input.type === 'boolean') {
-    const on = Boolean(value ?? input.default)
+    const on = Boolean(current)
     return (
-      <label
-        htmlFor={id}
-        className={`${pill} cursor-pointer ${on ? 'text-accent' : 'text-ink-faint'}`}
-      >
-        <Icon name={settingIcon(input.name)} className={glyph} />
+      <label htmlFor={id(input)} className={`${CHIP} cursor-pointer ${on ? 'text-accent' : ''}`}>
+        <Icon name={settingIcon(input.name)} className={CHIP_GLYPH} />
         <input
-          id={id}
+          id={id(input)}
           type="checkbox"
           className="sr-only"
           checked={on}
           onChange={(event) => onChange(event.target.checked)}
         />
-        {input.label}
+        <span className={on ? '' : CHIP_LABEL}>{input.label}</span>
       </label>
     )
   }
 
-  if (input.type === 'integer' || input.type === 'number') {
-    return (
-      <span className={pill}>
-        <Icon name={settingIcon(input.name)} className={glyph} />
-        <label htmlFor={id} className={label}>
-          {input.label}
-        </label>
-        <input
-          id={id}
-          type="number"
-          className={`${field} w-10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none`}
-          value={String(value ?? input.default ?? '')}
-          min={input.min}
-          max={input.max}
-          step={input.type === 'integer' ? 1 : 0.1}
-          onChange={(event) => {
-            const parsed = event.target.value === '' ? undefined : Number(event.target.value)
-            onChange(parsed)
-          }}
-        />
-      </span>
-    )
-  }
-
+  const numeric = input.type === 'integer' || input.type === 'number'
   return (
-    <span className={pill}>
-      <Icon name={settingIcon(input.name)} className={glyph} />
-      <label htmlFor={id} className={label}>
+    <span className={CHIP}>
+      <Icon name={settingIcon(input.name)} className={CHIP_GLYPH} />
+      <label htmlFor={id(input)} className={CHIP_LABEL}>
         {input.label}
       </label>
       <input
-        id={id}
-        type="text"
-        className={`${field} w-24`}
-        value={String(value ?? input.default ?? '')}
-        onChange={(event) => onChange(event.target.value)}
+        id={id(input)}
+        type={numeric ? 'number' : 'text'}
+        className={`bg-transparent text-ink outline-none ${numeric ? 'w-10 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none' : 'w-24'}`}
+        value={String(current ?? '')}
+        {...(numeric ? { min: input.min, max: input.max } : {})}
+        step={input.type === 'number' ? 0.1 : 1}
+        onChange={(event) => {
+          const raw = event.target.value
+          if (!numeric) return onChange(raw)
+          onChange(raw === '' ? undefined : clamp(Number(raw), input))
+        }}
       />
     </span>
   )
+}
+
+const id = (input: ModelInput) => `setting-${input.name}`
+
+/** The endpoint's own bounds. Past them fal answers 422 and says nothing useful. */
+function clamp(value: number, input: ModelInput): number {
+  const low = input.min ?? Number.NEGATIVE_INFINITY
+  const high = input.max ?? Number.POSITIVE_INFINITY
+  return Math.min(high, Math.max(low, value))
 }

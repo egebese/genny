@@ -156,13 +156,70 @@ test.describe('the dock', () => {
   test('the picker filters and switching a model changes the controls', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await openCanvas(page)
+    // The board opens on Nano Banana, which declares a resolution ladder.
+    await expect(page.getByLabel('Resolution')).toBeVisible()
+
     await page.getByRole('button', { name: /^Model:/ }).click()
     await page.getByPlaceholder('Search models').fill('FLUX')
     await page.getByRole('option', { name: /FLUX/ }).first().click()
 
-    // FLUX declares Steps and Guidance; Nano Banana declares Resolution.
-    await expect(page.getByLabel('Steps')).toBeVisible()
+    // FLUX sizes itself by named image size instead, and has no resolution.
+    await expect(page.getByLabel('Size')).toBeVisible()
     await expect(page.getByLabel('Resolution')).toHaveCount(0)
+  })
+
+  test('the settings that get set once wait behind the adjust button', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+
+    /*
+     * Quality, shape and how many are what changes between one generation and
+     * the next. Format and seed are set once, if ever, and eight chips in a row
+     * made the ones that matter as hard to find as the ones that do not.
+     */
+    await expect(page.getByLabel('Format')).toHaveCount(0)
+    await expect(page.getByLabel('Seed')).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'More settings' }).click()
+    await expect(page.getByLabel('Format')).toBeVisible()
+    await expect(page.getByLabel('Seed')).toBeVisible()
+
+    await page.getByRole('button', { name: 'Fewer settings' }).click()
+    await expect(page.getByLabel('Format')).toHaveCount(0)
+  })
+
+  test('a count control cannot walk past what the endpoint allows', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+
+    const more = page.getByRole('button', { name: 'One more images' })
+    const fewer = page.getByRole('button', { name: 'One fewer images' })
+    // One is the floor, and the catalog says four is the ceiling here. Past
+    // either, fal answers 422 with a reason that never reaches anyone.
+    await expect(fewer).toBeDisabled()
+    for (let step = 0; step < 3; step++) await more.click()
+    await expect(more).toBeDisabled()
+    await expect(fewer).toBeEnabled()
+  })
+
+  test('the price follows the size, because fal bills this model by area', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByPlaceholder('Search models').fill('schnell')
+    await page
+      .getByRole('option', { name: /schnell/ })
+      .first()
+      .click()
+
+    const generate = page.getByRole('button', { name: /^Generate/ })
+    const before = await generate.textContent()
+
+    await page.getByLabel('Size').click()
+    // Sorted the way the catalog lists them, and the first is the largest square.
+    await page.getByRole('dialog').getByRole('button').first().click()
+
+    await expect(generate).not.toHaveText(before ?? '')
   })
 
   test('generate stays disabled until there is a prompt', async ({ page }) => {

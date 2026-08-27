@@ -75,3 +75,25 @@ export function outputCount(settings: Record<string, unknown>): number {
 /** A rail, not a rule: no endpoint in the catalog returns more, and an absurd
  * count from a tampered client should not paper the board. */
 const MAX_OUTPUTS = 16
+
+/**
+ * The shape one aspect option stands for, for drawing it.
+ *
+ * Both spellings, because the same control is `aspect_ratio: "16:9"` on one
+ * endpoint and `image_size: "landscape_16_9"` on another, and a picker that
+ * drew a rectangle for one and a word for the other would be two pickers.
+ *
+ * Null means the model decides, which is a real option (`auto`) and not a
+ * missing one.
+ */
+export function ratioOf(value: string): Size | null {
+  const named = IMAGE_SIZES[value]
+  if (named) return named
+  const parsed = parseRatio(value)
+  if (parsed) return parsed
+  // `portrait_4_3` and friends that are not in the table: the name is the ratio.
+  const words = /^(portrait|landscape)_(\d+)_(\d+)$/.exec(value)
+  if (!words) return null
+  const [long, short] = [Number(words[2]), Number(words[3])]
+  return words[1] === 'portrait' ? { width: short, height: long } : { width: long, height: short }
+}

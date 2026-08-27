@@ -7,9 +7,8 @@ import type { PickableModel } from '../model-list.ts'
 import { type Attachment, AttachmentStrip, type MentionChip } from './attachment-strip.tsx'
 import { GenerateButton } from './generate-button.tsx'
 import { MentionList } from './mention-list.tsx'
-import { ModelPicker } from './model-picker.tsx'
 import { PROMPT_BOX, PromptHighlight } from './prompt-highlight.tsx'
-import { SettingField } from './setting-field.tsx'
+import { SettingsRow } from './settings-row.tsx'
 import { useMentions } from './use-mentions.ts'
 
 /** One dock over every modality, so it asks for whatever the chosen model makes. */
@@ -87,6 +86,7 @@ export function PromptDock(props: PromptDockProps) {
    * An editing model cannot run without an image. Blocking here beats letting
    * fal answer 422 with a reason the person cannot see.
    */
+
   const needsReference =
     model.requiresReference &&
     mentionedLabels(prompt).length === 0 &&
@@ -153,21 +153,14 @@ export function PromptDock(props: PromptDockProps) {
         />
       </div>
 
-      <div className="flex items-center gap-2 px-2 pt-1 pb-2">
-        {/* One line that scrolls sideways rather than a block that wraps: a
-            second row of controls pushes the prompt up the screen on a phone,
-            and the controls are adjustments, not the point. */}
-        <div className="-mx-0.5 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto px-0.5 py-0.5 [mask-image:linear-gradient(to_right,black_calc(100%-1.5rem),transparent)] scrollbar-none">
-          <ModelPicker models={props.models} selected={model} onSelect={props.onModelChange} />
-          {model.inputs.map((input) => (
-            <SettingField
-              key={input.name}
-              input={input}
-              value={settings[input.name]}
-              onChange={(value) => props.onSettingChange(input.name, value)}
-            />
-          ))}
-        </div>
+      <div className="flex items-end gap-2 px-3 pt-2 pb-3">
+        <SettingsRow
+          models={props.models}
+          model={model}
+          settings={settings}
+          onModelChange={props.onModelChange}
+          onSettingChange={props.onSettingChange}
+        />
         <GenerateButton
           model={model}
           settings={settings}

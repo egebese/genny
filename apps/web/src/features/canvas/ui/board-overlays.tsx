@@ -11,7 +11,10 @@ type Bounds = { width: number; height: number }
 type OverlayProps = {
   menu: NodeMenuTarget | null
   inspected: CanvasNodeView | null
+  /** The chosen model, which is what the menu's items come from. */
   model: PickableModel
+  /** All of them, so the panel can mark whichever model made the node it shows. */
+  models: PickableModel[]
   viewport: Viewport
   bounds: Bounds
   onAttach: (field: string, nodes: CanvasNodeView[]) => void
@@ -50,6 +53,7 @@ export function BoardOverlays(props: OverlayProps) {
       {inspected ? (
         <NodePanel
           node={inspected}
+          models={props.models}
           viewport={props.viewport}
           bounds={props.bounds}
           onClose={props.onCloseInspector}

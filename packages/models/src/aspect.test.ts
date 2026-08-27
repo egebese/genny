@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { outputAspect, outputCount } from './aspect.ts'
+import { outputAspect, outputCount, ratioOf } from './aspect.ts'
 
 describe('outputAspect', () => {
   it('reads one of fal named image sizes', () => {
@@ -50,5 +50,24 @@ describe('outputCount', () => {
     expect(outputCount({ num_images: 500 })).toBe(16)
     expect(outputCount({ num_images: 0 })).toBe(1)
     expect(outputCount({ num_images: -3 })).toBe(1)
+  })
+})
+
+describe('ratioOf', () => {
+  it('reads both spellings of the same control', () => {
+    expect(ratioOf('16:9')).toEqual({ width: 16, height: 9 })
+    expect(ratioOf('landscape_16_9')).toEqual({ width: 1024, height: 576 })
+  })
+
+  it('reads a named size that is not in the table from its own name', () => {
+    // fal writes the long edge first either way, so the word is what decides
+    // which way up it goes.
+    expect(ratioOf('portrait_21_9')).toEqual({ width: 9, height: 21 })
+    expect(ratioOf('landscape_21_9')).toEqual({ width: 21, height: 9 })
+  })
+
+  it('says nothing rather than guessing when the model decides', () => {
+    expect(ratioOf('auto')).toBeNull()
+    expect(ratioOf('')).toBeNull()
   })
 })

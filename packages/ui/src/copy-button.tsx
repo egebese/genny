@@ -1,28 +1,26 @@
 'use client'
 
 import { useState } from 'react'
-import { Button, type ButtonProps } from './button.tsx'
+import { cn } from './cn.ts'
+import { Icon } from './icon.tsx'
 
-export type CopyButtonProps = Omit<ButtonProps, 'onClick' | 'children'> & {
+export type CopyButtonProps = {
   value: string
   /** What is being copied, for the label and the announcement. */
   label: string
+  className?: string
 }
 
 /**
- * Copying is the whole point of showing someone a job id or a payload, and the
- * product had no clipboard code at all.
+ * Copying is the whole point of showing someone a job id or a payload.
  *
- * The confirmation lives in the button rather than in a toast: the answer to
- * "did that work" belongs where the click happened.
+ * An icon, not the word Copy. A details panel has five sections and five copy
+ * buttons, and five instances of a word nobody reads is the loudest thing on a
+ * panel whose job is showing evidence. The confirmation still lives in the
+ * button rather than in a toast, because the answer to "did that work" belongs
+ * where the click happened.
  */
-export function CopyButton({
-  value,
-  label,
-  tone = 'ghost',
-  size = 'sm',
-  ...rest
-}: CopyButtonProps) {
+export function CopyButton({ value, label, className }: CopyButtonProps) {
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
 
   async function copy() {
@@ -37,15 +35,22 @@ export function CopyButton({
   }
 
   return (
-    <Button
+    <button
       type="button"
-      tone={tone}
-      size={size}
       aria-label={state === 'copied' ? `${label} copied` : `Copy ${label}`}
       onClick={() => void copy()}
-      {...rest}
+      className={cn(
+        'flex size-6 shrink-0 items-center justify-center rounded-[3px]',
+        'outline-none transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent',
+        state === 'copied' ? 'text-accent' : 'text-ink-faint hover:text-ink',
+        className,
+      )}
     >
-      {state === 'copied' ? 'Copied' : state === 'failed' ? 'Press ⌘C' : 'Copy'}
-    </Button>
+      {state === 'failed' ? (
+        <span className="font-mono text-[10px]">\u2318C</span>
+      ) : (
+        <Icon name={state === 'copied' ? 'check' : 'copy'} className="size-3.5" />
+      )}
+    </button>
   )
 }

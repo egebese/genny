@@ -9,7 +9,8 @@ import type { JobDetail } from '../server/job-detail.ts'
  * without. Every one of them copyable, because retyping a uuid off a screen is
  * how the wrong uuid ends up in the ticket.
  */
-export function JobFacts({ detail }: { detail: JobDetail }) {
+export function JobFacts(props: { detail: JobDetail; markUrl: string | null }) {
+  const { detail } = props
   const settings = JSON.stringify(detail.settings, null, 2)
 
   return (
@@ -34,7 +35,10 @@ export function JobFacts({ detail }: { detail: JobDetail }) {
       ) : null}
 
       <Section label="Model" copy={detail.endpointId}>
-        <p className="text-ink">{detail.modelName}</p>
+        <p className="flex items-center gap-2 text-ink">
+          {props.markUrl ? <img src={props.markUrl} alt="" className="size-4 shrink-0" /> : null}
+          {detail.modelName}
+        </p>
         <p className="break-all font-mono text-ink-faint text-xs">{detail.endpointId}</p>
       </Section>
 
@@ -64,14 +68,27 @@ export function JobFacts({ detail }: { detail: JobDetail }) {
   )
 }
 
+/**
+ * A heading, its content, and a way to copy it that stays out of the way.
+ *
+ * The copy control appears on hover or focus. Five sections meant five copy
+ * buttons visible at once on a panel whose whole job is showing evidence, and
+ * they read louder than the evidence did.
+ */
 function Section(props: { label: string; copy?: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-1">
-      <div className="flex items-center justify-between gap-2">
+    <section className="group/section flex flex-col gap-1">
+      <div className="flex h-6 items-center justify-between gap-2">
         <h3 className="font-mono text-[10px] text-ink-faint uppercase tracking-wider">
           {props.label}
         </h3>
-        {props.copy ? <CopyButton value={props.copy} label={`Copy ${props.label}`} /> : null}
+        {props.copy ? (
+          <CopyButton
+            value={props.copy}
+            label={props.label}
+            className="opacity-0 focus-visible:opacity-100 group-hover/section:opacity-100 group-focus-within/section:opacity-100"
+          />
+        ) : null}
       </div>
       {props.children}
     </section>

@@ -24,6 +24,15 @@ const PATHS = {
   hash: 'M6 2.5 4.5 13.5M11.5 2.5 10 13.5M2.5 5.8h11M2.5 10.2h11',
   info: 'M8 2.8a5.2 5.2 0 1 0 0 10.4A5.2 5.2 0 0 0 8 2.8zM8 7.3v3.4M8 5.3v.1',
   close: 'M4 4l8 8M12 4l-8 8',
+  copy: 'M5.5 5.5h7v7h-7zM3.5 10.5v-7h7',
+  check: 'M3.5 8.5l3 3 6-7',
+  download: 'M8 2.5v8M4.8 7.6 8 10.8l3.2-3.2M3 13h10',
+  link: 'M6.6 9.4a2.7 2.7 0 0 0 4 .3l1.9-1.9a2.7 2.7 0 0 0-3.8-3.8l-1 1M9.4 6.6a2.7 2.7 0 0 0-4-.3L3.5 8.2a2.7 2.7 0 0 0 3.8 3.8l1-1',
+  refresh: 'M13 8a5 5 0 1 1-1.6-3.7M13 2.6V5h-2.4',
+  trash: 'M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5',
+  chevron: 'M4.5 6.5 8 10l3.5-3.5',
+  plus: 'M8 3.5v9M3.5 8h9',
+  minus: 'M3.5 8h9',
 } as const
 
 export type IconName = keyof typeof PATHS
