@@ -80,6 +80,6 @@
     "supportsSeed": true,
     "maxOutputs": 4
   },
-  "thumbnailUrl": "/models/ideogram-v3.svg",
-  "markUrl": "/models/marks/ideogram.svg"
+  "markUrl": "/models/marks/ideogram.svg",
+  "artUrl": "/models/art/ideogram-v3.webp"
 }

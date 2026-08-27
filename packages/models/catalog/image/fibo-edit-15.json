@@ -49,6 +49,6 @@
     "supportsSeed": true,
     "maxOutputs": 1
   },
-  "thumbnailUrl": "/models/bria-fibo-edit-1-5-edit.svg",
-  "markUrl": "/models/marks/briaai.svg"
+  "markUrl": "/models/marks/briaai.svg",
+  "artUrl": "/models/art/bria-fibo-edit-1-5-edit.webp"
 }

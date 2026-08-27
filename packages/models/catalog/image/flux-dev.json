@@ -73,6 +73,6 @@
     "supportsSeed": true,
     "maxOutputs": 4
   },
-  "thumbnailUrl": "/models/flux-dev.svg",
-  "markUrl": "/models/marks/flux.svg"
+  "markUrl": "/models/marks/flux.svg",
+  "artUrl": "/models/art/flux-dev.webp"
 }

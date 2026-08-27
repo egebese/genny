@@ -73,6 +73,6 @@
     "supportsSeed": true,
     "maxOutputs": 1
   },
-  "thumbnailUrl": "/models/wan-v2-7-reference-to-video.svg",
-  "markUrl": "/models/marks/alibaba.svg"
+  "markUrl": "/models/marks/alibaba.svg",
+  "artUrl": "/models/art/wan-v2-7-reference-to-video.webp"
 }

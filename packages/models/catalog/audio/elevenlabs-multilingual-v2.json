@@ -55,6 +55,6 @@
   "capabilities": {
     "maxOutputs": 1
   },
-  "thumbnailUrl": "/models/elevenlabs-tts-multilingual-v2.svg",
-  "markUrl": "/models/marks/elevenlabs.svg"
+  "markUrl": "/models/marks/elevenlabs.svg",
+  "artUrl": "/models/art/elevenlabs-tts-multilingual-v2.webp"
 }

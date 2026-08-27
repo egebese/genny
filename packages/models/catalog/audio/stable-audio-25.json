@@ -44,6 +44,6 @@
     "supportsSeed": true,
     "maxOutputs": 1
   },
-  "thumbnailUrl": "/models/stable-audio-25-text-to-audio.svg",
-  "markUrl": "/models/marks/stability.svg"
+  "markUrl": "/models/marks/stability.svg",
+  "artUrl": "/models/art/stable-audio-25-text-to-audio.webp"
 }

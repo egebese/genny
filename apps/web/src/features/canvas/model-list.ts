@@ -13,8 +13,9 @@ export type PickableModel = {
   /** One line on what the model is for. Shown under the name in the picker. */
   description: string
   group: string
-  thumbnailUrl: string | null
-  /** The provider mark alone, for the chip and the picker rows. */
+  /** The card's backdrop, when one has been generated for this model. */
+  artUrl: string | null
+  /** The provider mark alone, for the card and the dock chip. */
   markUrl: string | null
   priceLabel: string
   pricing: ModelDefinition['pricing']
@@ -40,7 +41,7 @@ export function toPickable(model: ModelDefinition): PickableModel {
     displayName: model.displayName,
     description: model.description,
     group: model.group,
-    thumbnailUrl: model.thumbnailUrl ?? null,
+    artUrl: model.artUrl ?? null,
     markUrl: model.markUrl ?? null,
     priceLabel: `$${model.pricing.unitPriceUsd} / ${model.pricing.unit}`,
     pricing: model.pricing,

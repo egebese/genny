@@ -78,6 +78,6 @@
     "supportsSeed": true,
     "maxOutputs": 1
   },
-  "thumbnailUrl": "/models/pixverse-c1-transition.svg",
-  "markUrl": "/models/marks/pixverse.svg"
+  "markUrl": "/models/marks/pixverse.svg",
+  "artUrl": "/models/art/pixverse-c1-transition.webp"
 }

@@ -25,7 +25,8 @@
     "env:link": "node tooling/src/link-env.mjs",
     "postinstall": "node tooling/src/link-env.mjs",
     "cards": "node tooling/src/model-cards.mjs",
-    "cards:check": "node tooling/src/model-cards.mjs --check"
+    "cards:check": "node tooling/src/model-cards.mjs --check",
+    "cards:art": "node tooling/src/model-cards.mjs --art"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",

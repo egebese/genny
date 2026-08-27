@@ -68,6 +68,6 @@
     "supportsSeed": true,
     "maxOutputs": 4
   },
-  "thumbnailUrl": "/models/nano-banana-pro-edit.svg",
-  "markUrl": "/models/marks/gemini.svg"
+  "markUrl": "/models/marks/gemini.svg",
+  "artUrl": "/models/art/nano-banana-pro-edit.webp"
 }
