@@ -21,6 +21,8 @@ export type PickableModel = {
   pricing: ModelDefinition['pricing']
   /** On the client so the button can price the request without a round trip. */
   creditMultiplier: number
+  /** Which input carries the prompt, so the rest can be listed without it. */
+  promptField: string
   inputs: ModelInput[]
   /**
    * Where media can be pinned on this model. Crosses to the client whole,
@@ -46,6 +48,7 @@ export function toPickable(model: ModelDefinition): PickableModel {
     priceLabel: `$${model.pricing.unitPriceUsd} / ${model.pricing.unit}`,
     pricing: model.pricing,
     creditMultiplier: model.creditMultiplier,
+    promptField: model.promptField,
     // The prompt has the dock's textarea; rendering it again as a setting gives
     // the model two places to read the same thing from and the person one too
     // many to fill in.

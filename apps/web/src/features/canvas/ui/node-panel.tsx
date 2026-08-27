@@ -4,19 +4,15 @@ import { anchorPanel } from '@genny/canvas/anchor.ts'
 import { toScreen, type Viewport } from '@genny/canvas/geometry.ts'
 import { Alert } from '@genny/ui/alert.tsx'
 import { Button } from '@genny/ui/button.tsx'
-import { ConfirmInline } from '@genny/ui/confirm-inline.tsx'
-import { Icon } from '@genny/ui/icon.tsx'
 import { Spinner } from '@genny/ui/spinner.tsx'
 import { useEffect, useState } from 'react'
 import type { PickableModel } from '../model-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
 import { type JobDetail, jobDetail } from '../server/job-detail.ts'
 import { JobFacts } from './job-facts.tsx'
+import { PanelActions } from './panel-actions.tsx'
 
 const PANEL = { width: 320, height: 460 }
-
-const ACTION =
-  'flex size-8 items-center justify-center rounded-(--radius-control) text-ink-muted outline-none transition-colors hover:bg-surface-hover hover:text-ink focus-visible:ring-2 focus-visible:ring-accent'
 
 export type ReuseRequest = { modelId: string; prompt: string; settings: Record<string, unknown> }
 
@@ -24,6 +20,8 @@ type NodePanelProps = {
   node: CanvasNodeView
   /** Every model this board knows, so the panel can mark whichever made this. */
   models: PickableModel[]
+  /** Credits are a saas idea; in byok the visitor spends their own fal balance. */
+  showCost: boolean
   viewport: Viewport
   bounds: { width: number; height: number }
   onClose: () => void
@@ -64,8 +62,7 @@ export function NodePanel(props: NodePanelProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [props.onClose])
 
-  const markUrl =
-    props.models.find((model) => model.endpointId === detail?.endpointId)?.markUrl ?? null
+  const made = props.models.find((model) => model.endpointId === detail?.endpointId)
 
   const screen = toScreen({ x: node.x, y: node.y }, viewport)
   const position = anchorPanel(
@@ -118,7 +115,13 @@ export function NodePanel(props: NodePanelProps) {
             <Spinner /> Loading details
           </p>
         ) : detail ? (
-          <JobFacts detail={detail} markUrl={markUrl} />
+          <JobFacts
+            detail={detail}
+            markUrl={made?.markUrl ?? null}
+            inputs={made?.inputs ?? []}
+            promptField={made?.promptField ?? 'prompt'}
+            showCost={props.showCost}
+          />
         ) : (
           <p className="text-ink-muted text-sm">
             Placed from the asset library, so there is no generation behind it.
@@ -126,52 +129,13 @@ export function NodePanel(props: NodePanelProps) {
         )}
       </div>
 
-      {/* One row of icons, not four labels wrapping onto two lines. Every one of
-          them is a verb people already know the shape of, and the tooltip and
-          the accessible name still say the word. */}
-      <footer className="flex items-center gap-1 border-line border-t px-2 py-2">
-        {node.url ? (
-          <a href={node.url} download title="Download" aria-label="Download" className={ACTION}>
-            <Icon name="download" className="size-4" />
-          </a>
-        ) : null}
-        {node.label ? (
-          <button
-            type="button"
-            title="Use as reference"
-            aria-label="Use as reference"
-            className={ACTION}
-            onClick={() => props.onMention(node.label ?? '')}
-          >
-            <Icon name="link" className="size-4" />
-          </button>
-        ) : null}
-        {detail ? (
-          <button
-            type="button"
-            title="Reuse settings"
-            aria-label="Reuse settings"
-            className={ACTION}
-            onClick={() =>
-              props.onReuse({
-                modelId: detail.endpointId,
-                prompt: detail.prompt,
-                settings: detail.settings,
-              })
-            }
-          >
-            <Icon name="refresh" className="size-4" />
-          </button>
-        ) : null}
-        <span className="ml-auto">
-          <ConfirmInline
-            label="Delete"
-            question="Remove this from the board?"
-            confirmLabel="Remove"
-            onConfirm={props.onDelete}
-          />
-        </span>
-      </footer>
+      <PanelActions
+        node={node}
+        detail={detail}
+        onMention={props.onMention}
+        onReuse={props.onReuse}
+        onDelete={props.onDelete}
+      />
     </aside>
   )
 }

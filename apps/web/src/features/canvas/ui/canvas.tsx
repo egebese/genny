@@ -152,6 +152,7 @@ export function Canvas(props: ProjectPage) {
           inspected={inspected}
           model={model}
           models={props.models}
+          showCost={props.credits !== null}
           viewport={view.viewport}
           bounds={bounds}
           onAttach={(field, chosen) => {

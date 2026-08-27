@@ -15,6 +15,7 @@ type OverlayProps = {
   model: PickableModel
   /** All of them, so the panel can mark whichever model made the node it shows. */
   models: PickableModel[]
+  showCost: boolean
   viewport: Viewport
   bounds: Bounds
   onAttach: (field: string, nodes: CanvasNodeView[]) => void
@@ -54,6 +55,7 @@ export function BoardOverlays(props: OverlayProps) {
         <NodePanel
           node={inspected}
           models={props.models}
+          showCost={props.showCost}
           viewport={props.viewport}
           bounds={props.bounds}
           onClose={props.onCloseInspector}
