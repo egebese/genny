@@ -1,0 +1,39 @@
+{
+  "family": {
+    "id": "minimax-music",
+    "name": "MiniMax Music"
+  },
+  "markUrl": "/models/marks/minimax.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "audio_url": {
+      "role": "source",
+      "accepts": ["audio"],
+      "label": "Work from this audio"
+    },
+    "reference_audio_url": {
+      "role": "voice-sample",
+      "accepts": ["audio"],
+      "label": "Use as voice sample"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Score this clip"
+    }
+  },
+  "endpoints": {
+    "minimax/music-3": {
+      "group": "Music",
+      "displayName": "MiniMax Music 3",
+      "description": "Takes a description and the actual lyrics, and sings them.",
+      "sortOrder": 5600,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.002,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.002 per second of output. genmedia reports $0.00125 per compute second, which is not what a request is charged."
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "endpointId": "fal-ai/nano-banana",
+  "family": {
+    "id": "nano-banana",
+    "name": "Nano Banana"
+  },
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Nano Banana",
+  "description": "The first Nano Banana, half the price of the 2 and still quick and literal.",
+  "sortOrder": 1200,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.039,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.039 per image."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "limit_generations",
+      "label": "Limit generations",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "png",
+      "type": "enum",
+      "enum": ["jpeg", "png", "webp"]
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "safety_tolerance",
+      "label": "Safety tolerance",
+      "default": "4",
+      "type": "enum",
+      "enum": ["1", "2", "3", "4", "5", "6"]
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "1:1",
+      "type": "enum",
+      "enum": ["21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16"]
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/gemini.svg"
+}

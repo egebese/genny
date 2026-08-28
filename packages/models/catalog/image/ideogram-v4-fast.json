@@ -1,0 +1,91 @@
+{
+  "endpointId": "ideogram/v4/fast",
+  "family": {
+    "id": "ideogram-v4",
+    "name": "Ideogram V4"
+  },
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Ideogram V4 Fast",
+  "description": "Thirty percent cheaper, for finding the layout before setting the type.",
+  "sortOrder": 1410,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.00525,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.00525 per megapixel in TURBO, $0.0105 in BALANCED and $0.0175 in QUALITY.",
+    "scale": [
+      {
+        "field": "rendering_speed",
+        "factors": {
+          "TURBO": 1,
+          "BALANCED": 2,
+          "QUALITY": 3.3333
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "expansion_model",
+      "label": "Expansion model",
+      "default": "Medium",
+      "type": "enum",
+      "enum": ["None", "Medium"]
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "rendering_speed",
+      "label": "Rendering speed",
+      "default": "BALANCED",
+      "type": "enum",
+      "enum": ["TURBO", "BALANCED", "QUALITY"]
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "jpeg",
+      "type": "enum",
+      "enum": ["jpeg", "png"]
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/ideogram.svg"
+}

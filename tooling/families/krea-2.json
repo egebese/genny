@@ -1,0 +1,105 @@
+{
+  "_": "Krea. The turbo routes bill per megapixel, the v2 sizes per image.",
+  "family": {
+    "id": "krea-2",
+    "name": "Krea 2"
+  },
+  "markUrl": "/models/marks/krea.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "source",
+      "label": "Edit this"
+    },
+    "image_urls": {
+      "role": "input-images",
+      "label": "Add to input images"
+    },
+    "mask_url": {
+      "role": "mask",
+      "label": "Use as mask"
+    },
+    "style_reference_image_urls": {
+      "role": "style-reference",
+      "label": "Use as style reference"
+    },
+    "image_style_reference_urls": {
+      "role": "style-reference",
+      "label": "Use as style reference"
+    }
+  },
+  "endpoints": {
+    "fal-ai/krea-2/turbo": {
+      "group": "Text to Image",
+      "displayName": "Krea 2 Turbo",
+      "description": "Krea's fast tier. A megapixel costs less than a cent.",
+      "sortOrder": 1300,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.008,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.008 per megapixel."
+      }
+    },
+    "fal-ai/krea-2/turbo/lora": {
+      "group": "Text to Image",
+      "displayName": "Krea 2 Turbo LoRA",
+      "description": "Krea Turbo driven by LoRA weights of your own.",
+      "sortOrder": 1310,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.01,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.01 per megapixel."
+      }
+    },
+    "fal-ai/krea-2/turbo/style": {
+      "group": "Text to Image",
+      "displayName": "Krea 2 Turbo Style",
+      "description": "Krea Turbo following the look of pictures you hand it.",
+      "sortOrder": 1320,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.01,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.01 per megapixel."
+      }
+    },
+    "krea/v2/large/text-to-image": {
+      "group": "Text to Image",
+      "displayName": "Krea 2 Large",
+      "description": "The full-size Krea, and the one worth the wait.",
+      "sortOrder": 1330,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.065,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.060 per image and $0.065 when style references are given. Priced from the higher of the two, so a plain generation is held a half cent over and settle returns it."
+      }
+    },
+    "krea/v2/medium/text-to-image": {
+      "group": "Text to Image",
+      "displayName": "Krea 2 Medium",
+      "description": "Half the price of Large and hard to tell apart at a glance.",
+      "sortOrder": 1340,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.035,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.030 per image and $0.035 with style references."
+      }
+    },
+    "krea/v2/medium/turbo/text-to-image": {
+      "group": "Text to Image",
+      "displayName": "Krea 2 Medium Turbo",
+      "description": "The cheapest Krea, for finding a composition.",
+      "sortOrder": 1350,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.0175,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.015 per image and $0.0175 with style references."
+      }
+    }
+  }
+}

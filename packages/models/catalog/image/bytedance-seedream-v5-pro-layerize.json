@@ -1,0 +1,66 @@
+{
+  "endpointId": "bytedance/seedream/v5/pro/layerize",
+  "family": {
+    "id": "seedream-5",
+    "name": "Seedream 5"
+  },
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "Seedream 5 Layerize",
+  "description": "Splits a picture into layers you can move independently. Nothing to type: it is given the picture and told to take it apart. Billed per layer it produces.",
+  "sortOrder": 1260,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.03375,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.03375 per generated layer under 1536x1536 and $0.0675 above. Priced per image because the layer count is not an input; several layers hold as one and settle captures what was produced."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "inputs": [
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "image_size",
+      "label": "Image size",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "auto_1K", "auto_1.5K", "auto_2K"]
+    },
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "enhance_prompt_mode",
+      "label": "Enhance prompt mode",
+      "default": "standard",
+      "type": "enum",
+      "enum": ["standard", "fast"]
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Edit this"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/bytedance.svg"
+}

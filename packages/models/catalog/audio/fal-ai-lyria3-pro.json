@@ -1,0 +1,51 @@
+{
+  "endpointId": "fal-ai/lyria3/pro",
+  "family": {
+    "id": "lyria-3",
+    "name": "Lyria 3"
+  },
+  "modality": "audio",
+  "group": "Music",
+  "displayName": "Lyria 3 Pro",
+  "description": "Google's music model at full quality. Flat per track.",
+  "sortOrder": 5300,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.08,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.08 per generated audio."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "negative_prompt",
+      "label": "Negative prompt",
+      "default": "",
+      "type": "string"
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/gemini.svg"
+}

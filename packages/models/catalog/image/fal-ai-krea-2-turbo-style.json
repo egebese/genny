@@ -1,0 +1,98 @@
+{
+  "endpointId": "fal-ai/krea-2/turbo/style",
+  "family": {
+    "id": "krea-2",
+    "name": "Krea 2"
+  },
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Krea 2 Turbo Style",
+  "description": "Krea Turbo following the look of pictures you hand it.",
+  "sortOrder": 1320,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.01,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.01 per megapixel."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "enable_prompt_expansion",
+      "label": "Enable prompt expansion",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "acceleration",
+      "label": "Acceleration",
+      "default": "none",
+      "type": "enum",
+      "enum": ["none", "regular"]
+    },
+    {
+      "name": "style_scale",
+      "label": "Style scale",
+      "default": 1,
+      "type": "number",
+      "min": 0,
+      "max": 4
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "png",
+      "type": "enum",
+      "enum": ["jpeg", "png"]
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    }
+  ],
+  "references": [
+    {
+      "field": "reference_image_urls",
+      "role": "reference",
+      "accepts": ["image"],
+      "required": true,
+      "array": true,
+      "maxCount": 3,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/krea.svg"
+}

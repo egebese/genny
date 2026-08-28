@@ -1,0 +1,89 @@
+{
+  "endpointId": "fal-ai/elevenlabs/text-to-dialogue/eleven-v3",
+  "family": {
+    "id": "elevenlabs",
+    "name": "ElevenLabs"
+  },
+  "modality": "audio",
+  "group": "Text to Speech",
+  "displayName": "ElevenLabs Dialogue",
+  "description": "Several speakers in one take, so the timing between lines is performed rather than edited. Nothing to type in the prompt box: the lines go in the list below, each with the voice that reads it.",
+  "sortOrder": 5110,
+  "pricing": {
+    "unit": "characters",
+    "unitPriceUsd": 0.0001,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.1 per thousand characters."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "inputs": [
+    {
+      "name": "use_speaker_boost",
+      "label": "Use speaker boost",
+      "type": "boolean"
+    },
+    {
+      "name": "inputs",
+      "label": "Inputs",
+      "required": true,
+      "type": "object-array",
+      "fields": [
+        {
+          "name": "voice",
+          "label": "Voice",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "text",
+          "label": "Text",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "stability",
+      "label": "Stability",
+      "type": "number",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "language_code",
+      "label": "Language code",
+      "type": "string"
+    },
+    {
+      "name": "pronunciation_dictionary_locators",
+      "label": "Pronunciation dictionary locators",
+      "default": [],
+      "type": "object-array",
+      "fields": [
+        {
+          "name": "pronunciation_dictionary_id",
+          "label": "Pronunciation dictionary id",
+          "type": "string"
+        },
+        {
+          "name": "version_id",
+          "label": "Version id",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/elevenlabs.svg"
+}

@@ -1,0 +1,57 @@
+{
+  "_": "Nano Banana v1, alongside the 2 and Pro already in the catalog.",
+  "family": {
+    "id": "nano-banana",
+    "name": "Nano Banana"
+  },
+  "markUrl": "/models/marks/gemini.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "source",
+      "label": "Edit this"
+    },
+    "image_urls": {
+      "role": "input-images",
+      "label": "Add to input images"
+    },
+    "mask_url": {
+      "role": "mask",
+      "label": "Use as mask"
+    },
+    "style_reference_image_urls": {
+      "role": "style-reference",
+      "label": "Use as style reference"
+    },
+    "image_style_reference_urls": {
+      "role": "style-reference",
+      "label": "Use as style reference"
+    }
+  },
+  "endpoints": {
+    "fal-ai/nano-banana": {
+      "group": "Text to Image",
+      "displayName": "Nano Banana",
+      "description": "The first Nano Banana, half the price of the 2 and still quick and literal.",
+      "sortOrder": 1200,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.039,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.039 per image."
+      }
+    },
+    "fal-ai/nano-banana/edit": {
+      "group": "Editing",
+      "displayName": "Nano Banana Edit",
+      "description": "The same model given pictures to work from rather than a blank page.",
+      "sortOrder": 1210,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.039,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.039 per image."
+      }
+    }
+  }
+}

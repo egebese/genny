@@ -1,0 +1,35 @@
+{
+  "_": "Upscalers, image and video. None has a prompt: each is handed a picture or a clip and asked to make it bigger, which is why `promptField` is null and a required reference is what the dock asks for instead.",
+  "family": {
+    "id": "seedvr-upscale",
+    "name": "SeedVR Upscale"
+  },
+  "markUrl": "/models/marks/bytedance.svg",
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "roles": {
+    "image_url": {
+      "role": "source",
+      "label": "Upscale this"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Upscale this clip"
+    }
+  },
+  "endpoints": {
+    "fal-ai/seedvr/upscale/video": {
+      "group": "Upscale",
+      "displayName": "SeedVR Video Upscale",
+      "sortOrder": 3400,
+      "description": "Makes a clip bigger without inventing detail. Billed by the pixels it touches, so a short clip is cheap and a long one is not.",
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.001,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.001 per megapixel of video data, which is width times height times frame count. The estimate here counts one frame, because the frame count is not an input and cannot be known before the clip is read; settle captures what was actually produced."
+      }
+    }
+  }
+}

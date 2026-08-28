@@ -1,0 +1,121 @@
+{
+  "endpointId": "ideogram/v4/lora",
+  "family": {
+    "id": "ideogram-v4",
+    "name": "Ideogram V4"
+  },
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Ideogram V4 LoRA",
+  "description": "Ideogram driven by weights you trained.",
+  "sortOrder": 1430,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.01125,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.01125 per megapixel in TURBO, $0.0225 in BALANCED and $0.0375 in QUALITY.",
+    "scale": [
+      {
+        "field": "rendering_speed",
+        "factors": {
+          "TURBO": 1,
+          "BALANCED": 2,
+          "QUALITY": 3.3333
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "expansion_model",
+      "label": "Expansion model",
+      "default": "Medium",
+      "type": "enum",
+      "enum": ["None", "Medium", "Large"]
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "loras",
+      "label": "Loras",
+      "default": [],
+      "type": "object-array",
+      "max": 3,
+      "fields": [
+        {
+          "name": "path",
+          "label": "Path",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "scale",
+          "label": "Scale",
+          "default": 1,
+          "type": "number",
+          "min": 0,
+          "max": 4
+        }
+      ]
+    },
+    {
+      "name": "acceleration",
+      "label": "Acceleration",
+      "default": "none",
+      "type": "enum",
+      "enum": ["none", "low", "regular", "high"]
+    },
+    {
+      "name": "rendering_speed",
+      "label": "Rendering speed",
+      "default": "BALANCED",
+      "type": "enum",
+      "enum": ["TURBO", "BALANCED", "QUALITY"]
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "jpeg",
+      "type": "enum",
+      "enum": ["jpeg", "png"]
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/ideogram.svg"
+}

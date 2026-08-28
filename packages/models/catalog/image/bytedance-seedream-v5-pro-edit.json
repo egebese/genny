@@ -1,0 +1,73 @@
+{
+  "endpointId": "bytedance/seedream/v5/pro/edit",
+  "family": {
+    "id": "seedream-5",
+    "name": "Seedream 5"
+  },
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "Seedream 5 Pro Edit",
+  "description": "Seedream Pro working from pictures. Charges a little more for each one after the first.",
+  "sortOrder": 1250,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.0675,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.0675 per image at or below 1536x1536 and $0.135 above it, plus $0.0045 for each input image after the first."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "jpeg",
+      "type": "enum",
+      "enum": ["jpeg", "png"]
+    },
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 6
+    }
+  ],
+  "references": [
+    {
+      "field": "image_urls",
+      "role": "input-images",
+      "accepts": ["image"],
+      "required": true,
+      "array": true,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Add to input images"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/bytedance.svg"
+}

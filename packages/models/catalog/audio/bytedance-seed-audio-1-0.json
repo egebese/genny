@@ -1,0 +1,107 @@
+{
+  "endpointId": "bytedance/seed-audio-1.0",
+  "family": {
+    "id": "seed-audio",
+    "name": "Seed Audio"
+  },
+  "modality": "audio",
+  "group": "Text to Speech",
+  "displayName": "Seed Audio 1.0",
+  "description": "ByteDance's speech model. Billed by the minute, with no length control of its own: it reads what you give it and stops.",
+  "sortOrder": 5400,
+  "pricing": {
+    "unit": "minutes",
+    "unitPriceUsd": 0.1875,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.1875 per minute of output. It has no duration input, so the hold assumes one minute and settle captures what was produced.",
+    "duration": {
+      "assume": 60,
+      "unit": "seconds"
+    }
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "voice",
+      "label": "Voice",
+      "type": "string"
+    },
+    {
+      "name": "pitch",
+      "label": "Pitch",
+      "default": 0,
+      "type": "integer",
+      "min": -12,
+      "max": 12
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "mp3",
+      "type": "enum",
+      "enum": ["wav", "mp3", "pcm", "ogg_opus"]
+    },
+    {
+      "name": "sample_rate",
+      "label": "Sample rate",
+      "default": 24000,
+      "type": "enum",
+      "enum": [8000, 16000, 24000, 32000, 44100, 48000]
+    },
+    {
+      "name": "volume",
+      "label": "Volume",
+      "default": 1,
+      "type": "number",
+      "min": 0.5,
+      "max": 2
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "speed",
+      "label": "Speed",
+      "default": 1,
+      "type": "number",
+      "min": 0.5,
+      "max": 2
+    },
+    {
+      "name": "multilingual",
+      "label": "Multilingual",
+      "default": false,
+      "type": "boolean"
+    }
+  ],
+  "references": [
+    {
+      "field": "audio_urls",
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "required": false,
+      "array": true,
+      "maxCount": 3,
+      "token": "strip"
+    },
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/bytedance.svg"
+}

@@ -1,0 +1,52 @@
+{
+  "endpointId": "fal-ai/recraft/upscale/crisp",
+  "family": {
+    "id": "recraft-upscale",
+    "name": "Recraft Upscale"
+  },
+  "modality": "image",
+  "group": "Upscale",
+  "displayName": "Recraft Crisp Upscale",
+  "description": "Sharpens and enlarges without redrawing anything. The cheapest way to make a picture printable.",
+  "sortOrder": 1500,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.004,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.004 per image."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "inputs": [
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Upscale this"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/recraft.svg"
+}

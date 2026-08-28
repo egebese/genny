@@ -1,0 +1,69 @@
+{
+  "endpointId": "bytedance/seedream/v5/lite/text-to-image",
+  "family": {
+    "id": "seedream-5",
+    "name": "Seedream 5"
+  },
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Seedream 5 Lite",
+  "description": "Half the price of Pro and flat at every size.",
+  "sortOrder": 1270,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.035,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.035 per image."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 6
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "max_images",
+      "label": "Max images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 6
+    },
+    {
+      "name": "return_byteplus_urls",
+      "label": "Return byteplus",
+      "default": false,
+      "type": "boolean"
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/bytedance.svg"
+}

@@ -1,0 +1,123 @@
+{
+  "endpointId": "krea/v2/large/text-to-image",
+  "family": {
+    "id": "krea-2",
+    "name": "Krea 2"
+  },
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Krea 2 Large",
+  "description": "The full-size Krea, and the one worth the wait.",
+  "sortOrder": 1330,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.065,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.060 per image and $0.065 when style references are given. Priced from the higher of the two, so a plain generation is held a half cent over and settle returns it."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "image_style_references",
+      "label": "Image style references",
+      "default": [],
+      "type": "object-array",
+      "max": 10,
+      "fields": [
+        {
+          "name": "image_url",
+          "label": "Image",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "strength",
+          "label": "Strength",
+          "default": 1,
+          "type": "number",
+          "min": -2,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "1:1",
+      "type": "enum",
+      "enum": ["1:1", "4:3", "3:2", "16:9", "2.35:1", "4:5", "2:3", "9:16"]
+    },
+    {
+      "name": "creativity",
+      "label": "Creativity",
+      "default": "medium",
+      "type": "enum",
+      "enum": ["raw", "low", "medium", "high"]
+    },
+    {
+      "name": "styles",
+      "label": "Styles",
+      "default": [],
+      "type": "object-array",
+      "max": 10,
+      "fields": [
+        {
+          "name": "id",
+          "label": "Id",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "strength",
+          "label": "Strength",
+          "default": 1,
+          "type": "number",
+          "min": -2,
+          "max": 2
+        }
+      ]
+    },
+    {
+      "name": "moodboards",
+      "label": "Moodboards",
+      "default": [],
+      "type": "object-array",
+      "max": 1,
+      "fields": [
+        {
+          "name": "id",
+          "label": "Id",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "strength",
+          "label": "Strength",
+          "default": 0.23,
+          "type": "number",
+          "min": 0,
+          "max": 1
+        }
+      ]
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/krea.svg"
+}

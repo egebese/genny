@@ -6,7 +6,7 @@ import type { PickableModel } from '../model-list.ts'
 export type DockBlock =
   | { kind: 'needs-reference' }
   | { kind: 'cannot-take' }
-  | { kind: 'needs-rows'; label: string }
+  | { kind: 'needs-setting'; label: string }
   | null
 
 /**
@@ -53,30 +53,31 @@ export function whyBlocked(context: {
     return { kind: 'needs-reference' }
   }
   /*
-   * A list the endpoint refuses to run without, still empty.
+   * A control the endpoint refuses to run without, still empty.
    *
-   * `required-inputs-can-arrive` lets a required list ship without a default,
-   * because fal asks for at least one row and an empty list fails its own
-   * minimum, so there is no default that would work. This is the other half of
-   * that exemption: without it the generation is refused by the model's own
-   * schema after the money, which is the failure the rule exists to prevent.
+   * `required-inputs-can-arrive` lets a visible required control ship without a
+   * default, because several of them have none that would work: an empty list
+   * fails fal's own minimum, and MiniMax Music wants lyrics. This is the other
+   * half of that exemption. Without it the generation is refused by the model's
+   * own schema after the money, which is the failure the rule exists to prevent.
    */
   const empty = context.model.inputs.find((input) => {
-    if (input.type !== 'object-array' || !input.required) return false
-    const rows = context.settings[input.name]
-    return !Array.isArray(rows) || rows.length === 0
+    if (!input.required || input.default !== undefined) return false
+    const held = context.settings[input.name]
+    if (input.type === 'object-array') return !Array.isArray(held) || held.length === 0
+    return held === undefined || held === null || held === ''
   })
-  return empty ? { kind: 'needs-rows', label: empty.label } : null
+  return empty ? { kind: 'needs-setting', label: empty.label } : null
 }
 
 export function DockNotice(props: { block: DockBlock; family: PickableFamily }) {
   if (!props.block) return null
 
-  if (props.block.kind === 'needs-rows') {
+  if (props.block.kind === 'needs-setting') {
     return (
       <p className="border-line border-t px-4 py-2 text-ink-muted text-sm">
-        {props.family.name} needs at least one {props.block.label.toLowerCase().replace(/s$/, '')}.
-        Open <span className="text-ink">{props.block.label}</span> below and add one.
+        {props.family.name} will not run without{' '}
+        <span className="text-ink">{props.block.label.toLowerCase()}</span>. Set it below.
       </p>
     )
   }

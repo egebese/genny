@@ -1,0 +1,117 @@
+{
+  "endpointId": "ideogram/v4/image-to-image",
+  "family": {
+    "id": "ideogram-v4",
+    "name": "Ideogram V4"
+  },
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "Ideogram V4 Image to Image",
+  "description": "Ideogram working from a picture rather than a blank page.",
+  "sortOrder": 1450,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.0075,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.0075 per megapixel in TURBO, $0.015 in BALANCED and $0.025 in QUALITY.",
+    "scale": [
+      {
+        "field": "rendering_speed",
+        "factors": {
+          "TURBO": 1,
+          "BALANCED": 2,
+          "QUALITY": 3.3333
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "expansion_model",
+      "label": "Expansion model",
+      "default": "Medium",
+      "type": "enum",
+      "enum": ["None", "Medium", "Large"]
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "acceleration",
+      "label": "Acceleration",
+      "default": "none",
+      "type": "enum",
+      "enum": ["none", "low", "regular", "high"]
+    },
+    {
+      "name": "rendering_speed",
+      "label": "Rendering speed",
+      "default": "BALANCED",
+      "type": "enum",
+      "enum": ["TURBO", "BALANCED", "QUALITY"]
+    },
+    {
+      "name": "strength",
+      "label": "Strength",
+      "default": 0.8,
+      "type": "number",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "jpeg",
+      "type": "enum",
+      "enum": ["jpeg", "png"]
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Edit this"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/ideogram.svg"
+}

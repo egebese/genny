@@ -1,0 +1,82 @@
+{
+  "family": {
+    "id": "elevenlabs",
+    "name": "ElevenLabs"
+  },
+  "markUrl": "/models/marks/elevenlabs.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "audio_url": {
+      "role": "source",
+      "accepts": ["audio"],
+      "label": "Work from this audio"
+    },
+    "reference_audio_url": {
+      "role": "voice-sample",
+      "accepts": ["audio"],
+      "label": "Use as voice sample"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Score this clip"
+    }
+  },
+  "endpoints": {
+    "fal-ai/elevenlabs/tts/eleven-v3": {
+      "group": "Text to Speech",
+      "displayName": "ElevenLabs v3",
+      "description": "The current ElevenLabs voice model, and still the one that sounds least like a machine reading.",
+      "sortOrder": 5100,
+      "pricing": {
+        "unit": "characters",
+        "unitPriceUsd": 0.0001,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.1 per thousand characters, which is $0.0001 each and what the catalog stores."
+      }
+    },
+    "fal-ai/elevenlabs/text-to-dialogue/eleven-v3": {
+      "group": "Text to Speech",
+      "displayName": "ElevenLabs Dialogue",
+      "description": "Several speakers in one take, so the timing between lines is performed rather than edited. Nothing to type in the prompt box: the lines go in the list below, each with the voice that reads it.",
+      "sortOrder": 5110,
+      "pricing": {
+        "unit": "characters",
+        "unitPriceUsd": 0.0001,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.1 per thousand characters."
+      },
+      "promptField": null
+    },
+    "fal-ai/elevenlabs/sound-effects/v2": {
+      "group": "Sound Effects",
+      "displayName": "ElevenLabs Sound Effects",
+      "description": "A described noise, made to length. Cheap enough to try ten of.",
+      "sortOrder": 5120,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.002,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.002 per second of output."
+      }
+    },
+    "fal-ai/elevenlabs/music": {
+      "group": "Music",
+      "displayName": "ElevenLabs Music",
+      "description": "Full arrangements from a description, up to ten minutes.",
+      "sortOrder": 5130,
+      "pricing": {
+        "unit": "minutes",
+        "unitPriceUsd": 0.6,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.6 per minute of output audio. Its length is `music_length_ms`, in milliseconds, which is why the entry names the field rather than letting the estimator guess at `duration`.",
+        "duration": {
+          "field": "music_length_ms",
+          "unit": "milliseconds",
+          "assume": 1
+        }
+      },
+      "require": ["prompt"]
+    }
+  }
+}

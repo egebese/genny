@@ -30,27 +30,21 @@ describe('buildInputSchema', () => {
      * request was made, and no setting was wrong.
      */
     for (const { definition } of await loadCatalog()) {
-      // A model with no prompt is asked for nothing at all, which is the same
-      // question: can a generation nobody adjusted validate.
-      // A required list of rows is filled in by the dock before it will submit,
-      // so the question here is whether everything else can be left alone.
-      const rows = Object.fromEntries(
+      /*
+       * A model with no prompt is asked for nothing at all, which is the same
+       * question. What the dock asks for out loud is filled in here, because
+       * it will not submit until somebody has: a required control with no
+       * default holds Generate back and says which one is empty.
+       */
+      const asked = Object.fromEntries(
         definition.inputs
-          .filter((input) => input.type === 'object-array' && input.required)
-          .map((input) => [
-            input.name,
-            [
-              Object.fromEntries(
-                (input.fields ?? [])
-                  .filter((field) => field.required)
-                  .map((field) => [field.name, sample(field)]),
-              ),
-            ],
-          ]),
+          .filter((input) => input.required && input.default === undefined && !input.hidden)
+          .filter((input) => input.name !== definition.promptField)
+          .map((input) => [input.name, given(input)]),
       )
       const only = definition.promptField
-        ? { [definition.promptField]: 'a paper boat in a rain gutter', ...rows }
-        : rows
+        ? { [definition.promptField]: 'a paper boat in a rain gutter', ...asked }
+        : asked
       const parsed = buildInputSchema(definition).safeParse(only)
       expect(parsed.success, `${definition.endpointId}: ${parsed.error?.message}`).toBe(true)
     }
@@ -101,7 +95,19 @@ describe('buildInputSchema', () => {
   })
 })
 
-/** Something a column would accept, so the row it is in can be built. */
+/** One row of whatever the dock would have collected for a required list. */
+function given(input: ModelInput): unknown {
+  if (input.type !== 'object-array') return sample(input)
+  return [
+    Object.fromEntries(
+      (input.fields ?? [])
+        .filter((field) => field.required)
+        .map((field) => [field.name, sample(field)]),
+    ),
+  ]
+}
+
+/** Something a control would accept, so the payload can be built. */
 function sample(field: ModelInput): unknown {
   if (field.enum?.[0] !== undefined) return field.enum[0]
   if (field.type === 'integer' || field.type === 'number') return field.min ?? 1

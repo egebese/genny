@@ -1,0 +1,101 @@
+{
+  "endpointId": "fal-ai/stable-audio-3/small/sfx/text-to-audio",
+  "family": {
+    "id": "stable-audio-3",
+    "name": "Stable Audio 3"
+  },
+  "modality": "audio",
+  "group": "Sound Effects",
+  "displayName": "Stable Audio 3 Small SFX",
+  "description": "The same model tuned for noises rather than tunes.",
+  "sortOrder": 5220,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.0206,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.0206 per generated audio."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "mp3",
+      "type": "enum",
+      "enum": ["mp3", "wav", "flac", "ogg", "opus", "m4a", "aac"]
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": 30,
+      "type": "number",
+      "min": 1,
+      "max": 120
+    },
+    {
+      "name": "bitrate",
+      "label": "Bitrate",
+      "default": "192k",
+      "type": "string"
+    },
+    {
+      "name": "num_inference_steps",
+      "label": "Num inference steps",
+      "default": 8,
+      "type": "integer",
+      "min": 1,
+      "max": 100
+    },
+    {
+      "name": "guidance_scale",
+      "label": "Guidance scale",
+      "default": 1,
+      "type": "number",
+      "min": 0,
+      "max": 25
+    },
+    {
+      "name": "negative_prompt",
+      "label": "Negative prompt",
+      "default": "",
+      "type": "string"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "enable_prompt_expansion",
+      "label": "Enable prompt expansion",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/stability.svg"
+}

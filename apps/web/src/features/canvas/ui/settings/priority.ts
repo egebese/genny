@@ -23,17 +23,22 @@ const PRIMARY = new Set([
   'voice',
 ])
 
-export function isPrimary(input: { name: string; type: string; required: boolean }): boolean {
+export function isPrimary(input: {
+  name: string
+  type: string
+  required: boolean
+  default?: unknown
+}): boolean {
   /*
    * A control the generation cannot run without is always in front, whatever
    * the list says. H3's LoRA endpoints refuse to run with an empty `loras`, and
    * the dock says so and points at the control; putting that control behind the
    * adjust button makes the instruction a small puzzle.
    *
-   * Only lists, because only a list can be required and still absent: every
-   * other required control carries a default, which `required-inputs-can-arrive`
-   * insists on.
+   * Any control with no default it could fall back to. MiniMax Music wants
+   * lyrics and H3's LoRA endpoints want weights, and neither has a stand-in
+   * value that would mean anything.
    */
-  if (input.type === 'object-array' && input.required) return true
+  if (input.required && input.default === undefined) return true
   return PRIMARY.has(input.name)
 }

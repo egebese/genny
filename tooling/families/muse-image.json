@@ -1,0 +1,57 @@
+{
+  "_": "Meta's Muse. genmedia reports $0.00017 per compute second; fal publishes a flat per-image price.",
+  "family": {
+    "id": "muse-image",
+    "name": "Muse"
+  },
+  "markUrl": "/models/marks/meta.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "source",
+      "label": "Edit this"
+    },
+    "image_urls": {
+      "role": "input-images",
+      "label": "Add to input images"
+    },
+    "mask_url": {
+      "role": "mask",
+      "label": "Use as mask"
+    },
+    "style_reference_image_urls": {
+      "role": "style-reference",
+      "label": "Use as style reference"
+    },
+    "image_style_reference_urls": {
+      "role": "style-reference",
+      "label": "Use as style reference"
+    }
+  },
+  "endpoints": {
+    "meta/muse-image/text-to-image": {
+      "group": "Text to Image",
+      "displayName": "Muse",
+      "description": "Meta's image model. Cheap enough to iterate with and unusually good at typography.",
+      "sortOrder": 1220,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.01,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.01 per image. genmedia reports $0.00017 per compute second, which is not what a request is charged."
+      }
+    },
+    "meta/muse-image/edit": {
+      "group": "Editing",
+      "displayName": "Muse Edit",
+      "description": "Muse working from a picture you give it.",
+      "sortOrder": 1230,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.01,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.01 per image. genmedia reports $0.00017 per compute second, which is not what a request is charged."
+      }
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "endpointId": "ideogram/v4/tiling",
+  "family": {
+    "id": "ideogram-v4",
+    "name": "Ideogram V4"
+  },
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Ideogram V4 Tiling",
+  "description": "Makes a pattern that repeats without a seam. Four times the price of the plain route.",
+  "sortOrder": 1440,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.03,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.03 per megapixel in TURBO, $0.06 in BALANCED and $0.10 in QUALITY.",
+    "scale": [
+      {
+        "field": "rendering_speed",
+        "factors": {
+          "TURBO": 1,
+          "BALANCED": 2,
+          "QUALITY": 3.3333
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "expansion_model",
+      "label": "Expansion model",
+      "default": "Medium",
+      "type": "enum",
+      "enum": ["None", "Medium", "Large"]
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "tiling_mode",
+      "label": "Tiling mode",
+      "default": "both",
+      "type": "enum",
+      "enum": ["both", "horizontal", "vertical"]
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "acceleration",
+      "label": "Acceleration",
+      "default": "none",
+      "type": "enum",
+      "enum": ["none", "low", "regular", "high"]
+    },
+    {
+      "name": "rendering_speed",
+      "label": "Rendering speed",
+      "default": "BALANCED",
+      "type": "enum",
+      "enum": ["TURBO", "BALANCED", "QUALITY"]
+    },
+    {
+      "name": "strength",
+      "label": "Strength",
+      "default": 0.8,
+      "type": "number",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "jpeg",
+      "type": "enum",
+      "enum": ["jpeg", "png"]
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Edit this"
+    },
+    {
+      "field": "mask_url",
+      "role": "mask",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Use as mask"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/ideogram.svg"
+}

@@ -1,0 +1,67 @@
+{
+  "endpointId": "fal-ai/elevenlabs/tts/eleven-v3",
+  "family": {
+    "id": "elevenlabs",
+    "name": "ElevenLabs"
+  },
+  "modality": "audio",
+  "group": "Text to Speech",
+  "displayName": "ElevenLabs v3",
+  "description": "The current ElevenLabs voice model, and still the one that sounds least like a machine reading.",
+  "sortOrder": 5100,
+  "pricing": {
+    "unit": "characters",
+    "unitPriceUsd": 0.0001,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.1 per thousand characters, which is $0.0001 each and what the catalog stores."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "text",
+  "inputs": [
+    {
+      "name": "apply_text_normalization",
+      "label": "Apply text normalization",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "on", "off"]
+    },
+    {
+      "name": "text",
+      "label": "Text",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "language_code",
+      "label": "Language code",
+      "type": "string"
+    },
+    {
+      "name": "stability",
+      "label": "Stability",
+      "default": 0.5,
+      "type": "number",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "voice",
+      "label": "Voice",
+      "default": "Rachel",
+      "type": "string"
+    },
+    {
+      "name": "timestamps",
+      "label": "Timestamps",
+      "default": false,
+      "type": "boolean"
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/elevenlabs.svg"
+}

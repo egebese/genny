@@ -1,0 +1,70 @@
+{
+  "endpointId": "minimax/music-3",
+  "family": {
+    "id": "minimax-music",
+    "name": "MiniMax Music"
+  },
+  "modality": "audio",
+  "group": "Music",
+  "displayName": "MiniMax Music 3",
+  "description": "Takes a description and the actual lyrics, and sings them.",
+  "sortOrder": 5600,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.002,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.002 per second of output. genmedia reports $0.00125 per compute second, which is not what a request is charged."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "num_inference_steps",
+      "label": "Num inference steps",
+      "default": 30,
+      "type": "integer",
+      "min": 1,
+      "max": 100
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": 60,
+      "type": "number",
+      "min": 1,
+      "max": 300
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "guidance_scale",
+      "label": "Guidance scale",
+      "default": 1.7,
+      "type": "number",
+      "min": 0,
+      "max": 20
+    },
+    {
+      "name": "lyrics",
+      "label": "Lyrics",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/minimax.svg"
+}

@@ -1,0 +1,43 @@
+{
+  "family": {
+    "id": "seed-audio",
+    "name": "Seed Audio"
+  },
+  "markUrl": "/models/marks/bytedance.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "audio_url": {
+      "role": "source",
+      "accepts": ["audio"],
+      "label": "Work from this audio"
+    },
+    "reference_audio_url": {
+      "role": "voice-sample",
+      "accepts": ["audio"],
+      "label": "Use as voice sample"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Score this clip"
+    }
+  },
+  "endpoints": {
+    "bytedance/seed-audio-1.0": {
+      "group": "Text to Speech",
+      "displayName": "Seed Audio 1.0",
+      "description": "ByteDance's speech model. Billed by the minute, with no length control of its own: it reads what you give it and stops.",
+      "sortOrder": 5400,
+      "pricing": {
+        "unit": "minutes",
+        "unitPriceUsd": 0.1875,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.1875 per minute of output. It has no duration input, so the hold assumes one minute and settle captures what was produced.",
+        "duration": {
+          "assume": 60,
+          "unit": "seconds"
+        }
+      }
+    }
+  }
+}

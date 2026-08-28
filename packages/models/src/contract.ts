@@ -41,8 +41,10 @@ const RULES: Rule[] = [
        * Generate on it would spend money on nothing anybody asked for.
        */
       if (definition.promptField !== null) return null
-      const takes = definition.references.some((mapping) => mapping.required)
-      return takes ? null : 'has no prompt and no required reference, so nothing decides its output'
+      const takes =
+        definition.references.some((mapping) => mapping.required) ||
+        definition.inputs.some((input) => input.required && !input.hidden)
+      return takes ? null : 'has nothing required at all, so nothing decides its output'
     },
   },
   {
@@ -64,23 +66,21 @@ const RULES: Rule[] = [
        * The dock starts with no settings and sends what was changed, so a
        * required control nobody touched is simply absent.
        *
-       * Two exemptions, and both are things the dock can ask for out loud. The
-       * prompt is injected by name rather than carried in settings. A required
-       * list of rows cannot have a useful default either, because fal asks for
-       * at least one and an empty list fails its own minimum; the dock holds
-       * Generate back and says which list is empty, the way it already does for
-       * a missing reference.
+       * A control somebody can see is exempt, because the dock asks for it: it
+       * holds Generate back and names what is still empty, the way it does for
+       * a missing reference. Several of these have no default that would work
+       * anyway. A required list fails fal's own minimum when empty, and
+       * MiniMax Music wants lyrics, for which the empty string is not a
+       * sensible stand-in.
+       *
+       * A hidden one is the real fault. Nobody can fill it, so the payload can
+       * never validate and the generation is refused before it leaves us.
        */
       const stuck = definition.inputs.find(
-        (input) =>
-          input.required &&
-          input.default === undefined &&
-          input.type !== 'object-array' &&
-          input.name !== definition.promptField &&
-          !input.hidden,
+        (input) => input.required && input.default === undefined && input.hidden,
       )
       return stuck
-        ? `${stuck.name} is required with no default, so a generation nobody adjusted cannot validate`
+        ? `${stuck.name} is required with no default and hidden, so nothing can ever fill it`
         : null
     },
   },

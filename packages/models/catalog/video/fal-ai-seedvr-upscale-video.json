@@ -1,0 +1,102 @@
+{
+  "endpointId": "fal-ai/seedvr/upscale/video",
+  "family": {
+    "id": "seedvr-upscale",
+    "name": "SeedVR Upscale"
+  },
+  "modality": "video",
+  "group": "Upscale",
+  "displayName": "SeedVR Video Upscale",
+  "description": "Makes a clip bigger without inventing detail. Billed by the pixels it touches, so a short clip is cheap and a long one is not.",
+  "sortOrder": 3400,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.001,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.001 per megapixel of video data, which is width times height times frame count. The estimate here counts one frame, because the frame count is not an input and cannot be known before the clip is read; settle captures what was actually produced."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "inputs": [
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "target_resolution",
+      "label": "Target resolution",
+      "default": "1080p",
+      "type": "enum",
+      "enum": ["720p", "1080p", "1440p", "2160p"]
+    },
+    {
+      "name": "noise_scale",
+      "label": "Noise scale",
+      "default": 0.1,
+      "type": "number",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "output_write_mode",
+      "label": "Output write mode",
+      "default": "balanced",
+      "type": "enum",
+      "enum": ["fast", "balanced", "small"]
+    },
+    {
+      "name": "output_quality",
+      "label": "Output quality",
+      "default": "high",
+      "type": "enum",
+      "enum": ["low", "medium", "high", "maximum"]
+    },
+    {
+      "name": "upscale_mode",
+      "label": "Upscale mode",
+      "default": "factor",
+      "type": "enum",
+      "enum": ["target", "factor"]
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "X264 (.mp4)",
+      "type": "enum",
+      "enum": ["X264 (.mp4)", "VP9 (.webm)", "PRORES4444 (.mov)", "GIF (.gif)"]
+    },
+    {
+      "name": "upscale_factor",
+      "label": "Upscale factor",
+      "default": 2,
+      "type": "number",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    }
+  ],
+  "references": [
+    {
+      "field": "video_url",
+      "role": "source",
+      "accepts": ["video"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Upscale this clip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/bytedance.svg"
+}

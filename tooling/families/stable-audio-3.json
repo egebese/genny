@@ -1,0 +1,63 @@
+{
+  "family": {
+    "id": "stable-audio-3",
+    "name": "Stable Audio 3"
+  },
+  "markUrl": "/models/marks/stability.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "audio_url": {
+      "role": "source",
+      "accepts": ["audio"],
+      "label": "Work from this audio"
+    },
+    "reference_audio_url": {
+      "role": "voice-sample",
+      "accepts": ["audio"],
+      "label": "Use as voice sample"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Score this clip"
+    }
+  },
+  "endpoints": {
+    "fal-ai/stable-audio-3/medium/text-to-audio": {
+      "group": "Music",
+      "displayName": "Stable Audio 3",
+      "description": "Stability's current audio model, up to six minutes a take.",
+      "sortOrder": 5200,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.0376,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.0376 per generated audio, which is a flat rate per output whatever its length. Stored in the per-output unit because that is what `audios` means."
+      }
+    },
+    "fal-ai/stable-audio-3/small/music/text-to-audio": {
+      "group": "Music",
+      "displayName": "Stable Audio 3 Small Music",
+      "description": "The cheap music checkpoint, for finding a direction.",
+      "sortOrder": 5210,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.0217,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.0217 per generated audio."
+      }
+    },
+    "fal-ai/stable-audio-3/small/sfx/text-to-audio": {
+      "group": "Sound Effects",
+      "displayName": "Stable Audio 3 Small SFX",
+      "description": "The same model tuned for noises rather than tunes.",
+      "sortOrder": 5220,
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.0206,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.0206 per generated audio."
+      }
+    }
+  }
+}

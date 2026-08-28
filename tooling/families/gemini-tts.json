@@ -1,0 +1,39 @@
+{
+  "family": {
+    "id": "gemini-tts",
+    "name": "Gemini TTS"
+  },
+  "markUrl": "/models/marks/gemini.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "audio_url": {
+      "role": "source",
+      "accepts": ["audio"],
+      "label": "Work from this audio"
+    },
+    "reference_audio_url": {
+      "role": "voice-sample",
+      "accepts": ["audio"],
+      "label": "Use as voice sample"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Score this clip"
+    }
+  },
+  "endpoints": {
+    "fal-ai/gemini-3.1-flash-tts": {
+      "group": "Text to Speech",
+      "displayName": "Gemini 3.1 Flash TTS",
+      "description": "Google's speech model, at half the price of ElevenLabs and with a real list of voices rather than a free text box.",
+      "sortOrder": 5700,
+      "pricing": {
+        "unit": "characters",
+        "unitPriceUsd": 5e-5,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per thousand characters, which is $0.00005 each."
+      }
+    }
+  }
+}

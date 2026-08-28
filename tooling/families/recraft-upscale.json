@@ -1,0 +1,42 @@
+{
+  "_": "Recraft's two upscalers: one that sharpens what is there, one that redraws what is not. Neither is Clarity, which has no provider mark in the icon set and so cannot satisfy `has-a-provider-mark`.",
+  "family": {
+    "id": "recraft-upscale",
+    "name": "Recraft Upscale"
+  },
+  "markUrl": "/models/marks/recraft.svg",
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "roles": {
+    "image_url": {
+      "role": "source",
+      "label": "Upscale this"
+    }
+  },
+  "endpoints": {
+    "fal-ai/recraft/upscale/crisp": {
+      "group": "Upscale",
+      "displayName": "Recraft Crisp Upscale",
+      "sortOrder": 1500,
+      "description": "Sharpens and enlarges without redrawing anything. The cheapest way to make a picture printable.",
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.004,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.004 per image."
+      }
+    },
+    "fal-ai/recraft/upscale/creative": {
+      "group": "Upscale",
+      "displayName": "Recraft Creative Upscale",
+      "sortOrder": 1510,
+      "description": "Enlarges by imagining detail that was never in the source. Sixty times the price of the crisp route, and the only thing that helps when the original is genuinely too small.",
+      "pricing": {
+        "unit": "images",
+        "unitPriceUsd": 0.25,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.25 per image."
+      }
+    }
+  }
+}

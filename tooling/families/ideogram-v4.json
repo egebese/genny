@@ -1,0 +1,155 @@
+{
+  "_": "Ideogram V4. Every route but instant bills per megapixel at three rates by rendering speed. V4 dropped the negative prompt V3 had.",
+  "family": {
+    "id": "ideogram-v4",
+    "name": "Ideogram V4"
+  },
+  "markUrl": "/models/marks/ideogram.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "source",
+      "label": "Edit this"
+    },
+    "image_urls": {
+      "role": "input-images",
+      "label": "Add to input images"
+    },
+    "mask_url": {
+      "role": "mask",
+      "label": "Use as mask"
+    },
+    "style_reference_image_urls": {
+      "role": "style-reference",
+      "label": "Use as style reference"
+    },
+    "image_style_reference_urls": {
+      "role": "style-reference",
+      "label": "Use as style reference"
+    }
+  },
+  "endpoints": {
+    "ideogram/v4": {
+      "group": "Text to Image",
+      "displayName": "Ideogram V4",
+      "description": "Ideogram's fourth generation, still the one to reach for when the picture has words in it.",
+      "sortOrder": 1400,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.0075,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.0075 per megapixel in TURBO, $0.015 in BALANCED and $0.025 in QUALITY. Priced from TURBO and scaled from there.",
+        "scale": [
+          {
+            "field": "rendering_speed",
+            "factors": {
+              "TURBO": 1,
+              "BALANCED": 2,
+              "QUALITY": 3.3333
+            }
+          }
+        ]
+      }
+    },
+    "ideogram/v4/fast": {
+      "group": "Text to Image",
+      "displayName": "Ideogram V4 Fast",
+      "description": "Thirty percent cheaper, for finding the layout before setting the type.",
+      "sortOrder": 1410,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.00525,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.00525 per megapixel in TURBO, $0.0105 in BALANCED and $0.0175 in QUALITY.",
+        "scale": [
+          {
+            "field": "rendering_speed",
+            "factors": {
+              "TURBO": 1,
+              "BALANCED": 2,
+              "QUALITY": 3.3333
+            }
+          }
+        ]
+      }
+    },
+    "ideogram/v4/instant": {
+      "group": "Text to Image",
+      "displayName": "Ideogram V4 Instant",
+      "description": "One flat rate and no speed control at all.",
+      "sortOrder": 1420,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.0075,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.0075 per megapixel."
+      }
+    },
+    "ideogram/v4/lora": {
+      "group": "Text to Image",
+      "displayName": "Ideogram V4 LoRA",
+      "description": "Ideogram driven by weights you trained.",
+      "sortOrder": 1430,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.01125,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.01125 per megapixel in TURBO, $0.0225 in BALANCED and $0.0375 in QUALITY.",
+        "scale": [
+          {
+            "field": "rendering_speed",
+            "factors": {
+              "TURBO": 1,
+              "BALANCED": 2,
+              "QUALITY": 3.3333
+            }
+          }
+        ]
+      }
+    },
+    "ideogram/v4/tiling": {
+      "group": "Text to Image",
+      "displayName": "Ideogram V4 Tiling",
+      "description": "Makes a pattern that repeats without a seam. Four times the price of the plain route.",
+      "sortOrder": 1440,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.03,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.03 per megapixel in TURBO, $0.06 in BALANCED and $0.10 in QUALITY.",
+        "scale": [
+          {
+            "field": "rendering_speed",
+            "factors": {
+              "TURBO": 1,
+              "BALANCED": 2,
+              "QUALITY": 3.3333
+            }
+          }
+        ]
+      }
+    },
+    "ideogram/v4/image-to-image": {
+      "group": "Editing",
+      "displayName": "Ideogram V4 Image to Image",
+      "description": "Ideogram working from a picture rather than a blank page.",
+      "sortOrder": 1450,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.0075,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.0075 per megapixel in TURBO, $0.015 in BALANCED and $0.025 in QUALITY.",
+        "scale": [
+          {
+            "field": "rendering_speed",
+            "factors": {
+              "TURBO": 1,
+              "BALANCED": 2,
+              "QUALITY": 3.3333
+            }
+          }
+        ]
+      }
+    }
+  }
+}

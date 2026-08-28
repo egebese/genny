@@ -107,10 +107,18 @@ for (const modality of readdirSync(catalogRoot)) {
   }
 }
 
+const missing = []
+
 for (const { path, model } of entries) {
   const mark = markFile(model.endpointId)
   if (!mark) {
-    console.warn(`no provider mark for ${model.endpointId}; add a prefix to PROVIDERS`)
+    /*
+     * A warning here used to be the end of it, and the contract only asks that
+     * `markUrl` be set rather than that it point at anything. So an entry could
+     * name a file that was never written and ship a hole in the picker, which
+     * is the one thing this script exists to prevent.
+     */
+    missing.push(`${model.endpointId}: no mark. Add a prefix to PROVIDERS, or drop the model.`)
     continue
   }
 
@@ -124,6 +132,10 @@ for (const { path, model } of entries) {
     }
   }
 
+  if (model.markUrl && model.markUrl !== `/models/marks/${mark.slug}.svg`) {
+    missing.push(`${model.endpointId}: names ${model.markUrl}, which is not the mark for its lab.`)
+  }
+
   const slug = slugOf(model.endpointId)
   const urls = {
     markUrl: `/models/marks/${mark.slug}.svg`,
@@ -133,6 +145,12 @@ for (const { path, model } of entries) {
     const { thumbnailUrl: _dropped, ...rest } = model
     writeFileSync(path, `${JSON.stringify({ ...rest, ...urls }, null, 2)}\n`)
   }
+}
+
+if (missing.length > 0) {
+  console.error(`${missing.length} entr${missing.length === 1 ? 'y' : 'ies'} would draw a hole:`)
+  for (const line of missing) console.error(`  - ${line}`)
+  process.exit(1)
 }
 
 if (checkOnly && stale.length > 0) {

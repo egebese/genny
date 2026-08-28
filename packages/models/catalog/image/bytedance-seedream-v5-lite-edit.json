@@ -1,0 +1,74 @@
+{
+  "endpointId": "bytedance/seedream/v5/lite/edit",
+  "family": {
+    "id": "seedream-5",
+    "name": "Seedream 5"
+  },
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "Seedream 5 Lite Edit",
+  "description": "Seedream Lite working from a picture.",
+  "sortOrder": 1280,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.035,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.035 per image."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "max_images",
+      "label": "Max images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 6
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 6
+    }
+  ],
+  "references": [
+    {
+      "field": "image_urls",
+      "role": "input-images",
+      "accepts": ["image"],
+      "required": true,
+      "array": true,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Add to input images"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/bytedance.svg"
+}

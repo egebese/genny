@@ -1,0 +1,73 @@
+{
+  "endpointId": "meta/muse-image/edit",
+  "family": {
+    "id": "muse-image",
+    "name": "Muse"
+  },
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "Muse Edit",
+  "description": "Muse working from a picture you give it.",
+  "sortOrder": 1230,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.01,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.01 per image. genmedia reports $0.00017 per compute second, which is not what a request is charged."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "type": "enum",
+      "enum": ["21:9", "16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16", "9:21"]
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "webp",
+      "type": "enum",
+      "enum": ["jpeg", "png", "webp"]
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 10
+    }
+  ],
+  "references": [
+    {
+      "field": "image_urls",
+      "role": "input-images",
+      "accepts": ["image"],
+      "required": true,
+      "array": true,
+      "maxCount": 10,
+      "token": "strip",
+      "label": "Add to input images"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/meta.svg"
+}

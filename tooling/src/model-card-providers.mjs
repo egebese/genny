@@ -31,6 +31,7 @@ export const PROVIDERS = [
   ['fal-ai/openai', 'openai'],
   ['fal-ai/gpt-image', 'openai'],
   ['fal-ai/seedvr', 'bytedance'],
+  ['fal-ai/clarity', 'clarityai'],
   ['fal-ai/seedream', 'bytedance'],
   ['fal-ai/seedance', 'bytedance'],
   ['fal-ai/krea', 'krea'],

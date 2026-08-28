@@ -1057,7 +1057,7 @@ test.describe('models that require a reference', () => {
 
     await fillPrompt(page, 'a kite over a car park')
     const generate = page.getByRole('button', { name: /^Generate/ })
-    await expect(page.getByText(/needs at least one lora/i)).toBeVisible()
+    await expect(page.getByText(/will not run without loras/i)).toBeVisible()
     await expect(generate).toBeDisabled()
 
     const chip = page.getByRole('button', { name: 'LoRAs' })
@@ -1071,7 +1071,7 @@ test.describe('models that require a reference', () => {
 
     await page.keyboard.press('Escape')
     await expect(chip).toContainText('1')
-    await expect(page.getByText(/needs at least one lora/i)).toHaveCount(0)
+    await expect(page.getByText(/will not run without loras/i)).toHaveCount(0)
     await expect(generate).toBeEnabled()
   })
 

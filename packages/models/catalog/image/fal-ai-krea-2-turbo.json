@@ -1,0 +1,80 @@
+{
+  "endpointId": "fal-ai/krea-2/turbo",
+  "family": {
+    "id": "krea-2",
+    "name": "Krea 2"
+  },
+  "modality": "image",
+  "group": "Text to Image",
+  "displayName": "Krea 2 Turbo",
+  "description": "Krea's fast tier. A megapixel costs less than a cent.",
+  "sortOrder": 1300,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.008,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.008 per megapixel."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "enable_prompt_expansion",
+      "label": "Enable prompt expansion",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "acceleration",
+      "label": "Acceleration",
+      "default": "none",
+      "type": "enum",
+      "enum": ["none", "regular"]
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "png",
+      "type": "enum",
+      "enum": ["jpeg", "png"]
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/krea.svg"
+}

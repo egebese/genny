@@ -1,0 +1,92 @@
+{
+  "endpointId": "fal-ai/nano-banana/edit",
+  "family": {
+    "id": "nano-banana",
+    "name": "Nano Banana"
+  },
+  "modality": "image",
+  "group": "Editing",
+  "displayName": "Nano Banana Edit",
+  "description": "The same model given pictures to work from rather than a blank page.",
+  "sortOrder": 1210,
+  "pricing": {
+    "unit": "images",
+    "unitPriceUsd": 0.039,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.039 per image."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "limit_generations",
+      "label": "Limit generations",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "png",
+      "type": "enum",
+      "enum": ["jpeg", "png", "webp"]
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "safety_tolerance",
+      "label": "Safety tolerance",
+      "default": "4",
+      "type": "enum",
+      "enum": ["1", "2", "3", "4", "5", "6"]
+    },
+    {
+      "name": "num_images",
+      "label": "Num images",
+      "default": 1,
+      "type": "integer",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "21:9", "16:9", "3:2", "4:3", "5:4", "1:1", "4:5", "3:4", "2:3", "9:16"]
+    }
+  ],
+  "references": [
+    {
+      "field": "image_urls",
+      "role": "input-images",
+      "accepts": ["image"],
+      "required": true,
+      "array": true,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Add to input images"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/gemini.svg"
+}
