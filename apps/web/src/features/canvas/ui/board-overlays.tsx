@@ -5,7 +5,7 @@ import type { ReferenceSlot } from '@genny/models/slots.ts'
 import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
-import { NodeMenu, type NodeMenuTarget } from './node-menu.tsx'
+import { type ClipboardActions, NodeMenu, type NodeMenuTarget } from './node-menu.tsx'
 import { NodePanel, type ReuseRequest } from './node-panel.tsx'
 
 type Bounds = { width: number; height: number }
@@ -26,6 +26,7 @@ type OverlayProps = {
   onVariants: (node: CanvasNodeView) => void
   onReuse: (request: ReuseRequest) => void
   onRemove: (ids: string[]) => void
+  clipboard: ClipboardActions
   onCloseMenu: () => void
   onCloseInspector: () => void
 }
@@ -53,6 +54,7 @@ export function BoardOverlays(props: OverlayProps) {
           }}
           onVariants={variantsOf(menu.nodes, props.onVariants)}
           onDelete={() => props.onRemove(menu.nodes.map((node) => node.id))}
+          clipboard={props.clipboard}
           onClose={props.onCloseMenu}
         />
       ) : null}

@@ -6,6 +6,7 @@ import { cn } from '@genny/ui/cn.ts'
 import type { ReactNode, RefObject } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
 import { CanvasNode } from './canvas-node.tsx'
+import { SnapGuides } from './snap-guides.tsx'
 import { ZoomControl } from './zoom-control.tsx'
 
 type BoardProps = {
@@ -28,6 +29,8 @@ type BoardProps = {
   onSelect: (id: string, additive: boolean) => void
   onInspect: (id: string) => void
   onContextMenu: (id: string, at: { clientX: number; clientY: number }) => void
+  /** Right-click on empty board, where the only thing to offer is a paste. */
+  onBoardMenu: (at: { clientX: number; clientY: number }) => void
   onPan: (event: React.PointerEvent) => void
   onMarquee: (event: React.PointerEvent, additive: boolean) => void
   onKey: (key: string) => boolean
@@ -62,16 +65,7 @@ export function Board(props: BoardProps) {
        */
       style={{ backgroundImage: 'radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px)' }}
       onPointerDown={(event) => {
-        /*
-         * The transform layer covers the whole surface, so a click on empty board
-         * lands on it rather than here. Asking what was actually hit is the only
-         * test that means what it looks like it means.
-         *
-         * The overlays matter as much as the nodes: they render inside the
-         * surface, so without this a press on a menu item clears the surfaces and
-         * unmounts the button before its click can land.
-         */
-        if ((event.target as HTMLElement).closest('[role="option"], [data-overlay]')) return
+        if (hitSomething(event.target)) return
         // Space, or the middle button, pans. Everything else draws a band.
         if (props.panMode || event.button === 1) props.onPan(event)
         else props.onMarquee(event, event.shiftKey || event.metaKey)
@@ -90,33 +84,18 @@ export function Board(props: BoardProps) {
         onKeyDown={(event) => {
           if (props.onKey(event.key)) event.preventDefault()
         }}
+        // A node's own handler runs first and this one still sees the event, so
+        // one question decides which of the two menus opens. The overlays are
+        // outside this layer, so a right-click on one never arrives here at all.
+        onContextMenu={(event) => {
+          if (hitSomething(event.target)) return
+          event.preventDefault()
+          props.onBoardMenu(event)
+        }}
         style={{ transformOrigin: '0 0' }}
         className="absolute inset-0 outline-none"
       >
-        {/* Under the nodes, in canvas space, so a line stays on its edge at any
-            zoom. Its own width is divided back out so it stays hairline. */}
-        {props.guides.map((guide) => (
-          <div
-            key={`${guide.axis}:${guide.at}:${guide.from}`}
-            aria-hidden
-            style={
-              guide.axis === 'x'
-                ? {
-                    left: guide.at,
-                    top: guide.from,
-                    height: guide.to - guide.from,
-                    width: 1 / viewport.zoom,
-                  }
-                : {
-                    top: guide.at,
-                    left: guide.from,
-                    width: guide.to - guide.from,
-                    height: 1 / viewport.zoom,
-                  }
-            }
-            className="pointer-events-none absolute bg-accent"
-          />
-        ))}
+        <SnapGuides guides={props.guides} zoom={viewport.zoom} />
 
         {props.nodes.map((node) => (
           <CanvasNode
@@ -183,4 +162,19 @@ export function Board(props: BoardProps) {
       />
     </div>
   )
+}
+
+/**
+ * A node or an overlay, as opposed to the bare board.
+ *
+ * The transform layer covers the whole surface, so a press on empty board lands
+ * on it rather than on the surface, and asking what was actually hit is the only
+ * test that means what it looks like it means.
+ *
+ * The overlays matter as much as the nodes: they render inside the surface, so
+ * without this a press on a menu item clears the surfaces and unmounts the
+ * button before its click can land.
+ */
+function hitSomething(target: EventTarget | null): boolean {
+  return target instanceof Element && target.closest('[role="option"], [data-overlay]') !== null
 }

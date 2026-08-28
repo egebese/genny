@@ -49,15 +49,15 @@ export function Canvas(props: CanvasPage) {
     onPersist: savePan,
   })
   const handles = useMentionables(props.mentionables)
-  const { nodes, running, beginDrag, move, commit, size, sized, remove, add, replace, settle } =
-    useBoardNodes(canvasId, props.nodes, handles.learn)
+  const board = useBoardNodes(canvasId, props.nodes, handles.learn)
+  const { nodes, running, move, commit, size, sized, add, replace, settle } = board
   const pinned = useAttachments()
   const composer = useComposer(props.models, pinned.moveTo)
   const { families, family, settings, prompt } = composer
   const mentions = useResolvedMentions(handles.resolve, prompt)
   const pick = useSelection({ nodes, viewport: view.viewport, toLocal: view.toLocal })
   const surfaces = useSurfaces()
-  const board = useSize(surface)
+  const boardSize = useSize(surface)
   const dockSize = useSize(dock)
 
   /*
@@ -86,6 +86,7 @@ export function Canvas(props: CanvasPage) {
   })
 
   const act = useBoardActions({
+    canvasId,
     family,
     nodes,
     pick,
@@ -93,13 +94,11 @@ export function Canvas(props: CanvasPage) {
     surfaces,
     pinned,
     composer,
-    beginDrag,
-    remove,
+    board,
   })
 
   const inspected = nodes.find((node) => node.id === surfaces.inspectedId) ?? null
-  const menu = surfaces.menu
-  const bounds = { width: board.width, height: board.height - dockSize.height }
+  const bounds = { width: boardSize.width, height: boardSize.height - dockSize.height }
 
   return (
     <>
@@ -122,6 +121,7 @@ export function Canvas(props: CanvasPage) {
         onSelect={act.select}
         onInspect={surfaces.inspect}
         onContextMenu={act.openMenu}
+        onBoardMenu={act.openBoardMenu}
         onPan={act.pan}
         onMarquee={act.marquee}
         onKey={(key) => view.handleKey(key, nodes)}
@@ -146,10 +146,10 @@ export function Canvas(props: CanvasPage) {
         />
 
         <BoardOverlays
-          menu={menu}
+          menu={surfaces.menu}
           inspected={inspected}
           family={family}
-          slotsForAdding={overlaySlots(family, carrying, menu?.nodes ?? [])}
+          slotsForAdding={overlaySlots(family, carrying, surfaces.menu?.nodes ?? [])}
           models={props.models}
           showCost={props.credits !== null}
           viewport={view.viewport}
@@ -162,6 +162,7 @@ export function Canvas(props: CanvasPage) {
           }}
           onReuse={act.reuse}
           onRemove={act.removeNodes}
+          clipboard={act.clipboard}
           onCloseMenu={surfaces.closeMenu}
           onCloseInspector={surfaces.closeInspector}
         />

@@ -1,5 +1,6 @@
 'use client'
 
+import type { NodeRecord } from '@genny/db/repositories/canvas-nodes.ts'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { type CanvasNodeView, toNodeView } from '../node-view.ts'
 import { isReserved } from '../reserved.ts'
@@ -125,25 +126,32 @@ export function useBoardNodes(
     setNodes((current) => [...current.filter((node) => !reserved.includes(node.id)), ...real])
   }, [])
 
-  const settle = useCallback(
-    async (jobId: string) => {
-      const fresh = await settleJobOnCanvas({ canvasId, jobId })
-      // An empty answer means the board is gone or the job produced nothing;
-      // either way the local state is the better of the two.
+  /**
+   * Takes a whole board back from the server.
+   *
+   * Actions that add rows return every row they know about rather than a diff,
+   * because it is one query and never wrong. What the server does not know
+   * about is a rectangle another generation is still holding: those exist only
+   * here until their own request returns. Replacing the list outright wiped
+   * them, so firing a second generation while the first was running made its
+   * boxes vanish and come back.
+   */
+  const absorb = useCallback(
+    (fresh: NodeRecord[]) => {
+      // Empty means the board is gone or nothing was written; either way the
+      // local state is the better of the two.
       if (fresh.length === 0) return
       const views = fresh.map(toNodeView)
-      /*
-       * The server hands back every row it knows about, and it does not know
-       * about a rectangle another generation is still holding: those exist only
-       * here until their own request returns. Replacing the list outright wiped
-       * them, so firing a second generation while the first was running made
-       * its boxes vanish and come back.
-       */
       setNodes((current) => [...current.filter(isReserved), ...views])
       // What just landed is mentionable now. Nothing else tells the dock that.
       onSettled(views)
     },
-    [canvasId, onSettled],
+    [onSettled],
+  )
+
+  const settle = useCallback(
+    async (jobId: string) => absorb(await settleJobOnCanvas({ canvasId, jobId })),
+    [canvasId, absorb],
   )
 
   /** One open stream per unfinished generation, and no duplicates. */
@@ -158,5 +166,18 @@ export function useBoardNodes(
     [nodes],
   )
 
-  return { nodes, running, beginDrag, move, commit, size, sized, remove, add, replace, settle }
+  return {
+    nodes,
+    running,
+    beginDrag,
+    move,
+    commit,
+    size,
+    sized,
+    remove,
+    add,
+    replace,
+    absorb,
+    settle,
+  }
 }

@@ -907,6 +907,44 @@ test.describe('the board', () => {
     await expect(page.getByText('120%')).toBeVisible()
   })
 
+  test('the browser never gets to show its own right-click menu', async ({ page }) => {
+    await openCanvas(page)
+    /*
+     * On the whole page, not only on the board. Right-clicking a result offered
+     * to save the image and open it in a new tab, which are answers the node
+     * menu gives better, and the studio is an app rather than a document
+     * everywhere else too.
+     */
+    const prevented = await page.evaluate(() =>
+      ['body', 'header', 'textarea'].map((selector) => {
+        const target = document.querySelector(selector) ?? document.body
+        const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+        target.dispatchEvent(event)
+        return event.defaultPrevented
+      }),
+    )
+    expect(prevented).toEqual([true, true, true])
+  })
+
+  test('right-clicking empty board offers the one thing that makes sense there', async ({
+    page,
+  }) => {
+    await openCanvas(page)
+    /*
+     * The mouse rather than the locator: the transform layer is what fills the
+     * board, and a position inside it is a position in canvas coordinates,
+     * which are wherever the board has been panned to. This is a point on the
+     * screen, clear of the shelf top left and the dock along the bottom.
+     */
+    const screen = page.viewportSize() ?? { width: 1440, height: 900 }
+    await page.mouse.click(screen.width * 0.5, screen.height * 0.35, { button: 'right' })
+
+    const menu = page.getByRole('menu', { name: 'Board actions' })
+    await expect(menu.getByRole('menuitem')).toHaveText(['Paste'])
+    // Nothing has been copied in this session, so there is nothing to put down.
+    await expect(menu.getByRole('menuitem', { name: 'Paste' })).toBeDisabled()
+  })
+
   test('the board keeps the page from scrolling behind it', async ({ page }) => {
     await openCanvas(page)
     const overflow = await page.evaluate(() => ({

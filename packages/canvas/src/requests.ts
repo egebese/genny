@@ -49,6 +49,31 @@ export const resizeNodeRequest = z.object({
 export const materializeRequest = z.object({ canvasId: z.uuid(), jobId: z.uuid() })
 
 /**
+ * Placing copies of assets already on the board.
+ *
+ * Only the reference travels, never the bytes: a paste is a second node
+ * pointing at the same asset, so copying a clip forty times costs forty rows.
+ * The rectangles come from the browser because only it knows where the paste
+ * was aimed, and they are bounded by the same rails as any other node.
+ */
+export const clippingSchema = z.object({
+  assetId: z.uuid(),
+  x: coordinate,
+  y: coordinate,
+  width: z.int().positive().max(4000),
+  height: z.int().positive().max(4000),
+})
+
+/** The browser's own clipboard is storage anybody can edit, so it is parsed
+ * with the same schema on the way out of it as on the way into the action. */
+export const clipboardContents = z.array(clippingSchema).max(64)
+
+export const pasteNodesRequest = z.object({
+  canvasId: z.uuid(),
+  items: z.array(clippingSchema).min(1).max(64),
+})
+
+/**
  * The project's own details.
  *
  * A hex list rather than free text for the palette: it is drawn as swatches and
