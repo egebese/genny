@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { loadCatalog } from './catalog.ts'
+import { estimateUnits } from './credits.ts'
 import { allSlots } from './slots.ts'
 
 describe('loadCatalog', () => {
@@ -73,6 +74,41 @@ describe('loadCatalog', () => {
       expect(decided, `${definition.endpointId} offers 4K and says nothing about its price`).toBe(
         true,
       )
+    }
+  })
+
+  it('charges enough per second for the models fal bills per compute second', async () => {
+    /*
+     * H3 Max is billed on GPU time, a quantity that does not exist until the job
+     * has run, so its catalog price is a resale per second of output measured
+     * against real runs. Recorded here because the measurement is the only thing
+     * holding the number up: fal's own answer is in a unit we cannot estimate,
+     * so `catalog:check` reports drift and is waived by the note.
+     *
+     * Worst observed rate, not average. A cheaper number is a permanent loss:
+     * the estimate is the hold and `settle` never captures more than it held.
+     */
+    const measured = [
+      { duration: 5, resolution: '768P', costUsd: 0.00094 },
+      { duration: 5, resolution: '768P', costUsd: 0.001 },
+      { duration: 10, resolution: '768P', costUsd: 0.00178 },
+      { duration: 15, resolution: '768P', costUsd: 0.00313 },
+      { duration: 5, resolution: '480P', costUsd: 0.00062 },
+      { duration: 15, resolution: '480P', costUsd: 0.00096 },
+    ]
+
+    const entries = (await loadCatalog()).filter((e) => e.definition.family.id === 'h3-max')
+    expect(entries.length).toBeGreaterThan(0)
+
+    for (const { definition } of entries) {
+      for (const run of measured) {
+        const units = estimateUnits(definition, run)
+        const charged = definition.pricing.unitPriceUsd * units
+        expect(
+          charged,
+          `${definition.endpointId} charges $${charged} for a ${run.duration}s ${run.resolution} clip that cost fal $${run.costUsd}`,
+        ).toBeGreaterThanOrEqual(run.costUsd)
+      }
     }
   })
 

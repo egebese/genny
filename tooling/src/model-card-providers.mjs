@@ -31,6 +31,7 @@ export const PROVIDERS = [
   ['fal-ai/openai', 'openai'],
   ['fal-ai/gpt-image', 'openai'],
   // Labs that publish under their own namespace rather than fal-ai/.
+  ['minimax/', 'minimax'],
   ['bria/', 'briaai'],
 ]
 

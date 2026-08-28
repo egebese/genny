@@ -1,0 +1,73 @@
+{
+  "endpointId": "minimax/h3-max/text-to-video",
+  "family": {
+    "id": "h3-max",
+    "name": "MiniMax H3 Max"
+  },
+  "modality": "video",
+  "group": "Text to Video",
+  "displayName": "MiniMax H3 Max Text to Video",
+  "description": "MiniMax H3 Max writing video from a prompt alone, up to 15 seconds. Renders in about the length of the clip and costs a fraction of a cent, so it is the one to iterate on.",
+  "sortOrder": 7,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.00021,
+    "note": "fal bills this per compute second ($0.00017), which nobody can know before the job runs, so the catalog resells it per second of output. Measured at 768P: 5s cost $0.00094, 10s $0.00178, 15s $0.00313, which is $0.000209 per output second at its worst. genmedia therefore reports a different unit here on purpose.",
+    "scale": {
+      "field": "resolution",
+      "factors": {
+        "480P": 0.6
+      }
+    }
+  },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
+    {
+      "name": "duration",
+      "type": "integer",
+      "label": "Length (seconds)",
+      "default": 5,
+      "min": 5,
+      "max": 15
+    },
+    {
+      "name": "resolution",
+      "type": "enum",
+      "label": "Resolution",
+      "default": "768P",
+      "enum": ["480P", "768P"]
+    },
+    {
+      "name": "aspect_ratio",
+      "type": "enum",
+      "label": "Aspect",
+      "default": "16:9",
+      "enum": ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"]
+    },
+    {
+      "name": "prompt_expansion_mode",
+      "type": "enum",
+      "label": "Prompt expansion",
+      "default": "balanced",
+      "required": true,
+      "enum": ["disabled", "balanced", "quality"]
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/minimax.svg",
+  "artUrl": "/models/art/minimax-h3-max-text-to-video.webp"
+}
