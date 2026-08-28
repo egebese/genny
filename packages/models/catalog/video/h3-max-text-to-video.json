@@ -11,12 +11,12 @@
   "sortOrder": 7,
   "pricing": {
     "unit": "seconds",
-    "unitPriceUsd": 0.00021,
-    "note": "fal bills this per compute second ($0.00017), which nobody can know before the job runs, so the catalog resells it per second of output. Measured at 768P: 5s cost $0.00094, 10s $0.00178, 15s $0.00313, which is $0.000209 per output second at its worst. genmedia therefore reports a different unit here on purpose.",
+    "unitPriceUsd": 0.04,
+    "note": "fal publishes this per second of output video: $0.025 at 480P and $0.04 at 768P. Those are promotional launch rates and fal's own page says the discount ends September 1 2026, after which 480P is $0.05 and 768P is $0.08. Revisit then. genmedia reports $0.00017 per compute second for this endpoint, which is not what a request is charged: an earlier version of this file took that row for the price and resold the model at $0.00021 per second, roughly a two hundredth of its cost. The published prose is the authority here, and this note exists so the waiver in catalog-check does not hide the same mistake twice.",
     "scale": {
       "field": "resolution",
       "factors": {
-        "480P": 0.6
+        "480P": 0.625
       }
     }
   },
