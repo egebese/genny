@@ -31,9 +31,10 @@ export function whyBlocked(context: {
    * model cannot use it. Saying the second when the first is true tells someone
    * their empty prompt is the wrong shape.
    *
-   * Neither branch is reachable from today's catalog: every family shipped has
-   * a task that runs on text alone, which is the point of grouping them. They
-   * are here for the model that does not, and for the moment fal adds one.
+   * The first branch is how an upscaler presents itself. It has no prompt to
+   * type at, so the only thing that can be missing is the picture, and this is
+   * the sentence that asks for it. The second is still waiting for a model that
+   * can be handed something it has nowhere to put.
    */
   if (!context.model) {
     return context.carrying ? { kind: 'cannot-take' } : { kind: 'needs-reference' }

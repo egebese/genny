@@ -29,7 +29,11 @@ describe('buildInputSchema', () => {
      * request was made, and no setting was wrong.
      */
     for (const { definition } of await loadCatalog()) {
-      const only = { [definition.promptField]: 'a paper boat in a rain gutter' }
+      // A model with no prompt is asked for nothing at all, which is the same
+      // question: can a generation nobody adjusted validate.
+      const only = definition.promptField
+        ? { [definition.promptField]: 'a paper boat in a rain gutter' }
+        : {}
       const parsed = buildInputSchema(definition).safeParse(only)
       expect(parsed.success, `${definition.endpointId}: ${parsed.error?.message}`).toBe(true)
     }
@@ -38,6 +42,9 @@ describe('buildInputSchema', () => {
   it('rejects a missing required prompt', async () => {
     const schema = await schemaFor('fal-ai/nano-banana-2')
     expect(() => schema.parse({})).toThrow()
+    // And an empty one, which is what the shared request now lets through so
+    // that models with no prompt at all can exist.
+    expect(() => schema.parse({ prompt: '' })).toThrow()
   })
 
   it('rejects a value outside the declared enum', async () => {

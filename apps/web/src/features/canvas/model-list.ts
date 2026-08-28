@@ -25,8 +25,8 @@ export type PickableModel = {
   pricing: ModelDefinition['pricing']
   /** On the client so the button can price the request without a round trip. */
   creditMultiplier: number
-  /** Which input carries the prompt, so the rest can be listed without it. */
-  promptField: string
+  /** Which input carries the prompt, or null when there is nothing to type. */
+  promptField: string | null
   inputs: ModelInput[]
   /**
    * Where media can be pinned on this model. Crosses to the client whole,

@@ -8,7 +8,13 @@ import { z } from 'zod'
  */
 export const generationRequest = z.object({
   modelId: z.string().min(1).max(200),
-  prompt: z.string().min(1).max(8000),
+  /*
+   * Allowed to be empty here, and required by the model's own schema wherever a
+   * model requires it. Upscalers have no prompt at all, so a floor of one
+   * character in the shared request would make them unreachable rather than
+   * make anything safer.
+   */
+  prompt: z.string().max(8000).default(''),
   /** Asset and character ids the prompt mentions, resolved server side. */
   references: z
     .array(

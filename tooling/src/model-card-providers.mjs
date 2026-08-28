@@ -30,9 +30,27 @@ export const PROVIDERS = [
   ['fal-ai/topaz', 'topazlabs'],
   ['fal-ai/openai', 'openai'],
   ['fal-ai/gpt-image', 'openai'],
+  ['fal-ai/seedvr', 'bytedance'],
+  ['fal-ai/seedream', 'bytedance'],
+  ['fal-ai/seedance', 'bytedance'],
+  ['fal-ai/krea', 'krea'],
+  ['fal-ai/muse', 'meta'],
+  ['fal-ai/lyria', 'gemini'],
+  ['fal-ai/sonilo', 'sonilo'],
   // Labs that publish under their own namespace rather than fal-ai/.
+  ['blackforestlabs/', 'flux'],
+  ['bytedance/', 'bytedance'],
+  ['clarityai/', 'clarityai'],
+  ['ideogram/', 'ideogram'],
   ['minimax/', 'minimax'],
   ['bria/', 'briaai'],
+  ['alibaba/', 'alibaba'],
+  ['openai/', 'openai'],
+  ['google/', 'gemini'],
+  ['topaz/', 'topazlabs'],
+  ['krea/', 'krea'],
+  ['meta/', 'meta'],
+  ['sonilo/', 'sonilo'],
 ]
 
 /** One hue per modality, so a glance at the grid separates stills from clips. */

@@ -130,7 +130,7 @@ type Defaulted = { name: string; default?: unknown }
  * per character was quoting for one character until it was sent.
  */
 export function effectiveInput(
-  model: { inputs: readonly Defaulted[]; promptField: string },
+  model: { inputs: readonly Defaulted[]; promptField: string | null },
   settings: Record<string, unknown>,
   prompt: string,
 ): Record<string, unknown> {
@@ -138,5 +138,7 @@ export function effectiveInput(
   for (const input of model.inputs) {
     if (input.default !== undefined) defaults[input.name] = input.default
   }
-  return { ...defaults, ...settings, [model.promptField]: prompt }
+  // An upscaler names no prompt field, and has nothing to be priced by one.
+  const typed = model.promptField ? { [model.promptField]: prompt } : {}
+  return { ...defaults, ...settings, ...typed }
 }

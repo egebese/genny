@@ -16,6 +16,8 @@ describe('loadCatalog', () => {
 
   it('gives every entry the prompt input it names, since the studio always sends one', async () => {
     for (const { definition } of await loadCatalog()) {
+      // A model may have no prompt at all; an upscaler is handed a picture.
+      if (definition.promptField === null) continue
       const prompt = definition.inputs.find((i) => i.name === definition.promptField)
       expect(
         prompt,

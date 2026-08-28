@@ -99,8 +99,10 @@ export async function prepareGeneration(context: {
 
   const payload = buildInputSchema(model).safeParse({
     ...request.settings,
-    // Text to speech calls it `text`; every model names its own field.
-    [model.promptField]: resolved.text,
+    // Text to speech calls it `text`; every model names its own field, and an
+    // upscaler names none. The schema is strict, so injecting a prompt into a
+    // model that has no prompt field would refuse the generation outright.
+    ...(model.promptField ? { [model.promptField]: resolved.text } : {}),
     ...resolved.patch,
     ...pinned.patch,
   })

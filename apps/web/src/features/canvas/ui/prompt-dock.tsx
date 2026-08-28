@@ -9,16 +9,10 @@ import { type Attachment, AttachmentStrip, type MentionChip } from './attachment
 import { DirectorPanel, type DirectorProps } from './director-panel.tsx'
 import { DockControls } from './dock-controls.tsx'
 import { DockNotice, whyBlocked } from './dock-notice.tsx'
+import { placeholderFor } from './dock-placeholder.ts'
 import { MentionList } from './mention-list.tsx'
 import { PromptField } from './prompt-field.tsx'
 import { useMentions } from './use-mentions.ts'
-
-/** One dock over every modality, so it asks for whatever the chosen model makes. */
-const PLACEHOLDERS = {
-  image: 'Describe the image you want, or @mention an asset',
-  video: 'Describe the shot you want, or @mention an image to animate',
-  audio: 'Write what should be said, or describe the sound you want',
-} as const
 
 type PromptDockProps = {
   families: PickableFamily[]
@@ -47,8 +41,6 @@ type PromptDockProps = {
   /** The other thing the box can do: talk to the director instead of generating. */
   director: DirectorProps
 }
-
-const DIRECTOR_PLACEHOLDER = 'Ask for what to shoot next, or what is wrong with these'
 
 const MAX_ROWS = 6
 
@@ -157,7 +149,7 @@ export function PromptDock(props: PromptDockProps) {
 
       <PromptField
         value={prompt}
-        placeholder={director.on ? DIRECTOR_PLACEHOLDER : PLACEHOLDERS[shown.modality]}
+        placeholder={placeholderFor(director.on, shown.modality, shown.promptField)}
         known={props.resolvable}
         mentions={mentions}
         textarea={textarea}
@@ -178,7 +170,12 @@ export function PromptDock(props: PromptDockProps) {
         credits={props.credits}
         pending={pending}
         blocked={block !== null}
-        empty={prompt.trim().length === 0}
+        /*
+         * An upscaler has no prompt, so an empty box is not a reason to stop
+         * it. What stops it is having nothing attached, which `blocked` already
+         * answers from the model's own required slots.
+         */
+        empty={shown.promptField !== null && prompt.trim().length === 0}
         directing={director.on}
         asking={director.asking}
         onDirect={director.onToggle}

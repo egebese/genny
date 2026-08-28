@@ -8,8 +8,15 @@ describe('generationRequest', () => {
     expect(parsed.settings).toEqual({})
   })
 
-  it('rejects an empty prompt', () => {
-    expect(() => generationRequest.parse({ modelId: 'fal-ai/x', prompt: '' })).toThrow()
+  it('leaves an empty prompt to the model to refuse', () => {
+    /*
+     * This used to be rejected here. An upscaler has no prompt at all, and a
+     * floor of one character in the shared request made every such model
+     * unreachable rather than making anything safer. The refusal moved to the
+     * schema built from the model's own entry, where it knows whether this
+     * particular endpoint needs a sentence: see `input.test.ts`.
+     */
+    expect(generationRequest.parse({ modelId: 'fal-ai/x', prompt: '' }).prompt).toBe('')
   })
 
   it('rejects a reference id that is not a uuid', () => {

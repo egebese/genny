@@ -14,6 +14,7 @@ describe('the catalog contract', () => {
     // written for has to be argued away in the same change.
     expect(contractRules).toEqual([
       'prompt-field-exists',
+      'has-something-to-work-from',
       'count-is-bounded',
       'required-inputs-can-arrive',
       'enum-options-exist',

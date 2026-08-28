@@ -1042,6 +1042,45 @@ test.describe('models that require a reference', () => {
     await expect(page.getByText(/Mention one with/)).toHaveCount(0)
   })
 
+  test('a model with nothing to type still runs, on what it is given', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    /*
+     * An upscaler has no prompt at all. Every layer used to insist on one: the
+     * contract, the shared request schema, the injection into the model's own
+     * strict schema, and the button, which was disabled on an empty box.
+     */
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles({
+      name: 'ref.png',
+      mimeType: 'image/png',
+      buffer: TINY_PNG,
+    })
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    await openCanvas(page)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByPlaceholder('Search models').fill('SeedVR')
+    await page
+      .getByRole('option', { name: /SeedVR/ })
+      .first()
+      .click()
+
+    // It says what it is for rather than asking for a sentence.
+    await expect(page.getByPlaceholder(/Nothing to type/)).toBeVisible()
+    // And it is held back by the picture it has not been given, not by the box.
+    const generate = page.getByRole('button', { name: /^Generate/ })
+    await expect(generate).toBeDisabled()
+
+    const prompt = page.getByPlaceholder(/Nothing to type/)
+    await prompt.fill('@')
+    await expect(page.locator('#mention-list')).toBeVisible()
+    await prompt.press('Enter')
+
+    // The prompt now holds only the mention token, which resolves to a url and
+    // leaves nothing behind. Empty, and enabled.
+    await expect(generate).toBeEnabled()
+  })
+
   test('mentioning an image unblocks it', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await page.goto('/assets')

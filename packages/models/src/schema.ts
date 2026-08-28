@@ -131,10 +131,15 @@ export const modelDefinition = z.object({
   /** Multiplier applied on top of the fal price. 1 means we resell at cost. */
   creditMultiplier: z.number().positive().default(1),
   /**
-   * Which input carries the prompt. Text-to-speech calls it `text`, everything
-   * else so far calls it `prompt`, and the studio should not have to know which.
+   * Which input carries the prompt, or null when the model has nothing to say
+   * to. Text-to-speech calls it `text` and everything that writes calls it
+   * `prompt`, and the studio should not have to know which.
+   *
+   * Null is the upscalers. There is no sentence to type at one: it is handed a
+   * picture and asked to make it bigger, and a required prompt box in front of
+   * that is a question with no answer.
    */
-  promptField: z.string().min(1).default('prompt'),
+  promptField: z.string().min(1).nullable().default('prompt'),
   inputs: z.array(modelInput).min(1),
   references: z.array(referenceMapping).default([]),
   capabilities: z

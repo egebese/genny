@@ -24,9 +24,26 @@ const RULES: {
   {
     rule: 'prompt-field-exists',
     check: ({ definition }) => {
+      // Null is a model with nothing to type at, which the next rule covers.
+      if (definition.promptField === null) return null
       const field = definition.inputs.find((input) => input.name === definition.promptField)
       if (!field) return `promptField "${definition.promptField}" is not one of its inputs`
       return field.required ? null : `promptField "${field.name}" is not required`
+    },
+  },
+  {
+    rule: 'has-something-to-work-from',
+    check: ({ definition }) => {
+      /*
+       * A model with no prompt has to be given something instead. An upscaler
+       * takes a picture and makes it bigger, which is a whole generation
+       * without a sentence in it; a model with neither a prompt nor a required
+       * reference is one the dock can offer no way to use, and pressing
+       * Generate on it would spend money on nothing anybody asked for.
+       */
+      if (definition.promptField !== null) return null
+      const takes = definition.references.some((mapping) => mapping.required)
+      return takes ? null : 'has no prompt and no required reference, so nothing decides its output'
     },
   },
   {

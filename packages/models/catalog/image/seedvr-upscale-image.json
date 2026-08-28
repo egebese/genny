@@ -1,0 +1,71 @@
+{
+  "endpointId": "fal-ai/seedvr/upscale/image",
+  "family": {
+    "id": "seedvr-upscale",
+    "name": "SeedVR Upscale"
+  },
+  "modality": "image",
+  "group": "Upscale",
+  "displayName": "SeedVR Image Upscale",
+  "description": "Makes a picture bigger without inventing detail it did not have. Give it an image and a target size; there is nothing to type.",
+  "sortOrder": 1110,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.001
+  },
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "inputs": [
+    {
+      "name": "upscale_mode",
+      "type": "enum",
+      "label": "Mode",
+      "default": "factor",
+      "enum": ["factor", "target"]
+    },
+    {
+      "name": "upscale_factor",
+      "type": "number",
+      "label": "Factor",
+      "default": 2,
+      "min": 1,
+      "max": 10
+    },
+    {
+      "name": "target_resolution",
+      "type": "enum",
+      "label": "Target",
+      "default": "1080p",
+      "enum": ["720p", "1080p", "1440p", "2160p"]
+    },
+    {
+      "name": "output_format",
+      "type": "enum",
+      "label": "Format",
+      "default": "jpg",
+      "enum": ["png", "jpg", "webp"]
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "source",
+      "label": "Upscale this",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/bytedance.svg"
+}
