@@ -286,6 +286,22 @@ test.describe('@live against real fal', () => {
     await node.getByRole('button', { name: 'Generation details' }).click()
     await expect(panel).toBeVisible()
     await expect(panel.getByText('FLUX.1 [schnell]', { exact: true }).first()).toBeVisible()
+
+    /*
+     * And it reads like a description rather than a payload. It used to print
+     * `num_images 1`, `output_format png`, the prompt a second time under the
+     * prompt, and four rows of uuid.
+     *
+     * These assertions lived in the mocked suite, where they had never once
+     * run: without a real fal the submit fails, the rectangles are taken back,
+     * and the test returned early every time on finding no node. A panel needs
+     * a generation, and a generation needs fal.
+     */
+    for (const jargon of ['num_images', 'output_format', 'enable_safety_checker']) {
+      await expect(panel).not.toContainText(jargon)
+    }
+    // The ids are behind one copy button rather than printed at eye level.
+    await expect(panel.getByRole('button', { name: /ids for support/ })).toBeVisible()
   })
 
   test('a dragged node lines up with its neighbours @live', async ({ page }) => {

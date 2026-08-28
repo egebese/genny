@@ -23,6 +23,13 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  /*
+   * The live suite talks to a rate-limited service and ingests what comes back
+   * through one server process. Nine workers each running ten real generations
+   * turned a 16 second test into a three minute one and then into a timeout,
+   * which says nothing about the product. The mocked suite still runs wide.
+   */
+  ...(process.env.E2E_LIVE ? { workers: 2 } : {}),
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
   // Tagged @live tests spend real money on a real fal key. Opt in explicitly.
   // Spread rather than `undefined`: exactOptionalPropertyTypes distinguishes an

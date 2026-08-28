@@ -260,33 +260,6 @@ test.describe('the dock', () => {
     await expect(page.getByRole('button', { name: 'Scroll settings left' })).toBeVisible()
   })
 
-  test('the details panel reads like a description, not like a payload', async ({ page }) => {
-    test.skip(mode !== 'saas', 'the dock needs credentials to render')
-    await openCanvas(page)
-    await fillPrompt(page, 'a smooth river stone')
-    await page.getByRole('button', { name: /^Generate/ }).click()
-
-    /*
-     * The generation fails without a real fal, which is fine: the panel is
-     * reachable from the failed node and what it must not print is the same
-     * either way. It used to show `num_images 1`, `output_format png`, the
-     * prompt a second time under the prompt, and four rows of uuid.
-     */
-    const node = board(page).getByRole('option').first()
-    if ((await node.count()) === 0) return
-
-    await node.click()
-    await page.getByRole('button', { name: 'Generation details' }).click()
-    const panel = page.getByRole('complementary', { name: 'Generation details' })
-    await expect(panel).toBeVisible()
-
-    await expect(panel).not.toContainText('num_images')
-    await expect(panel).not.toContainText('output_format')
-    await expect(panel).not.toContainText('enable_safety_checker')
-    // The ids are behind one copy button rather than printed at eye level.
-    await expect(panel.getByRole('button', { name: /ids for support/ })).toBeVisible()
-  })
-
   test('a bigger output costs what fal charges for it', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await openCanvas(page)

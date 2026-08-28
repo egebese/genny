@@ -40,7 +40,7 @@ export function Canvas(props: CanvasPage) {
   )
   const view = useViewport({ initial: props.viewport, surface, onPersist: savePan })
   const handles = useMentionables(props.mentionables)
-  const { nodes, running, beginDrag, move, commit, remove, add, settle } = useBoardNodes(
+  const { nodes, running, beginDrag, move, commit, remove, add, replace, settle } = useBoardNodes(
     canvasId,
     props.nodes,
     handles.learn,
@@ -71,7 +71,12 @@ export function Canvas(props: CanvasPage) {
   const variants = useVariants(canvasId, nodes)
   const director = useDirector(canvasId)
   const [directing, setDirecting] = useState(false)
-  const { pending, error, submit, runVariants } = useSubmit({ generate, variants, onPlaced: add })
+  const { pending, error, submit, runVariants } = useSubmit({
+    generate,
+    variants,
+    onPlaced: add,
+    onReplace: replace,
+  })
 
   const act = useBoardActions({
     family,

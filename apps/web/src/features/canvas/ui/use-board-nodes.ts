@@ -95,6 +95,17 @@ export function useBoardNodes(
     setNodes((current) => [...current, ...added])
   }, [])
 
+  /**
+   * Swaps the rectangles reserved on click for the rows the server wrote.
+   *
+   * The coordinates are the same on both sides, so nothing moves: what changes
+   * is that the boxes now have ids and a job, which is what opens their stream.
+   * An empty replacement is the failure case, and takes them back off.
+   */
+  const replace = useCallback((reserved: readonly string[], real: CanvasNodeView[]) => {
+    setNodes((current) => [...current.filter((node) => !reserved.includes(node.id)), ...real])
+  }, [])
+
   const settle = useCallback(
     async (jobId: string) => {
       const fresh = await settleJobOnCanvas({ canvasId, jobId })
@@ -121,5 +132,5 @@ export function useBoardNodes(
     [nodes],
   )
 
-  return { nodes, running, beginDrag, move, commit, remove, add, settle }
+  return { nodes, running, beginDrag, move, commit, remove, add, replace, settle }
 }

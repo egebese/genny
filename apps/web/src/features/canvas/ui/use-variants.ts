@@ -1,5 +1,6 @@
 'use client'
 
+import type { Rect } from '@genny/canvas/geometry.ts'
 import { nodeSize, placeFree, rowFootprint, siblingRects } from '@genny/canvas/placement.ts'
 import { useCallback } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
@@ -17,10 +18,14 @@ export type VariantOutcome = { ok: true; nodes: CanvasNodeView[] } | { ok: false
  * starting at its left edge reads as a second row of the same shot. The
  * rectangles are found here for the same reason a generation's are, which is
  * that only the browser knows what is already on the board.
+ *
+ * In two halves, like a generation. An agent writes the four prompts before any
+ * image starts, and that is two seconds during which the count and the
+ * positions are already known and no reason for the board to look empty.
  */
 export function useVariants(canvasId: string, nodes: CanvasNodeView[]) {
-  return useCallback(
-    async (source: CanvasNodeView): Promise<VariantOutcome> => {
+  const reserve = useCallback(
+    (source: CanvasNodeView): { rects: Rect[]; nodes: CanvasNodeView[] } => {
       const size = nodeSize(source)
       const footprint = rowFootprint(size, VARIANT_COUNT)
       const anchor = {
@@ -28,7 +33,13 @@ export function useVariants(canvasId: string, nodes: CanvasNodeView[]) {
         ...size,
       }
       const rects = siblingRects(anchor, VARIANT_COUNT)
+      return { rects, nodes: rects.map(reservedNode) }
+    },
+    [nodes],
+  )
 
+  const send = useCallback(
+    async (source: CanvasNodeView, rects: Rect[]): Promise<VariantOutcome> => {
       const made = await makeVariants({ canvasId, nodeId: source.id, rects })
       if (!made.ok) return { ok: false, reason: made.reason }
 
@@ -40,19 +51,42 @@ export function useVariants(canvasId: string, nodes: CanvasNodeView[]) {
       return {
         ok: true,
         nodes: made.nodeIds.map((id, at) => ({
+          ...reservedNode(rects[at] ?? rects[0] ?? source),
           id,
-          assetId: null,
-          ...(rects[at] ?? anchor),
           jobId: made.jobIds[at] ?? null,
-          status: 'pending' as const,
-          kind: null,
           label: made.changes[at] ?? null,
-          url: null,
-          durationMs: null,
-          error: null,
         })),
       }
     },
-    [canvasId, nodes],
+    [canvasId],
   )
+
+  return { reserve, send }
+}
+
+/**
+ * An empty rectangle in the generating state.
+ *
+ * Its id is deliberately not uuid-shaped. Nothing with this id exists in the
+ * database yet, and a temporary id that looks like a real one is a temporary id
+ * somebody will eventually send to the server.
+ */
+let held = 0
+function reservedNode(rect: Rect): CanvasNodeView {
+  held += 1
+  return {
+    id: `reserved-v${held}`,
+    assetId: null,
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+    jobId: null,
+    status: 'pending',
+    kind: null,
+    label: null,
+    url: null,
+    durationMs: null,
+    error: null,
+  }
 }

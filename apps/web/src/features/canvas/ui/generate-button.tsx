@@ -56,7 +56,13 @@ export function GenerateButton(props: {
       disabled={props.disabled || props.pending}
       onClick={props.onClick}
     >
-      <span>{props.pending ? 'Sending' : 'Generate'}</span>
+      {/*
+        It never says "Sending". The rectangles go onto the board the moment
+        this is pressed, so the board is where the answer to "did that work" is
+        now; a button changing its own word for a second on top of that was the
+        only feedback there used to be, and it was in the wrong place.
+      */}
+      <span>Generate</span>
       {/*
        * A fixed slot for the number, not a fixed button. `$0.0024` and `$0.10`
        * are four characters apart, so the button changed width as you dragged
@@ -64,9 +70,7 @@ export function GenerateButton(props: {
        * under the pointer. Reserving the widest ordinary price holds it still
        * without padding the word out to nothing.
        */}
-      {props.pending ? null : (
-        <span className="min-w-[4.25rem] text-right tabular-nums opacity-80">{priced}</span>
-      )}
+      <span className="min-w-[4.25rem] text-right tabular-nums opacity-80">{priced}</span>
     </Button>
   )
 }

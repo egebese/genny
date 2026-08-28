@@ -1,6 +1,6 @@
 'use client'
 
-import type { Point } from '@genny/canvas/geometry.ts'
+import type { Point, Rect } from '@genny/canvas/geometry.ts'
 import { nodeSize, placeFree, rowFootprint, siblingRects } from '@genny/canvas/placement.ts'
 import { outputAspect, outputCount } from '@genny/models/aspect.ts'
 import { mentionedLabels } from '@genny/models/mention.ts'
@@ -21,27 +21,31 @@ export type SubmitOutcome =
   | { ok: true; nodes: CanvasNodeView[]; warning: string | null }
   | { ok: false; reason: string }
 
+/** Rectangles held on the board while the request is in flight. */
+export type Reservation = { anchor: Rect; nodes: CanvasNodeView[] }
+
 /**
- * Turns a prompt into a reserved rectangle and a running job.
+ * Turns a prompt into reserved rectangles and a running job.
  *
- * The rectangle is worked out here, on the client, because only the browser
- * knows where the person is looking and what is already on the board. The server
+ * In two halves on purpose. `reserve` is synchronous and puts the boxes on the
+ * board the moment the button is pressed; `send` is the round trip. They used
+ * to be one call, so nothing appeared until the server answered and the only
+ * sign anything was happening was the word "Sending" on a button. Submitting a
+ * generation involves uploading every attachment to fal, which is seconds of a
+ * board that looks like it ignored you.
+ *
+ * The rectangles are worked out here, on the client, because only the browser
+ * knows where the person is looking and what is already placed. The server
  * takes the coordinates as given and only checks they are sane.
  */
 export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Options) {
-  return useCallback(
-    async (
-      model: PickableModel,
-      prompt: string,
-      settings: Record<string, unknown>,
-      attachments: { field: string; assetId: string }[],
-    ) => {
-      /*
-       * Room for every output, found before the first one exists. A request for
-       * four that reserves one rectangle drops the other three wherever the
-       * layout has space by then, which is on top of whatever the person put
-       * there.
-       */
+  /*
+   * Room for every output, found before the first one exists. A request for
+   * four that reserves one rectangle drops the other three wherever the layout
+   * has space by then, which is on top of whatever the person put there.
+   */
+  const reserve = useCallback(
+    (model: PickableModel, settings: Record<string, unknown>): Reservation => {
       const size = nodeSize(outputAspect(model.modality, settings))
       const count = outputCount(settings)
       const footprint = rowFootprint(size, count)
@@ -58,6 +62,19 @@ export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Opt
         ...size,
       }
 
+      return { anchor, nodes: siblingRects(anchor, count).map(reserved) }
+    },
+    [nodes, centreOfView],
+  )
+
+  const send = useCallback(
+    async (
+      model: PickableModel,
+      prompt: string,
+      settings: Record<string, unknown>,
+      attachments: { field: string; assetId: string }[],
+      anchor: Rect,
+    ): Promise<SubmitOutcome> => {
       /*
        * References come out of the prompt text rather than a parallel list.
        * Deleting a mention then deletes its reference, which is what the person
@@ -83,7 +100,7 @@ export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Opt
         attachments,
         node: anchor,
       })
-      if (!result.ok) return { ok: false, reason: result.reason } satisfies SubmitOutcome
+      if (!result.ok) return { ok: false, reason: result.reason }
 
       /*
        * The server decides how many, from the validated payload, so its ids are
@@ -95,24 +112,43 @@ export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Opt
       return {
         ok: true,
         nodes: rects.map((rect, index) => ({
+          ...reserved(rect),
           id: result.nodeIds[index] ?? `${result.jobId}:${index}`,
-          assetId: null,
-          ...rect,
           jobId: result.jobId,
-          status: 'pending' as const,
-          kind: null,
-          label: null,
-          url: null,
-          durationMs: null,
-          error: null,
         })),
         // Not an error: the generation is running, it just could not take every
         // reference. Saying so beats silently ignoring half the input.
         warning: result.dropped?.length
           ? `${model.displayName} could not take ${result.dropped.map((l) => `@${l}`).join(', ')}.`
           : null,
-      } satisfies SubmitOutcome
+      }
     },
-    [canvasId, nodes, mentionables, centreOfView],
+    [canvasId, mentionables],
   )
+
+  return { reserve, send }
+}
+
+/**
+ * An empty rectangle in the generating state.
+ *
+ * Its id is deliberately not uuid-shaped. Nothing with this id exists in the
+ * database yet, and a temporary id that looks like a real one is a temporary id
+ * somebody will eventually send to the server.
+ */
+let held = 0
+function reserved(rect: Rect): CanvasNodeView {
+  held += 1
+  return {
+    id: `reserved-${held}`,
+    assetId: null,
+    ...rect,
+    jobId: null,
+    status: 'pending',
+    kind: null,
+    label: null,
+    url: null,
+    durationMs: null,
+    error: null,
+  }
 }
