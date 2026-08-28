@@ -1,7 +1,7 @@
 'use client'
 
 import type { Guide } from '@genny/canvas/snap.ts'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { persistViewport } from '../server/actions.ts'
 import type { CanvasPage } from '../server/canvas-page.ts'
 import { Board } from './board.tsx'
@@ -18,6 +18,7 @@ import { useDirector } from './use-director.ts'
 import { useGenerate } from './use-generate.ts'
 import { useMentionables, useResolvedMentions } from './use-mentionables.ts'
 import { overlaySlots } from './use-overlay-slots.ts'
+import { usePaintedRefs } from './use-painted-refs.ts'
 import { useSelection } from './use-selection.ts'
 import { useSize } from './use-size.ts'
 import { useSubmit } from './use-submit.ts'
@@ -26,10 +27,8 @@ import { useVariants } from './use-variants.ts'
 import { useViewport } from './use-viewport.ts'
 
 export function Canvas(props: CanvasPage) {
-  const surface = useRef<HTMLDivElement>(null)
-  const dock = useRef<HTMLDivElement>(null)
-  const layer = useRef<HTMLDivElement>(null)
-  const readout = useRef<HTMLSpanElement>(null)
+  const painted = usePaintedRefs()
+  const { surface, dock, layer, readout } = painted
   const [ready, setReady] = useState(props.hasCredentials)
   const [guides, setGuides] = useState<Guide[]>([])
 
@@ -40,14 +39,7 @@ export function Canvas(props: CanvasPage) {
     },
     [canvasId],
   )
-  const view = useViewport({
-    initial: props.viewport,
-    surface,
-    dock,
-    layer,
-    readout,
-    onPersist: savePan,
-  })
+  const view = useViewport({ initial: props.viewport, ...painted, onPersist: savePan })
   const handles = useMentionables(props.mentionables)
   const board = useBoardNodes(canvasId, props.nodes, handles.learn)
   const { nodes, running, move, commit, size, sized, add, replace, settle } = board
@@ -56,6 +48,10 @@ export function Canvas(props: CanvasPage) {
   const { families, family, settings, prompt } = composer
   const mentions = useResolvedMentions(handles.resolve, prompt)
   const pick = useSelection({ nodes, viewport: view.viewport, toLocal: view.toLocal })
+  // Once, on open: a board saved looking at empty space is a board that reads
+  // as having lost its work.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: on mount only
+  useEffect(() => view.rescue(nodes), [])
   const surfaces = useSurfaces()
   const boardSize = useSize(surface)
   const dockSize = useSize(dock)

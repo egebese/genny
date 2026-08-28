@@ -112,3 +112,16 @@ export function panToReveal(view: Rect, rect: Rect, padding = NODE_GAP): Point |
   }
   return by.x === 0 && by.y === 0 ? null : by
 }
+
+/**
+ * Whether the board would show any of its own contents from here.
+ *
+ * A viewport is saved as it is left, and a board can be left looking at empty
+ * space: pan down past the last row, or delete the work that was revealed, and
+ * the position that gets written is one from which nothing is visible. Opening
+ * there shows the nodes for the one frame before the transform is applied and
+ * then an empty board, which reads as the work having been lost.
+ */
+export function showsAny(view: Rect, rects: readonly Rect[]): boolean {
+  return rects.some((rect) => overlaps(view, rect))
+}

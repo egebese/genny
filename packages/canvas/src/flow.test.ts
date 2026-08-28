@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { GRID, panToReveal, placeInFlow, snap } from './flow.ts'
+import { GRID, panToReveal, placeInFlow, showsAny, snap } from './flow.ts'
 import { NODE_GAP } from './placement.ts'
 
 const view = { x: 0, y: 0, width: 1280, height: 800 }
@@ -87,5 +87,23 @@ describe('panToReveal', () => {
   it('lines up the start of something bigger than the screen', () => {
     const huge = { x: 40, y: 40, width: 4000, height: 4000 }
     expect(panToReveal(view, huge, 0)).toEqual({ x: 40, y: 40 })
+  })
+})
+
+describe('opening a board where it was left', () => {
+  const nodes = [{ x: 1111, y: 456, width: 360, height: 360 }]
+
+  it('is fine when the saved position still shows the work', () => {
+    expect(showsAny({ x: 1000, y: 400, width: 2690, height: 1400 }, nodes)).toBe(true)
+  })
+
+  it('is not, when it was left looking at empty space', () => {
+    // A real board: saved at a pan of y -3427 and a zoom of 0.535, which puts
+    // the screen three and a half thousand units below every node on it.
+    expect(showsAny({ x: 1272, y: 6403, width: 2690, height: 1400 }, nodes)).toBe(false)
+  })
+
+  it('says nothing is shown when there is nothing to show', () => {
+    expect(showsAny({ x: 0, y: 0, width: 100, height: 100 }, [])).toBe(false)
   })
 })

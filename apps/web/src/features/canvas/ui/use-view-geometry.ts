@@ -1,6 +1,6 @@
 'use client'
 
-import { panToReveal } from '@genny/canvas/flow.ts'
+import { panToReveal, showsAny } from '@genny/canvas/flow.ts'
 import { fitTo, type Point, type Rect, toCanvas, type Viewport } from '@genny/canvas/geometry.ts'
 import { type RefObject, useCallback } from 'react'
 
@@ -85,7 +85,31 @@ export function useViewGeometry({ surface, dock, latest, commit }: Options) {
     [visibleRect, commit],
   )
 
-  return { fit, centreOfView, visibleRect, toLocal, reveal }
+  /**
+   * Opens the board where it was left, unless nothing is there.
+   *
+   * A viewport is saved as it is left, and a board can be left looking at empty
+   * space: pan past the last row, or delete the work that was revealed, and the
+   * position written is one from which nothing is visible. Opening there shows
+   * the nodes for the one frame before the transform is applied and then an
+   * empty board, which reads as the work having been lost. One board was saved
+   * three and a half thousand units below every node on it.
+   *
+   * After a frame, because the surface has to have been measured before `fit`
+   * means anything.
+   */
+  const rescue = useCallback(
+    (rects: Rect[]) => {
+      if (rects.length === 0) return
+      const frame = requestAnimationFrame(() => {
+        if (!showsAny(visibleRect(), rects)) fit(rects)
+      })
+      return () => cancelAnimationFrame(frame)
+    },
+    [visibleRect, fit],
+  )
+
+  return { fit, centreOfView, visibleRect, toLocal, reveal, rescue }
 }
 
 function sizeOf(element: HTMLElement | null) {
