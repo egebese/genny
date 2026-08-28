@@ -14,6 +14,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { proseMentions } from './catalog-price-prose.mjs'
 import { comparePrice, tryFetchPrices } from './catalog-pricing.mjs'
 
 const catalogRoot = join(dirname(fileURLToPath(import.meta.url)), '../../packages/models/catalog')
@@ -53,9 +54,49 @@ const problems = []
 for (const entry of entries) {
   const note = comparePrice(entry, quoted.prices.get(entry.endpointId))
   if (!note) continue
-  const waived = entry.pricing?.waiveDriftCheck === true
-  if (waived) continue
-  problems.push(`${note}\n    No pricing.note explains this. Check fal's own page, then write one.`)
+  if (entry.pricing?.waiveDriftCheck !== true) {
+    problems.push(
+      `${note}\n    Nothing waives this. Check fal's own page, then say so in the entry.`,
+    )
+  }
+}
+
+/*
+ * The waived ones, against the other source. Only these, because the rest have
+ * already been compared with the CLI and a second fetch would say the same
+ * thing twice; and only after that comparison, so a page that cannot be reached
+ * is reported next to a price that is merely unverified rather than wrong.
+ */
+const unreachable = []
+let verified = 0
+for (const entry of entries) {
+  if (entry.pricing?.waiveDriftCheck !== true) continue
+  verified += 1
+  const said = proseMentions(entry.endpointId, entry.pricing.unitPriceUsd)
+  if (!said.ok) {
+    unreachable.push(`${entry.endpointId}: ${said.reason}`)
+    continue
+  }
+  if (said.found) continue
+  problems.push(
+    `${entry.endpointId}: the catalog says $${entry.pricing.unitPriceUsd} per ` +
+      `${entry.pricing.unit}, and fal's own page names ${said.figures.map((figure) => `$${figure}`).join(', ') || 'no figure at all'}.\n` +
+      '    The waiver says the CLI is wrong about this one, so the page is what it is checked against.',
+  )
+}
+
+if (unreachable.length > 0) {
+  const message = `catalog prices: ${unreachable.length} waived entr${unreachable.length === 1 ? 'y' : 'ies'} could not be read from fal's own page`
+  for (const line of unreachable) console.warn(`  - ${line}`)
+  if (strict) {
+    console.error(`${message}. CATALOG_STRICT is on, so this is a failure.`)
+    process.exit(1)
+  }
+  console.warn(`${message}. Passing; set CATALOG_STRICT=1 to make this fail.`)
+}
+
+if (problems.length === 0 && verified > 0) {
+  console.log(`  ${verified} of them waive the CLI and were read from fal's own page instead`)
 }
 
 if (problems.length > 0) {
