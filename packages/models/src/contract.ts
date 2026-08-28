@@ -1,5 +1,6 @@
 import type { CatalogEntry } from './catalog.ts'
 import { familyViolations, orderViolations } from './contract-set.ts'
+import { DURATION_FIELDS } from './duration.ts'
 import { allSlots } from './slots.ts'
 
 export type Violation = { endpointId: string; rule: string; detail: string }
@@ -101,25 +102,39 @@ const RULES: {
   {
     rule: 'priced-in-a-unit-we-can-estimate',
     check: ({ definition }) => {
-      if (definition.pricing.unitPriceUsd <= 0) return 'unitPriceUsd is zero or negative'
-      const needsDuration = definition.pricing.unit === 'seconds'
-      const hasDuration = definition.inputs.some((input) => /duration|seconds/.test(input.name))
-      return needsDuration && !hasDuration
-        ? 'billed per second with no duration input, so the estimate guesses'
-        : null
+      const { pricing } = definition
+      if (pricing.unitPriceUsd <= 0) return 'unitPriceUsd is zero or negative'
+      if (pricing.unit !== 'seconds' && pricing.unit !== 'minutes') return null
+      // Either the length is a control, or the entry says what to assume. The
+      // second case is real: some endpoints choose their own length, and one
+      // that bills by the second and picks its own has to declare a ceiling.
+      if (pricing.duration?.assume !== undefined) return null
+      const named = pricing.duration?.field
+      const found = definition.inputs.some((input) =>
+        named ? input.name === named : DURATION_FIELDS.includes(input.name),
+      )
+      if (found) return null
+      return named
+        ? `pricing names ${named} as its duration, which is not an input`
+        : `billed per ${pricing.unit.replace(/s$/, '')} with no duration input and no assumed length`
     },
   },
   {
     rule: 'conditional-rates-are-decided',
     check: ({ definition }) => {
-      const scale = definition.pricing.scale
-      if (!scale) return null
-      const field = definition.inputs.find((input) => input.name === scale.field)
-      if (!field) return `pricing scales on ${scale.field}, which is not an input`
-      const unknown = Object.keys(scale.factors).find(
-        (value) => !field.enum?.some((option) => String(option) === value),
-      )
-      return unknown ? `pricing scales on ${scale.field}="${unknown}", not an option` : null
+      for (const rate of definition.pricing.scale ?? []) {
+        const field = definition.inputs.find((input) => input.name === rate.field)
+        if (!field) return `pricing scales on ${rate.field}, which is not an input`
+        const unknown = Object.keys(rate.factors).find(
+          (value) => !field.enum?.some((option) => String(option) === value),
+        )
+        if (unknown) return `pricing scales on ${rate.field}="${unknown}", not an option`
+      }
+      for (const fee of definition.pricing.surcharges ?? []) {
+        const field = definition.inputs.find((input) => input.name === fee.field)
+        if (!field) return `pricing surcharges on ${fee.field}, which is not an input`
+      }
+      return null
     },
   },
   {

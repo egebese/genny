@@ -13,14 +13,16 @@
   "pricing": {
     "unit": "images",
     "unitPriceUsd": 0.08,
-    "scale": {
-      "field": "resolution",
-      "factors": {
-        "0.5K": 0.75,
-        "2K": 1.5,
-        "4K": 2
+    "scale": [
+      {
+        "field": "resolution",
+        "factors": {
+          "0.5K": 0.75,
+          "2K": 1.5,
+          "4K": 2
+        }
       }
-    },
+    ],
     "note": "fal charges $0.08 per image, 2K at 1.5 times that and 4K at double. Same reasoning as nano-banana-2: an unscaled option is a permanent discount, not a rounding error."
   },
   "creditMultiplier": 1.25,

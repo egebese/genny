@@ -49,7 +49,7 @@ describe('the catalog contract', () => {
         ...first.definition,
         pricing: {
           ...first.definition.pricing,
-          scale: { field: 'resolution', factors: { '8K': 4 } },
+          scale: [{ field: 'resolution', factors: { '8K': 4 } }],
         },
       },
     }

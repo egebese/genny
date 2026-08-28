@@ -104,7 +104,7 @@ describe('options that bill at a different rate', () => {
     pricing: {
       unit: 'images' as const,
       unitPriceUsd: 0.08,
-      scale: { field: 'resolution', factors: { '4K': 2 } },
+      scale: [{ field: 'resolution', factors: { '4K': 2 } }],
     },
   }
 
@@ -137,7 +137,7 @@ describe('what the button prices, as opposed to what the server holds', () => {
     pricing: {
       unit: 'images' as const,
       unitPriceUsd: 0.03,
-      scale: { field: 'rendering_speed', factors: { TURBO: 1, BALANCED: 2, QUALITY: 3 } },
+      scale: [{ field: 'rendering_speed', factors: { TURBO: 1, BALANCED: 2, QUALITY: 3 } }],
     },
   }
   const tts = {

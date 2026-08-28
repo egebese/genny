@@ -69,7 +69,7 @@ describe('loadCatalog', () => {
       if (!offers4K) continue
 
       const decided =
-        definition.pricing.scale?.factors['4K'] !== undefined ||
+        (definition.pricing.scale ?? []).some((rate) => rate.factors['4K'] !== undefined) ||
         (definition.pricing.note?.includes('4K') ?? false)
       expect(decided, `${definition.endpointId} offers 4K and says nothing about its price`).toBe(
         true,

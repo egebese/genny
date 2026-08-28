@@ -1,14 +1,5 @@
 import { z } from 'zod'
-
-/** How fal bills the endpoint. Drives both the estimate and the final charge. */
-export const pricingUnit = z.enum([
-  'images',
-  'seconds',
-  'megapixels',
-  'requests',
-  'minutes',
-  'characters',
-])
+import { modelPricing } from './pricing.ts'
 
 /**
  * Where an @mention lands in the model payload. Each model decides this for
@@ -136,40 +127,7 @@ export const modelDefinition = z.object({
     .optional(),
   featured: z.boolean().default(false),
   sortOrder: z.int().default(0),
-  pricing: z.object({
-    unit: pricingUnit,
-    unitPriceUsd: z.number().nonnegative(),
-    /**
-     * Why this number is right when fal's published prose says something else.
-     * Printed next to the drift report, so a recurring false alarm is answered
-     * in the file rather than rediscovered every week.
-     */
-    note: z.string().optional(),
-    /*
-     * Set when this entry disagrees with `genmedia pricing` on purpose.
-     *
-     * It used to be inferred from the note containing the word "genmedia",
-     * which is not a decision anybody made. That silence hid an endpoint
-     * resold at a two hundredth of its cost for as long as it shipped, so the
-     * waiver is now something a person has to write down and mean.
-     */
-    waiveDriftCheck: z.boolean().optional(),
-    /**
-     * Options that bill at a different rate from the rest.
-     *
-     * Some endpoints have one price and one exception: nano-banana charges per
-     * image and then charges double for 4K. Without this the estimate is right
-     * for three of four settings and half of what it should be for the fourth,
-     * and because `settle` captures held × produced ÷ expected, it never
-     * catches up. A permanent discount nobody chose.
-     */
-    scale: z
-      .object({
-        field: z.string().min(1),
-        factors: z.record(z.string(), z.number().positive()),
-      })
-      .optional(),
-  }),
+  pricing: modelPricing,
   /** Multiplier applied on top of the fal price. 1 means we resell at cost. */
   creditMultiplier: z.number().positive().default(1),
   /**

@@ -13,12 +13,14 @@
   "pricing": {
     "unit": "images",
     "unitPriceUsd": 0.15,
-    "scale": {
-      "field": "resolution",
-      "factors": {
-        "4K": 2
+    "scale": [
+      {
+        "field": "resolution",
+        "factors": {
+          "4K": 2
+        }
       }
-    },
+    ],
     "note": "fal charges $0.15 per image and 4K at double. Its prose names no 2K factor, unlike nano-banana-2, so there is deliberately none here."
   },
   "creditMultiplier": 1.25,

@@ -1,4 +1,5 @@
 import { resolveImageSize } from './aspect.ts'
+import { secondsOf } from './duration.ts'
 import type { ModelDefinition } from './schema.ts'
 
 /** Everything the estimate needs. Keeps the browser from importing the catalog. */
@@ -40,7 +41,7 @@ export function megapixelsFor(width: number, height: number, count: number): num
  * settles the difference against real usage.
  */
 export function estimateUnits(model: PricedModel, input: Record<string, unknown>): number {
-  return baseUnits(model, input) * rateFactor(model, input)
+  return baseUnits(model, input) * rateFactor(model, input) + surchargeUnits(model, input)
 }
 
 /**
@@ -51,11 +52,31 @@ export function estimateUnits(model: PricedModel, input: Record<string, unknown>
  * all this, and they cannot drift apart if there is only one of them.
  */
 function rateFactor(model: PricedModel, input: Record<string, unknown>): number {
-  const scale = model.pricing.scale
-  if (!scale) return 1
-  const chosen = input[scale.field]
-  if (typeof chosen !== 'string') return 1
-  return scale.factors[chosen] ?? 1
+  let factor = 1
+  for (const rate of model.pricing.scale ?? []) {
+    const chosen = input[rate.field]
+    // Compared as text: an option can be a number now, and `4` and `"4"` are
+    // the same choice to the person who picked it.
+    if (chosen === undefined || chosen === null) continue
+    factor *= rate.factors[String(chosen)] ?? 1
+  }
+  return factor
+}
+
+/**
+ * Flat fees, expressed as extra units so the whole calculation stays one
+ * number. A web search on Nano Banana Pro is $0.015 on a $0.15 image, which is
+ * a tenth of a unit however many images come back.
+ */
+function surchargeUnits(model: PricedModel, input: Record<string, unknown>): number {
+  const price = model.pricing.unitPriceUsd
+  if (price <= 0) return 0
+  let extra = 0
+  for (const fee of model.pricing.surcharges ?? []) {
+    const chosen = input[fee.field]
+    if (fee.when.some((value) => String(value) === String(chosen))) extra += fee.addUsd / price
+  }
+  return extra
 }
 
 function baseUnits(model: PricedModel, input: Record<string, unknown>): number {
@@ -70,9 +91,9 @@ function baseUnits(model: PricedModel, input: Record<string, unknown>): number {
       return megapixelsFor(size.width, size.height, count)
     }
     case 'seconds':
-      return positiveNumber(input.duration ?? input.duration_seconds, 5) * count
+      return secondsOf(model.pricing, input) * count
     case 'minutes':
-      return positiveNumber(input.duration, 60) / 60
+      return (secondsOf(model.pricing, input) / 60) * count
     case 'characters':
       // Exact rather than estimated: the text being read is the text we hold for.
       return Math.max(1, String(input.text ?? input.prompt ?? '').length)

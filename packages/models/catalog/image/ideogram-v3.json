@@ -12,14 +12,16 @@
   "pricing": {
     "unit": "images",
     "unitPriceUsd": 0.03,
-    "scale": {
-      "field": "rendering_speed",
-      "factors": {
-        "TURBO": 1,
-        "BALANCED": 2,
-        "QUALITY": 3
+    "scale": [
+      {
+        "field": "rendering_speed",
+        "factors": {
+          "TURBO": 1,
+          "BALANCED": 2,
+          "QUALITY": 3
+        }
       }
-    },
+    ],
     "note": "fal charges $0.03 with TURBO, $0.06 with BALANCED and $0.09 with QUALITY, so the unit price is TURBO's and the rest are factors. The default is BALANCED, which means every generation nobody adjusted was being held at half its cost."
   },
   "creditMultiplier": 1.25,
