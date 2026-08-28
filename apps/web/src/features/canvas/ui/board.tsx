@@ -101,6 +101,7 @@ export function Board(props: BoardProps) {
           <CanvasNode
             key={node.id}
             node={node}
+            zoom={viewport.zoom}
             selected={props.selected.has(node.id)}
             panMode={props.panMode}
             onSelect={(additive) => props.onSelect(node.id, additive)}

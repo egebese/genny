@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { isThumbWidth, resizeTo, THUMB_WIDTHS, thumbKeyFor, thumbWidth } from './thumbnail.ts'
+import { resizeTo } from './resize.ts'
+import {
+  isThumbWidth,
+  sourceFor,
+  THUMB_WIDTHS,
+  thumbKeyFor,
+  thumbWidth,
+  widthForDisplay,
+} from './thumbnail.ts'
 
 /** A 4000 pixel square, which is the order of size a generated picture is. */
 async function huge(): Promise<Uint8Array> {
@@ -52,5 +60,30 @@ describe('the copy the board draws', () => {
     )
     const meta = await sharp(await resizeTo(tiny, 1024)).metadata()
     expect(meta.width).toBe(200)
+  })
+})
+
+describe('which copy a node is drawn from', () => {
+  it('covers the node at the size it is actually shown', () => {
+    // A board at rest: a 360 unit node on a retina screen wants 720 real pixels.
+    expect(sourceFor('/a.png', 360, 2)).toBe('/a.png?w=1024')
+    expect(sourceFor('/a.png', 360, 1)).toBe('/a.png?w=512')
+  })
+
+  it('asks for more as you zoom in', () => {
+    expect(sourceFor('/a.png', 360 * 2, 2)).toBe('/a.png?w=2048')
+  })
+
+  it('gives the original once no stored copy is big enough', () => {
+    // Looking at it closely is the case where the real file is what is wanted.
+    expect(sourceFor('/a.png', 360 * 4, 2)).toBe('/a.png')
+    expect(widthForDisplay(4000, 1)).toBeNull()
+  })
+
+  it('never draws a node from something smaller than itself', () => {
+    for (const shown of [100, 359, 360, 700, 1000, 1500, 2000]) {
+      const width = widthForDisplay(shown, 2)
+      if (width !== null) expect(width).toBeGreaterThanOrEqual(shown * 2)
+    }
   })
 })

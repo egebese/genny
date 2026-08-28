@@ -1,12 +1,13 @@
 'use client'
 
+import { sourceFor } from '@genny/assets/thumbnail.ts'
 import { Skeleton } from '@genny/ui/skeleton.tsx'
 import { Spinner } from '@genny/ui/spinner.tsx'
 import type { CanvasNodeView } from '../node-view.ts'
 import { VideoPlayer } from './video-player.tsx'
 
 /** What fills a node's rectangle, which is a different thing per kind and per state. */
-export function NodeMedia({ node }: { node: CanvasNodeView }) {
+export function NodeMedia({ node, zoom }: { node: CanvasNodeView; zoom: number }) {
   if (node.status === 'failed') {
     return (
       <div className="flex h-full w-full flex-col justify-center gap-1 border border-danger/40 bg-danger/5 p-3">
@@ -44,16 +45,20 @@ export function NodeMedia({ node }: { node: CanvasNodeView }) {
   return (
     <img
       /*
-       * A board-sized copy, not the original.
+       * A copy the size this node is actually drawn at, not the original.
        *
-       * A node is three hundred and sixty units across and a generated picture
-       * is several thousand pixels: one canvas of thirty-one of them was two
-       * hundred and twenty-seven megabytes, every one decoded to a full bitmap
-       * and re-rastered on every zoom. A thousand pixels is still sharp at any
-       * zoom anybody works at, and it is the difference between a board that
-       * moves and one that does not.
+       * A node is a few hundred pixels across and a generated picture is
+       * several thousand: one canvas of thirty-one of them was two hundred and
+       * twenty-seven megabytes, every one decoded to a full bitmap and
+       * re-rastered on every zoom. Zoom in and the same node asks for a bigger
+       * copy, and past four times its size for the original, because that is
+       * the point at which somebody is looking at it rather than at the board.
+       *
+       * The zoom here is the settled one, which changes once when a gesture
+       * ends rather than sixty times during it. Quality does not need to keep
+       * up with a pinch; it needs to be right when the pinch stops.
        */
-      src={`${node.url}?w=1024`}
+      src={sourceFor(node.url, node.width * zoom, dpr())}
       alt={node.label ?? ''}
       draggable={false}
       loading="lazy"
@@ -63,4 +68,11 @@ export function NodeMedia({ node }: { node: CanvasNodeView }) {
       className="h-full w-full bg-surface object-cover"
     />
   )
+}
+
+/** Retina screens draw twice the pixels, and a board that looked soft on one
+ * is the first thing anybody notices. One on the server, where there is no
+ * screen and the markup is replaced on hydration anyway. */
+function dpr(): number {
+  return typeof window === 'undefined' ? 1 : Math.min(window.devicePixelRatio || 1, 2)
 }

@@ -1,12 +1,7 @@
 import { STORABLE_MIMES } from '@genny/assets/media.ts'
 import { findAssetsByIds } from '@genny/assets/repository.ts'
-import {
-  isThumbWidth,
-  resizeTo,
-  type ThumbWidth,
-  thumbKeyFor,
-  thumbWidth,
-} from '@genny/assets/thumbnail.ts'
+import { resizeTo } from '@genny/assets/resize.ts'
+import { isThumbWidth, type ThumbWidth, thumbKeyFor, thumbWidth } from '@genny/assets/thumbnail.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { env } from '@genny/env/env.ts'

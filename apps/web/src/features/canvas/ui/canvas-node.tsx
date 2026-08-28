@@ -14,6 +14,14 @@ type CanvasNodeProps = {
   node: CanvasNodeView
   /** Everything else on the board, asked for when a drag begins. */
   neighbours: () => CanvasNodeView[]
+  /**
+   * The settled zoom, for choosing which copy of the picture to draw.
+   *
+   * Settled, not live: it changes once when a gesture ends rather than sixty
+   * times during it, which is the whole point of the viewport writing itself.
+   * Quality does not need to keep up with a pinch, only to be right after one.
+   */
+  zoom: number
   /** The live viewport, so a zoom does not have to re-render every node. */
   view: RefObject<Viewport>
   selected: boolean
@@ -102,7 +110,7 @@ export function CanvasNode(props: CanvasNodeProps) {
         selected ? 'ring-2 ring-accent' : 'focus-visible:ring-2 focus-visible:ring-accent',
       )}
     >
-      <NodeMedia node={node} />
+      <NodeMedia node={node} zoom={props.zoom} />
       <InspectButton node={node} selected={selected} onInspect={props.onInspect} />
       {selected ? (
         <ResizeHandle
