@@ -88,9 +88,15 @@ export function PromptDock(props: PromptDockProps) {
     // One box, two things it can do. Which one is a mode rather than a second
     // input, because a studio with two places to type is a studio where half
     // of what you write goes to the wrong one.
-    if (director.on) director.onAsk(trimmed)
-    else onSubmit(trimmed)
-    setPrompt('')
+    if (director.on) {
+      director.onAsk(trimmed)
+      // A question asked is gone; a prompt sent is not. Most of the next
+      // generation is the last one with a word changed, which is why clearing
+      // it was removed once already.
+      setPrompt('')
+    } else {
+      onSubmit(trimmed)
+    }
     mentions.close()
     resize()
   }

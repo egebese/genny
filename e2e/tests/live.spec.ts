@@ -21,7 +21,14 @@ test.describe('@live against real fal', () => {
   test('an image lands on the board as a node of ours @live', async ({ page }) => {
     // A tenth of a cent.
     await generate(page, 'schnell', 'a single red leaf on wet slate, overhead')
-    await expect(page.locator('main img[src*="/genny/"]').first()).toBeVisible({ timeout: 300_000 })
+    /*
+     * Our own origin, not fal's. The substring used to be `/genny/`, the
+     * bucket's key prefix, and has matched nothing since media started being
+     * served through `/api/assets`. Live tests are opt-in, so it went unnoticed.
+     */
+    await expect(page.locator('main img[src^="/api/assets/"]').first()).toBeVisible({
+      timeout: 300_000,
+    })
   })
 
   test('speech arrives as audio, from the model that calls the prompt text @live', async ({
@@ -278,7 +285,7 @@ test.describe('@live against real fal', () => {
 
     await node.getByRole('button', { name: 'Generation details' }).click()
     await expect(panel).toBeVisible()
-    await expect(panel.getByText('FLUX.1 [schnell]', { exact: true })).toBeVisible()
+    await expect(panel.getByText('FLUX.1 [schnell]', { exact: true }).first()).toBeVisible()
   })
 
   test('a dragged node lines up with its neighbours @live', async ({ page }) => {
@@ -331,10 +338,16 @@ test.describe('@live against real fal', () => {
 
     // The same delta for all of them: a selection is a shape, and moving its
     // members by different amounts would pull it apart on the way.
+    /*
+     * Within a pixel, not to the pixel. The positions come back through a CSS
+     * transform and a device pixel ratio, so a 180 unit move lands at 179.6 as
+     * often as at 180. What is being tested is that all three moved by the
+     * same amount, and one pixel of rounding is not a different amount.
+     */
     for (const [at, start] of before.entries()) {
       const now = await nodes.nth(at).boundingBox()
-      expect(Math.round((now?.x ?? 0) - (start?.x ?? 0))).toBe(0)
-      expect(Math.round((now?.y ?? 0) - (start?.y ?? 0))).toBe(180)
+      expect(Math.abs((now?.x ?? 0) - (start?.x ?? 0))).toBeLessThanOrEqual(1)
+      expect(Math.abs((now?.y ?? 0) - (start?.y ?? 0) - 180)).toBeLessThanOrEqual(1)
     }
 
     /*
