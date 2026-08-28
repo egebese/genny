@@ -79,11 +79,18 @@ export default defineConfig({
       // saas mode refuses to boot without these, by design. The suite mocks fal
       // and Stripe, so placeholders are correct here: a real key in a test
       // environment is a key that eventually gets spent by accident.
+      //
+      // Inherited only under E2E_LIVE. Anyone who has ever run the fal CLI has
+      // FAL_KEY exported from their shell profile, and passing it through meant
+      // the scenarios that assert on a generation failing to start watched one
+      // succeed instead. They failed on that laptop and passed in CI, which is
+      // the direction that wastes the most time.
       // `||`, not `??`: a .env file writes FAL_KEY= as an empty string, which is
       // present but useless, and ?? would happily pass it through.
       ...(mode === 'saas'
         ? {
-            FAL_KEY: process.env.FAL_KEY || 'e2e-placeholder:not-a-real-key',
+            FAL_KEY:
+              (process.env.E2E_LIVE ? process.env.FAL_KEY : '') || 'e2e-placeholder:not-a-real-key',
             STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'sk_test_e2e_placeholder',
             STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_e2e_placeholder',
             // Trial credits, so the suite can exercise the credit paths without
