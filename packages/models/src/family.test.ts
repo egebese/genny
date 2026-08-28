@@ -104,3 +104,35 @@ describe('resolveTask counts what it was given', () => {
     expect(resolveTask([one, two], [])).toBeNull()
   })
 })
+
+describe('the plainest task', () => {
+  /*
+   * What a picker card describes: what this model does when handed nothing.
+   *
+   * Asked as "the first member that needs nothing handed over", Wan 2.7
+   * answered reference-to-video, which takes an image without insisting on one
+   * and is declared long before its text endpoint. The card then said
+   * "Reference to Video" about a model whose plainest task is a prompt.
+   */
+  const needsImage = slot({ field: 'image_url', required: true })
+  const needsVideo = slot({ field: 'video_url', accepts: ['video'], required: true })
+  const wan = [
+    task('fal-ai/wan/v2.7/image-to-video', [needsImage], [needsImage]),
+    task('fal-ai/wan/v2.7/reference-to-video', [slot({ field: 'reference_image_urls' })]),
+    task('fal-ai/wan/v2.7/edit-video', [needsVideo], [needsVideo]),
+    task('fal-ai/wan/v2.7/text-to-video', [slot({ field: 'audio_url', accepts: ['audio'] })]),
+  ]
+
+  it('is the endpoint that runs with nothing attached', () => {
+    expect(resolveTask(wan, [])?.endpointId).toBe('fal-ai/wan/v2.7/text-to-video')
+  })
+
+  it('is not simply the first one that could run', () => {
+    // reference-to-video could also run with nothing, and comes first.
+    expect(resolveTask(wan, [])?.endpointId).not.toBe('fal-ai/wan/v2.7/reference-to-video')
+  })
+
+  it('still hands an attached image to the endpoint that wants one', () => {
+    expect(resolveTask(wan, ['image'])?.endpointId).toBe('fal-ai/wan/v2.7/image-to-video')
+  })
+})

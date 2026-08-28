@@ -291,6 +291,40 @@ test.describe('the dock', () => {
     expect(await priced()).toBeCloseTo(standard * 2, 4)
   })
 
+  test('a card says what it can be handed, not only what it makes', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByRole('button', { name: 'Text to Video', exact: true }).click()
+
+    /*
+     * Four video families also animate a still, and the group only names what
+     * they do from a prompt alone, because that is the endpoint the picker
+     * chooses. With nothing to say otherwise the picker looked like it had no
+     * image-to-video at all: the way to reach it is to attach an image, which
+     * nobody tries on a card that says Text to Video.
+     */
+    const cards = page.locator('[cmdk-group-items] [role=option]')
+    // Lowercase in the DOM: the capitals are `uppercase`, which is paint.
+    await expect(cards.filter({ hasText: 'MiniMax H3 Max' })).toContainText('+ image')
+  })
+
+  test('no category promises a model that is only ever an endpoint', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+
+    /*
+     * "Image to Video" and "Reference to Video" were categories with nothing in
+     * them: every family that does either also writes from text, so its card is
+     * filed under that. A heading you can click and get an empty grid from is
+     * worse than no heading.
+     */
+    for (const empty of ['Image to Video', 'Reference to Video']) {
+      await expect(page.getByRole('button', { name: empty, exact: true })).toHaveCount(0)
+    }
+  })
+
   test('the picker lists models, not the endpoints they are split across', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await openCanvas(page)

@@ -36,7 +36,17 @@ export function toFamilies(models: PickableModel[]): PickableFamily[] {
   }
 
   return [...grouped.values()].map((variants) => {
-    const base = variants.find((variant) => variant.required.length === 0) ?? variants[0]
+    /*
+     * The card describes what this model does when handed nothing, decided by
+     * the resolver that decides what actually runs. Not a second rule: any
+     * other reading of "the plainest task" is one more thing to drift.
+     *
+     * "The first member that needs nothing handed over" was that other reading,
+     * and it filed Wan 2.7 under Reference to Video. Its reference endpoint
+     * takes an image without insisting on one and sorts long before its text
+     * endpoint, so it won a race it was never in.
+     */
+    const base = resolveTask(variants, []) ?? variants[0]
     if (!base) throw new Error('a family with no members cannot exist')
     return {
       id: base.family.id,

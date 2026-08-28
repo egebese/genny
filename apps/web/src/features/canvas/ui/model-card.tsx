@@ -67,6 +67,22 @@ export function ModelCard({ model, current }: { model: PickableFamily; current: 
           {model.group}
         </span>
 
+        {/*
+          What it does with something handed to it.
+          
+          The group only says what the model does from a prompt alone, because
+          that is the endpoint the picker is choosing. Four video families also
+          animate a still, and with nothing to say so the picker looked like it
+          had no image-to-video at all: the endpoint that does it exists, and
+          the way you reach it is to attach an image, which is not a thing you
+          try on a card that says Text to Video.
+        */}
+        {model.accepts.length > 0 ? (
+          <span className="absolute bottom-2 left-2 rounded-[3px] bg-canvas/70 px-2 py-1 font-mono text-[11px] text-ink-muted uppercase leading-none tracking-wider backdrop-blur">
+            + {model.accepts.join(' / ')}
+          </span>
+        ) : null}
+
         {current ? (
           <span className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-[3px] bg-canvas/80 text-[11px] text-accent leading-none ring-1 ring-accent/50 backdrop-blur">
             <span className="sr-only">Selected</span>✓
