@@ -1,0 +1,72 @@
+{
+  "endpointId": "fal-ai/kling-video/v3/turbo/standard/image-to-video",
+  "family": {
+    "id": "kling-v3",
+    "name": "Kling V3"
+  },
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "Kling V3 Turbo Standard Image to Video",
+  "description": "The fast route at the base tier, animating a still.",
+  "sortOrder": 2250,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.112,
+    "waiveDriftCheck": true,
+    "note": "fal publishes a flat $0.112 per second of output. genmedia reports $0.14."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "multi_prompt",
+      "label": "Multi prompt",
+      "type": "object-array",
+      "fields": [
+        {
+          "name": "prompt",
+          "label": "Prompt",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "duration",
+          "label": "Duration",
+          "default": "5",
+          "type": "enum",
+          "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+        }
+      ]
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": "5",
+      "type": "enum",
+      "enum": ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/kling.svg"
+}

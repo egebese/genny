@@ -3,6 +3,7 @@
  * A first draft of a catalog entry, from what fal publishes.
  *
  *   node tooling/src/catalog-draft.mjs minimax/h3/text-to-video [more...]
+ *   node tooling/src/catalog-draft.mjs --from tooling/families/kling-v3.json
  *
  * A draft, not an entry. It fills in what is mechanical: every control with its
  * real bounds and options, every reference slot, and the price. It cannot fill
@@ -17,7 +18,7 @@
  * endpoint's own schema rather than from someone's reading of a docs page.
  */
 import { execFileSync } from 'node:child_process'
-import { existsSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { priceProse } from './catalog-price-prose.mjs'
@@ -25,9 +26,19 @@ import { readSchema } from './catalog-schema.mjs'
 
 const catalogRoot = join(dirname(fileURLToPath(import.meta.url)), '../../packages/models/catalog')
 
-const ids = process.argv.slice(2)
+const args = process.argv.slice(2)
+const from = args.indexOf('--from')
+/*
+ * The decisions a schema cannot make, written once per family instead of once
+ * per file. A family is six endpoints that differ by a word, and editing six
+ * near-identical JSON files by hand is how one of them ends up in the wrong
+ * group with last week's price.
+ */
+const manifest = from === -1 ? null : JSON.parse(readFileSync(args[from + 1], 'utf8'))
+const ids = manifest ? Object.keys(manifest.endpoints) : args
+
 if (ids.length === 0) {
-  console.error('usage: catalog-draft.mjs <endpointId> [<endpointId>...]')
+  console.error('usage: catalog-draft.mjs <endpointId>... | --from <manifest.json>')
   process.exit(1)
 }
 
@@ -36,6 +47,19 @@ for (const endpointId of ids) {
     write(endpointId)
   } catch (error) {
     console.error(`  ${endpointId}: ${error.message}`)
+  }
+}
+
+/** The manifest's own values, family defaults first and the endpoint's on top. */
+function decided(endpointId) {
+  if (!manifest) return {}
+  const { endpoints, ...family } = manifest
+  const own = endpoints[endpointId] ?? {}
+  return {
+    ...family,
+    ...own,
+    pricing: { ...family.pricing, ...own.pricing },
+    family: family.family,
   }
 }
 
@@ -51,25 +75,30 @@ function write(endpointId) {
   const modality = modalityOf(doc, endpointId)
   const slug = endpointId.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '')
   const path = join(catalogRoot, modality, `${slug}.json`)
-  if (existsSync(path)) {
+  if (existsSync(path) && !args.includes('--overwrite')) {
     console.log(`  ${endpointId}: already in the catalog, left alone`)
     return
   }
 
+  const said = decided(endpointId)
   const entry = {
     endpointId,
-    family: { id: 'TODO', name: 'TODO' },
+    family: said.family ?? { id: 'TODO', name: 'TODO' },
     modality,
-    group: 'TODO',
-    displayName: doc.info?.title ?? 'TODO',
-    description: 'TODO',
-    sortOrder: 0,
+    group: said.group ?? 'TODO',
+    displayName: said.displayName ?? doc.info?.title ?? 'TODO',
+    description: said.description ?? 'TODO',
+    sortOrder: said.sortOrder ?? 0,
     pricing: {
       unit: 'TODO',
       unitPriceUsd: 0,
-      note: priceProse(endpointId) ?? 'TODO: fal publishes no price prose for this endpoint.',
+      ...said.pricing,
+      note:
+        said.pricing?.note ??
+        priceProse(endpointId) ??
+        'TODO: fal publishes no price prose for this endpoint.',
     },
-    creditMultiplier: 1.25,
+    creditMultiplier: said.creditMultiplier ?? 1.25,
     promptField: inputs.some((input) => input.name === 'prompt')
       ? 'prompt'
       : inputs.some((input) => input.name === 'text')
@@ -82,8 +111,35 @@ function write(endpointId) {
       supportsSeed: inputs.some((input) => input.name === 'seed'),
       maxOutputs: 1,
     },
-    markUrl: 'TODO',
+    markUrl: said.markUrl ?? 'TODO',
   }
+  /*
+   * Roles are guessed from field names and the guess is often wrong, so the
+   * manifest overrides them by field. Everything else about a slot comes from
+   * the schema and is not worth repeating.
+   */
+  for (const slot of entry.references) {
+    const override = said.roles?.[slot.field]
+    if (override) Object.assign(slot, typeof override === 'string' ? { role: override } : override)
+  }
+  if (said.hidden) {
+    for (const input of entry.inputs) if (said.hidden.includes(input.name)) input.hidden = true
+  }
+  if (said.drop) entry.inputs = entry.inputs.filter((input) => !said.drop.includes(input.name))
+  /*
+   * fal marks a field optional that the studio treats as the point of the
+   * model. Kling declares `prompt` as `anyOf [string, null]` on every text to
+   * video route; a text to video model with an optional prompt is a shape our
+   * dock has no way to present, so the manifest says which are really required.
+   */
+  for (const input of entry.inputs) {
+    if (said.require?.includes(input.name)) input.required = true
+    // A required control fal ships no default for. The dock sends only what
+    // was changed, so without one an untouched generation cannot validate.
+    const chosen = said.defaults?.[input.name]
+    if (chosen !== undefined) input.default = chosen
+  }
+  if (said.promptField !== undefined) entry.promptField = said.promptField
 
   writeFileSync(path, `${JSON.stringify(entry, null, 2)}\n`)
   console.log(`  ${endpointId} -> ${path.replace(`${catalogRoot}/`, '')}`)

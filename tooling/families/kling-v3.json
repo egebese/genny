@@ -1,0 +1,219 @@
+{
+  "_": "Kling V3. Four quality tiers plus a 4K route and motion control. Prices are fal's own published per-second rates, which differ per tier and again by whether audio is generated; genmedia reports a flat $0.14 for all of them and is wrong about five of the six.",
+  "family": {
+    "id": "kling-v3",
+    "name": "Kling V3"
+  },
+  "markUrl": "/models/marks/kling.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "start_image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "end_image_url": {
+      "role": "end-frame",
+      "label": "Use as end frame"
+    },
+    "image_url": {
+      "role": "source"
+    },
+    "video_url": {
+      "role": "driving-video",
+      "accepts": ["video"],
+      "label": "Copy this motion"
+    }
+  },
+  "hidden": ["end_user_id"],
+  "require": ["prompt"],
+  "endpoints": {
+    "fal-ai/kling-video/v3/standard/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Kling V3 Standard Text to Video",
+      "description": "Kling's base tier, writing a clip from a sentence. Audio is generated with it unless you turn it off, and costs more when it is.",
+      "sortOrder": 2200,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.126,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.084 per second of output with audio off and $0.126 with it on, and $0.154 when voice control is used. Priced from the audio-on default and scaled down when it is off. genmedia reports a flat $0.14 for every Kling V3 tier, which is wrong for five of the six.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.6667
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/v3/standard/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling V3 Standard Image to Video",
+      "description": "Kling's base tier, animating a still. Give it a start frame, or a start and an end to move between them.",
+      "sortOrder": 2210,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.126,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.084 per second of output with audio off and $0.126 with it on. Priced from the audio-on default and scaled down when it is off.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.6667
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/v3/pro/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Kling V3 Pro Text to Video",
+      "description": "The tier most people want: noticeably steadier motion than standard for a third more per second.",
+      "sortOrder": 2220,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.168,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.112 per second of output with audio off and $0.168 with it on, and $0.196 when voice control is used. Priced from the audio-on default and scaled down when it is off.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.6667
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/v3/pro/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling V3 Pro Image to Video",
+      "description": "Pro tier from a still. Takes a start frame and optionally an end one, and can be given a cast of elements to keep consistent.",
+      "sortOrder": 2230,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.168,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.112 per second of output with audio off and $0.168 with it on. Priced from the audio-on default and scaled down when it is off.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.6667
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/v3/turbo/standard/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Kling V3 Turbo Standard Text to Video",
+      "description": "The fast route at the base tier. One flat rate whatever the settings.",
+      "sortOrder": 2240,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.112,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.112 per second of output. genmedia reports $0.14."
+      }
+    },
+    "fal-ai/kling-video/v3/turbo/standard/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling V3 Turbo Standard Image to Video",
+      "description": "The fast route at the base tier, animating a still.",
+      "sortOrder": 2250,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.112,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.112 per second of output. genmedia reports $0.14."
+      }
+    },
+    "fal-ai/kling-video/v3/turbo/pro/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Kling V3 Turbo Pro Text to Video",
+      "description": "Pro quality on the fast route. Flat rate, no audio surcharge.",
+      "sortOrder": 2260,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.14,
+        "note": "fal publishes a flat $0.14 per second of output."
+      }
+    },
+    "fal-ai/kling-video/v3/turbo/pro/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling V3 Turbo Pro Image to Video",
+      "description": "Pro quality on the fast route, animating a still.",
+      "sortOrder": 2270,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.14,
+        "note": "fal publishes a flat $0.14 per second of output."
+      }
+    },
+    "fal-ai/kling-video/v3/4k/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Kling V3 4K Text to Video",
+      "description": "Four thousand pixels wide, at three times the price of pro. Worth it for a finished shot, not for finding one.",
+      "sortOrder": 2280,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.42,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.42 per second of output, audio on or off. genmedia reports $0.14."
+      }
+    },
+    "fal-ai/kling-video/v3/4k/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling V3 4K Image to Video",
+      "description": "Four thousand pixels wide from a still, at three times the price of pro.",
+      "sortOrder": 2290,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.42,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.42 per second of output, audio on or off. genmedia reports $0.14."
+      }
+    },
+    "fal-ai/kling-video/v3/standard/motion-control": {
+      "group": "Image to Video",
+      "displayName": "Kling V3 Standard Motion Control",
+      "description": "Copies the movement of one clip onto a character of your own. Give it the motion to follow and the figure that should follow it.",
+      "sortOrder": 2300,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.126,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.126 per second of output. genmedia reports $0.14. It has no length control: the clip is as long as the motion it is copying, so the hold assumes Kling's ten second ceiling and settle returns the rest.",
+        "duration": {
+          "assume": 10,
+          "unit": "seconds"
+        }
+      },
+      "defaults": {
+        "character_orientation": "video"
+      }
+    },
+    "fal-ai/kling-video/v3/pro/motion-control": {
+      "group": "Image to Video",
+      "displayName": "Kling V3 Pro Motion Control",
+      "description": "Motion transfer at the pro tier, for when the copied movement has to hold up close.",
+      "sortOrder": 2310,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.168,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.168 per second of output. genmedia reports $0.14. It has no length control: the clip is as long as the motion it is copying, so the hold assumes Kling's ten second ceiling and settle returns the rest.",
+        "duration": {
+          "assume": 10,
+          "unit": "seconds"
+        }
+      },
+      "defaults": {
+        "character_orientation": "video"
+      }
+    }
+  }
+}

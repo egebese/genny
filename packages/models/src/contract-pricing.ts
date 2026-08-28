@@ -1,3 +1,4 @@
+import type { CatalogEntry } from './catalog.ts'
 import type { Rule } from './contract.ts'
 import { DURATION_FIELDS } from './duration.ts'
 
@@ -33,12 +34,8 @@ export const PRICING_RULES: Rule[] = [
     rule: 'conditional-rates-are-decided',
     check: ({ definition }) => {
       for (const rate of definition.pricing.scale ?? []) {
-        const field = definition.inputs.find((input) => input.name === rate.field)
-        if (!field) return `pricing scales on ${rate.field}, which is not an input`
-        const unknown = Object.keys(rate.factors).find(
-          (value) => !field.enum?.some((option) => String(option) === value),
-        )
-        if (unknown) return `pricing scales on ${rate.field}="${unknown}", not an option`
+        const wrong = ratesAgainstOptions(definition, rate)
+        if (wrong) return wrong
       }
       for (const fee of definition.pricing.surcharges ?? []) {
         const field = definition.inputs.find((input) => input.name === fee.field)
@@ -48,3 +45,19 @@ export const PRICING_RULES: Rule[] = [
     },
   },
 ]
+
+/** Every value a rate keys on has to be a value the control can hold. */
+function ratesAgainstOptions(
+  definition: CatalogEntry['definition'],
+  rate: { field: string; factors: Record<string, number> },
+): string | null {
+  const field = definition.inputs.find((input) => input.name === rate.field)
+  if (!field) return `pricing scales on ${rate.field}, which is not an input`
+  // A switch has two options and no enum listing them. Kling charges a third
+  // less with audio off, which is a rate on a boolean.
+  const options = field.type === 'boolean' ? ['true', 'false'] : (field.enum ?? [])
+  const unknown = Object.keys(rate.factors).find(
+    (value) => !options.some((option) => String(option) === value),
+  )
+  return unknown ? `pricing scales on ${rate.field}="${unknown}", not an option` : null
+}

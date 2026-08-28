@@ -1,0 +1,85 @@
+{
+  "endpointId": "fal-ai/kling-video/v3/pro/motion-control",
+  "family": {
+    "id": "kling-v3",
+    "name": "Kling V3"
+  },
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "Kling V3 Pro Motion Control",
+  "description": "Motion transfer at the pro tier, for when the copied movement has to hold up close.",
+  "sortOrder": 2310,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.168,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.168 per second of output. genmedia reports $0.14. It has no length control: the clip is as long as the motion it is copying, so the hold assumes Kling's ten second ceiling and settle returns the rest.",
+    "duration": {
+      "assume": 10,
+      "unit": "seconds"
+    }
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "elements",
+      "label": "Elements",
+      "type": "object-array",
+      "fields": [
+        {
+          "name": "frontal_image_url",
+          "label": "Frontal image",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "character_orientation",
+      "label": "Character orientation",
+      "required": true,
+      "type": "enum",
+      "enum": ["image", "video"],
+      "default": "video"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "keep_original_sound",
+      "label": "Keep original sound",
+      "default": true,
+      "type": "boolean"
+    }
+  ],
+  "references": [
+    {
+      "field": "video_url",
+      "role": "driving-video",
+      "accepts": ["video"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Copy this motion"
+    },
+    {
+      "field": "image_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/kling.svg"
+}

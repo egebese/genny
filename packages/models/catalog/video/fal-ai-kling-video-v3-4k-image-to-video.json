@@ -1,0 +1,132 @@
+{
+  "endpointId": "fal-ai/kling-video/v3/4k/image-to-video",
+  "family": {
+    "id": "kling-v3",
+    "name": "Kling V3"
+  },
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "Kling V3 4K Image to Video",
+  "description": "Four thousand pixels wide from a still, at three times the price of pro.",
+  "sortOrder": 2290,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.42,
+    "waiveDriftCheck": true,
+    "note": "fal publishes a flat $0.42 per second of output, audio on or off. genmedia reports $0.14."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "negative_prompt",
+      "label": "Negative prompt",
+      "default": "blur, distort, and low quality",
+      "type": "string"
+    },
+    {
+      "name": "multi_prompt",
+      "label": "Multi prompt",
+      "type": "object-array",
+      "fields": [
+        {
+          "name": "prompt",
+          "label": "Prompt",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "duration",
+          "label": "Duration",
+          "default": "5",
+          "type": "enum",
+          "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+        }
+      ]
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": "5",
+      "type": "enum",
+      "enum": ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+    },
+    {
+      "name": "elements",
+      "label": "Elements",
+      "type": "object-array",
+      "fields": [
+        {
+          "name": "voice_id",
+          "label": "Voice id",
+          "type": "string"
+        },
+        {
+          "name": "frontal_image_url",
+          "label": "Frontal image",
+          "type": "string"
+        },
+        {
+          "name": "video_url",
+          "label": "Video",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "generate_audio",
+      "label": "Generate audio",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "cfg_scale",
+      "label": "Cfg scale",
+      "default": 0.5,
+      "type": "number",
+      "min": 0,
+      "max": 1
+    },
+    {
+      "name": "shot_type",
+      "label": "Shot type",
+      "default": "customize",
+      "type": "enum",
+      "enum": ["customize", "intelligent"]
+    }
+  ],
+  "references": [
+    {
+      "field": "start_image_url",
+      "role": "start-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Use as start frame"
+    },
+    {
+      "field": "end_image_url",
+      "role": "end-frame",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Use as end frame"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/kling.svg"
+}
