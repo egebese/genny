@@ -4,6 +4,11 @@ import type { ModelDefinition } from './schema.ts'
 /** Everything the estimate needs. Keeps the browser from importing the catalog. */
 export type PricedModel = Pick<ModelDefinition, 'pricing'>
 
+/** The same, plus the margin. Only what we charge for needs that; a unit count
+ * does not, and asking every caller of `estimateUnits` for it would be asking
+ * the wrong question. */
+export type ChargedModel = PricedModel & Pick<ModelDefinition, 'creditMultiplier'>
+
 export type UsageEstimate = {
   /** Number of billed units: images produced, seconds of video, megapixels. */
   units: number
@@ -15,7 +20,7 @@ export type UsageEstimate = {
  * number actually taken.
  */
 export function creditsFor(
-  model: ModelDefinition,
+  model: ChargedModel,
   usage: UsageEstimate,
   creditPerUsd: number,
 ): number {

@@ -1,6 +1,6 @@
 'use client'
 
-import { estimateUnits } from '@genny/models/credits.ts'
+import { creditsFor, estimateUnits } from '@genny/models/credits.ts'
 import { Button } from '@genny/ui/button.tsx'
 import { useMemo } from 'react'
 import type { PickableModel } from '../model-list.ts'
@@ -29,13 +29,23 @@ export function GenerateButton(props: {
   disabled: boolean
   onClick: () => void
 }) {
-  const cost = useMemo(
-    () => estimateUnits(props.model, props.settings) * props.model.pricing.unitPriceUsd,
+  const units = useMemo(
+    () => estimateUnits(props.model, props.settings),
     [props.model, props.settings],
   )
+  /*
+   * Credits through the same function the server holds with, rather than the
+   * same arithmetic written twice. It was written twice and one copy left out
+   * `creditMultiplier`, so every model that resells above cost quoted a fifth
+   * less on the button than it took from the balance.
+   *
+   * Dollars leave the multiplier out on purpose: byok spends the visitor's own
+   * fal key, so what it costs is what fal charges and our margin is not part of
+   * the sentence.
+   */
   const priced = props.credits?.enabled
-    ? `${Math.ceil(cost * props.credits.perUsd)} cr`
-    : formatCost(cost)
+    ? `${creditsFor(props.model, { units }, props.credits.perUsd)} cr`
+    : formatCost(units * props.model.pricing.unitPriceUsd)
 
   return (
     <Button
