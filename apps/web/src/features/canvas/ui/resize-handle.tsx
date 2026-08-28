@@ -2,11 +2,13 @@
 
 import type { Size, Viewport } from '@genny/canvas/geometry.ts'
 import { resizedByStep, resizedTo } from '@genny/canvas/resize.ts'
+import type { RefObject } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
 
 type ResizeHandleProps = {
   node: CanvasNodeView
-  viewport: Viewport
+  /** The live viewport, read at event time. A zoom must not re-render nodes. */
+  view: RefObject<Viewport>
   onResize: (size: Size) => void
   onCommit: (size: Size) => void
 }
@@ -22,7 +24,7 @@ type ResizeHandleProps = {
  * Only on a selected node. A handle on every node is forty handles on a board
  * of forty, all of them one pixel from something you meant to drag.
  */
-export function ResizeHandle({ node, viewport, onResize, onCommit }: ResizeHandleProps) {
+export function ResizeHandle({ node, view, onResize, onCommit }: ResizeHandleProps) {
   return (
     <button
       type="button"
@@ -47,8 +49,8 @@ export function ResizeHandle({ node, viewport, onResize, onCommit }: ResizeHandl
           // Canvas units, not screen pixels: at 40% zoom a hundred pixels of
           // pointer is two hundred and fifty units of node.
           last = resizedTo(node, {
-            x: node.x + node.width + (dragged.clientX - origin.x) / viewport.zoom,
-            y: node.y + node.height + (dragged.clientY - origin.y) / viewport.zoom,
+            x: node.x + node.width + (dragged.clientX - origin.x) / view.current.zoom,
+            y: node.y + node.height + (dragged.clientY - origin.y) / view.current.zoom,
           })
           onResize(last)
         }
@@ -77,15 +79,16 @@ export function ResizeHandle({ node, viewport, onResize, onCommit }: ResizeHandl
         event.stopPropagation()
         onCommit(resizedByStep(node, step))
       }}
-      style={{
-        // Constant on screen however far the board is zoomed out, or the handle
-        // is a speck at 20% and a slab at 400%.
-        width: 14 / viewport.zoom,
-        height: 14 / viewport.zoom,
-        borderWidth: 2 / viewport.zoom,
-        right: -7 / viewport.zoom,
-        bottom: -7 / viewport.zoom,
-      }}
+      /*
+       * Scales with the board, like everything else on it.
+       *
+       * A handle that stays the same size on screen is the nicer answer and it
+       * costs a re-render of every node on every frame of a pinch, or an
+       * inherited custom property that invalidates their style instead. Neither
+       * is worth it for a control you reach for at a zoom where you can already
+       * see the node you are resizing.
+       */
+      style={{ width: 14, height: 14, borderWidth: 2, right: -7, bottom: -7 }}
       className="absolute cursor-nwse-resize rounded-[2px] border-accent bg-canvas outline-none focus-visible:ring-2 focus-visible:ring-accent"
     />
   )

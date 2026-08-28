@@ -2,6 +2,7 @@
 
 import type { Viewport } from '@genny/canvas/geometry.ts'
 import { type Guide, lockAxis, snapTo } from '@genny/canvas/snap.ts'
+import type { RefObject } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
 
 /** How close, on screen, counts as lined up. Figma's is about this. */
@@ -9,8 +10,15 @@ const SNAP_PIXELS = 6
 
 type DragOptions = {
   node: CanvasNodeView
-  neighbours: CanvasNodeView[]
-  viewport: Viewport
+  /** Asked for once, when the drag begins. */
+  neighbours: () => CanvasNodeView[]
+  /**
+   * The live viewport, read at event time rather than passed as a value.
+   *
+   * A ref because a zoom must not re-render ninety nodes to tell them a number
+   * that only matters while one of them is being dragged.
+   */
+  view: RefObject<Viewport>
   selected: boolean
   panMode: boolean
   onSelect: (additive: boolean) => void
@@ -27,7 +35,7 @@ type DragOptions = {
  * of them are about rendering.
  */
 export function useNodeDrag(options: DragOptions) {
-  const { node, viewport, selected } = options
+  const { node, view, selected } = options
 
   return (event: React.PointerEvent) => {
     // Left button only, and never from inside a media control.
@@ -51,6 +59,7 @@ export function useNodeDrag(options: DragOptions) {
     // note where all of it started.
     options.onDragStart()
 
+    const neighbours = options.neighbours()
     const origin = { x: event.clientX, y: event.clientY }
     const start = { x: node.x, y: node.y }
     let last = start
@@ -58,8 +67,8 @@ export function useNodeDrag(options: DragOptions) {
 
     const move = (dragged: PointerEvent) => {
       const free = {
-        x: Math.round(start.x + (dragged.clientX - origin.x) / viewport.zoom),
-        y: Math.round(start.y + (dragged.clientY - origin.y) / viewport.zoom),
+        x: Math.round(start.x + (dragged.clientX - origin.x) / view.current.zoom),
+        y: Math.round(start.y + (dragged.clientY - origin.y) / view.current.zoom),
       }
       // Shift first, then snap: locking after a snap would let an alignment on
       // the abandoned axis drag the node back off the line it is being held to.
@@ -71,8 +80,8 @@ export function useNodeDrag(options: DragOptions) {
        */
       const snapped = snapTo(
         { ...along, width: node.width, height: node.height },
-        options.neighbours,
-        SNAP_PIXELS / viewport.zoom,
+        neighbours,
+        SNAP_PIXELS / view.current.zoom,
       )
 
       last = snapped.position

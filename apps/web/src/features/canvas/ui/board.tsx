@@ -2,14 +2,20 @@
 
 import type { Rect, Viewport } from '@genny/canvas/geometry.ts'
 import type { Guide } from '@genny/canvas/snap.ts'
-import { Button } from '@genny/ui/button.tsx'
 import { cn } from '@genny/ui/cn.ts'
 import type { ReactNode, RefObject } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
 import { CanvasNode } from './canvas-node.tsx'
+import { ZoomControl } from './zoom-control.tsx'
 
 type BoardProps = {
   surface: RefObject<HTMLDivElement | null>
+  /** The transformed layer, moved directly while a gesture runs. */
+  layer: RefObject<HTMLDivElement | null>
+  /** The live viewport, so a zoom does not re-render every node. */
+  view: RefObject<Viewport>
+  /** The zoom percentage, written rather than rendered. */
+  readout: RefObject<HTMLSpanElement | null>
   nodes: CanvasNodeView[]
   selected: ReadonlySet<string>
   marquee: Rect | null
@@ -38,8 +44,6 @@ type BoardProps = {
   children?: ReactNode
 }
 
-const GRID = 32
-
 export function Board(props: BoardProps) {
   const { viewport } = props
 
@@ -50,13 +54,13 @@ export function Board(props: BoardProps) {
         'absolute inset-0 touch-none overflow-hidden bg-canvas',
         props.panning ? 'cursor-grabbing' : props.panMode ? 'cursor-grab' : 'cursor-default',
       )}
-      style={{
-        // The dots ride along with the board, which is what makes panning read
-        // as moving over something rather than as content sliding around.
-        backgroundImage: 'radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px)',
-        backgroundSize: `${GRID * viewport.zoom}px ${GRID * viewport.zoom}px`,
-        backgroundPosition: `${viewport.x}px ${viewport.y}px`,
-      }}
+      /*
+       * The dots ride along with the board, which is what makes panning read as
+       * moving over something rather than as content sliding around. Their size
+       * and offset are written by the viewport, alongside the transform, so
+       * they keep up during a gesture that deliberately re-renders nothing.
+       */
+      style={{ backgroundImage: 'radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px)' }}
       onPointerDown={(event) => {
         /*
          * The transform layer covers the whole surface, so a click on empty board
@@ -73,17 +77,20 @@ export function Board(props: BoardProps) {
         else props.onMarquee(event, event.shiftKey || event.metaKey)
       }}
     >
+      {/*
+        The transform is written here by `useViewport`, not rendered from state.
+        A pinch is one CSS transform on this element and sixty React renders of
+        everything inside it, and only the first of those is the zoom.
+      */}
       <div
+        ref={props.layer}
         role="listbox"
         aria-label="Canvas"
         tabIndex={-1}
         onKeyDown={(event) => {
           if (props.onKey(event.key)) event.preventDefault()
         }}
-        style={{
-          transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-          transformOrigin: '0 0',
-        }}
+        style={{ transformOrigin: '0 0' }}
         className="absolute inset-0 outline-none"
       >
         {/* Under the nodes, in canvas space, so a line stays on its edge at any
@@ -116,22 +123,33 @@ export function Board(props: BoardProps) {
             key={node.id}
             node={node}
             selected={props.selected.has(node.id)}
-            viewport={viewport}
             panMode={props.panMode}
             onSelect={(additive) => props.onSelect(node.id, additive)}
             onDragStart={() => props.onDragStart(node.id)}
             onInspect={() => props.onInspect(node.id)}
             onContextMenu={(at) => props.onContextMenu(node.id, at)}
             /*
-             * Everything not moving. Snapping a dragged node against another
-             * node moving with it would line it up on a line that is itself
-             * sliding, which reads as the guide chasing the pointer.
+             * Asked for when a drag starts, not built on every render.
+             *
+             * Every node was handed its own filtered copy of the board, which
+             * is a pass over every node for every node on every render, and a
+             * pinch renders. Ninety results made that eight thousand
+             * comparisons and ninety arrays, sixty times a second, to answer a
+             * question only the node being dragged ever asks.
+             *
+             * The answer is the same either way: everything not moving.
+             * Snapping a dragged node against another node moving with it would
+             * line it up on a line that is itself sliding, which reads as the
+             * guide chasing the pointer.
              */
-            neighbours={props.nodes.filter(
-              (other) =>
-                other.id !== node.id &&
-                !(props.selected.has(node.id) && props.selected.has(other.id)),
-            )}
+            view={props.view}
+            neighbours={() =>
+              props.nodes.filter(
+                (other) =>
+                  other.id !== node.id &&
+                  !(props.selected.has(node.id) && props.selected.has(other.id)),
+              )
+            }
             onMove={(position) => props.onMove(node.id, position)}
             onGuides={props.onGuides}
             onCommit={(position) => props.onCommit(node.id, position)}
@@ -157,32 +175,12 @@ export function Board(props: BoardProps) {
 
       {props.children}
 
-      <div className="panel pointer-events-auto absolute top-3 right-3 flex items-center gap-1 rounded-(--radius-panel) p-1">
-        <Button
-          type="button"
-          tone="ghost"
-          size="sm"
-          aria-label="Zoom out"
-          onClick={() => props.onZoom(1 / 1.2)}
-        >
-          &minus;
-        </Button>
-        <span className="min-w-12 text-center font-mono text-ink-muted text-xs tabular-nums">
-          {Math.round(viewport.zoom * 100)}%
-        </span>
-        <Button
-          type="button"
-          tone="ghost"
-          size="sm"
-          aria-label="Zoom in"
-          onClick={() => props.onZoom(1.2)}
-        >
-          +
-        </Button>
-        <Button type="button" tone="ghost" size="sm" onClick={props.onFit}>
-          Fit
-        </Button>
-      </div>
+      <ZoomControl
+        zoom={viewport.zoom}
+        readout={props.readout}
+        onZoom={props.onZoom}
+        onFit={props.onFit}
+      />
     </div>
   )
 }

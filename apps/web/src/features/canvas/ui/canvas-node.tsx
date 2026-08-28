@@ -4,6 +4,7 @@ import type { Viewport } from '@genny/canvas/geometry.ts'
 import type { Guide } from '@genny/canvas/snap.ts'
 import { cn } from '@genny/ui/cn.ts'
 import { Icon } from '@genny/ui/icon.tsx'
+import type { RefObject } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
 import { NodeMedia } from './node-media.tsx'
 import { ResizeHandle } from './resize-handle.tsx'
@@ -11,10 +12,11 @@ import { useNodeDrag } from './use-node-drag.ts'
 
 type CanvasNodeProps = {
   node: CanvasNodeView
-  /** Everything else on the board, to line this one up against. */
-  neighbours: CanvasNodeView[]
+  /** Everything else on the board, asked for when a drag begins. */
+  neighbours: () => CanvasNodeView[]
+  /** The live viewport, so a zoom does not have to re-render every node. */
+  view: RefObject<Viewport>
   selected: boolean
-  viewport: Viewport
   /** Space is down, so this drag belongs to the board rather than to the node. */
   panMode: boolean
   onSelect: (additive: boolean) => void
@@ -39,12 +41,12 @@ type CanvasNodeProps = {
  * selected rather than scrolling the page.
  */
 export function CanvasNode(props: CanvasNodeProps) {
-  const { node, selected, viewport } = props
+  const { node, selected } = props
 
   const startDrag = useNodeDrag({
     node,
     neighbours: props.neighbours,
-    viewport,
+    view: props.view,
     selected,
     panMode: props.panMode,
     onSelect: props.onSelect,
@@ -105,7 +107,7 @@ export function CanvasNode(props: CanvasNodeProps) {
       {selected ? (
         <ResizeHandle
           node={node}
-          viewport={viewport}
+          view={props.view}
           onResize={props.onResize}
           onCommit={props.onResizeCommit}
         />

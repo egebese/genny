@@ -28,6 +28,8 @@ import { useViewport } from './use-viewport.ts'
 export function Canvas(props: CanvasPage) {
   const surface = useRef<HTMLDivElement>(null)
   const dock = useRef<HTMLDivElement>(null)
+  const layer = useRef<HTMLDivElement>(null)
+  const readout = useRef<HTMLSpanElement>(null)
   const [ready, setReady] = useState(props.hasCredentials)
   const [guides, setGuides] = useState<Guide[]>([])
 
@@ -38,7 +40,14 @@ export function Canvas(props: CanvasPage) {
     },
     [canvasId],
   )
-  const view = useViewport({ initial: props.viewport, surface, dock, onPersist: savePan })
+  const view = useViewport({
+    initial: props.viewport,
+    surface,
+    dock,
+    layer,
+    readout,
+    onPersist: savePan,
+  })
   const handles = useMentionables(props.mentionables)
   const { nodes, running, beginDrag, move, commit, size, sized, remove, add, replace, settle } =
     useBoardNodes(canvasId, props.nodes, handles.learn)
@@ -100,6 +109,9 @@ export function Canvas(props: CanvasPage) {
 
       <Board
         surface={surface}
+        layer={layer}
+        view={view.current}
+        readout={readout}
         nodes={nodes}
         selected={pick.selected}
         marquee={pick.marquee}

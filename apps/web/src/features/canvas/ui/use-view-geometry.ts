@@ -10,7 +10,7 @@ type Options = {
   dock: RefObject<HTMLElement | null>
   /** The current viewport, read at call time rather than captured. */
   latest: RefObject<Viewport>
-  setViewport: (viewport: Viewport) => void
+  commit: (move: (from: Viewport) => Viewport) => void
 }
 
 /**
@@ -21,10 +21,10 @@ type Options = {
  * already there: panning and zooming are input, and these four are the board
  * answering "what can be seen and where would this go".
  */
-export function useViewGeometry({ surface, dock, latest, setViewport }: Options) {
+export function useViewGeometry({ surface, dock, latest, commit }: Options) {
   const fit = useCallback(
-    (rects: Rect[]) => setViewport(fitTo(rects, sizeOf(surface.current))),
-    [surface, setViewport],
+    (rects: Rect[]) => commit(() => fitTo(rects, sizeOf(surface.current))),
+    [surface, commit],
   )
 
   /** Where a new node should land: the middle of what is currently on screen. */
@@ -73,17 +73,16 @@ export function useViewGeometry({ surface, dock, latest, setViewport }: Options)
    */
   const reveal = useCallback(
     (rect: Rect) => {
-      const current = latest.current
       const by = panToReveal(visibleRect(), rect)
       if (!by) return
       // Canvas units out, screen pixels in: the viewport is a translate.
-      setViewport({
+      commit((current) => ({
         ...current,
         x: current.x - by.x * current.zoom,
         y: current.y - by.y * current.zoom,
-      })
+      }))
     },
-    [visibleRect, latest, setViewport],
+    [visibleRect, commit],
   )
 
   return { fit, centreOfView, visibleRect, toLocal, reveal }
