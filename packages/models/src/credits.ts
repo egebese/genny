@@ -58,7 +58,13 @@ function rateFactor(model: PricedModel, input: Record<string, unknown>): number 
     // Compared as text: an option can be a number now, and `4` and `"4"` are
     // the same choice to the person who picked it.
     if (chosen === undefined || chosen === null) continue
-    factor *= rate.factors[String(chosen)] ?? 1
+    if (!rate.and) {
+      factor *= rate.factors[String(chosen)] ?? 1
+      continue
+    }
+    const second = input[rate.and]
+    if (second === undefined || second === null) continue
+    factor *= rate.factors[`${String(chosen)}|${String(second)}`] ?? 1
   }
   return factor
 }

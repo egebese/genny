@@ -12,6 +12,15 @@ export const pricingUnit = z.enum([
 
 const rateScale = z.object({
   field: z.string().min(1),
+  /**
+   * A second control the same rate depends on, when the two do not multiply.
+   *
+   * Veo charges $0.20 a second at 720p without audio and $0.40 with, and $0.40
+   * at 4K without and $0.60 with. There is no pair of factors whose product is
+   * that table: the audio surcharge is double at one resolution and half again
+   * at the other. Keys are the two values joined by a pipe, `"4k|true"`.
+   */
+  and: z.string().min(1).optional(),
   factors: z.record(z.string(), z.number().positive()),
 })
 

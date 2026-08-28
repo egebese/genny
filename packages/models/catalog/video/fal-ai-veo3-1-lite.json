@@ -1,0 +1,96 @@
+{
+  "endpointId": "fal-ai/veo3.1/lite",
+  "family": {
+    "id": "veo-31",
+    "name": "Google Veo 3.1"
+  },
+  "modality": "video",
+  "group": "Text to Video",
+  "displayName": "Google Veo 3.1 Lite Text to Video",
+  "description": "The cheapest Veo, for finding a shot rather than finishing one. Here, writing a clip from a sentence.",
+  "sortOrder": 2700,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.08,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.05 per second of output at 720p with audio, $0.03 at 720p without, $0.08 at 1080p with and $0.05 at 1080p without. Priced from 1080p with audio, which is the default, and scaled from there.",
+    "scale": [
+      {
+        "field": "resolution",
+        "and": "generate_audio",
+        "factors": {
+          "720p|true": 0.625,
+          "720p|false": 0.375,
+          "1080p|false": 0.625
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "16:9",
+      "type": "enum",
+      "enum": ["16:9", "9:16"]
+    },
+    {
+      "name": "resolution",
+      "label": "Resolution",
+      "default": "720p",
+      "type": "enum",
+      "enum": ["720p", "1080p"]
+    },
+    {
+      "name": "negative_prompt",
+      "label": "Negative prompt",
+      "type": "string"
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": "8s",
+      "type": "enum",
+      "enum": ["4s", "6s", "8s"]
+    },
+    {
+      "name": "auto_fix",
+      "label": "Auto fix",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "generate_audio",
+      "label": "Generate audio",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "safety_tolerance",
+      "label": "Safety tolerance",
+      "default": "4",
+      "type": "enum",
+      "enum": ["1", "2", "3", "4", "5", "6"]
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/gemini.svg"
+}

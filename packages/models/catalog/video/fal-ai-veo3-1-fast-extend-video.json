@@ -1,0 +1,105 @@
+{
+  "endpointId": "fal-ai/veo3.1/fast/extend-video",
+  "family": {
+    "id": "veo-31",
+    "name": "Google Veo 3.1"
+  },
+  "modality": "video",
+  "group": "Video Editing",
+  "displayName": "Google Veo 3.1 Fast Extend Video",
+  "description": "Two thirds cheaper and quick enough to iterate with. Here, carrying on from the end of a clip you already have.",
+  "sortOrder": 2690,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.15,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.1 per second of output without audio and $0.15 with it. This route offers 720p only and a fixed seven second length, so the 4K rates its siblings carry have nothing to key on here.",
+    "scale": [
+      {
+        "field": "resolution",
+        "and": "generate_audio",
+        "factors": {
+          "720p|false": 0.6667
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "16:9", "9:16"]
+    },
+    {
+      "name": "resolution",
+      "label": "Resolution",
+      "default": "720p",
+      "type": "enum",
+      "enum": ["720p"]
+    },
+    {
+      "name": "auto_fix",
+      "label": "Auto fix",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": "7s",
+      "type": "enum",
+      "enum": ["7s"]
+    },
+    {
+      "name": "negative_prompt",
+      "label": "Negative prompt",
+      "type": "string"
+    },
+    {
+      "name": "generate_audio",
+      "label": "Generate audio",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "safety_tolerance",
+      "label": "Safety tolerance",
+      "default": "4",
+      "type": "enum",
+      "enum": ["1", "2", "3", "4", "5", "6"]
+    }
+  ],
+  "references": [
+    {
+      "field": "video_url",
+      "role": "continue-from",
+      "accepts": ["video"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Continue from this clip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/gemini.svg"
+}

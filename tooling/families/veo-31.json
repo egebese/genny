@@ -1,0 +1,337 @@
+{
+  "_": "Veo 3.1. Three speed tiers, each with five routes. Price depends on resolution and audio together and the two do not multiply, which is what `scale.and` is for: the audio surcharge doubles the price at 720p and adds half at 4K.",
+  "family": {
+    "id": "veo-31",
+    "name": "Google Veo 3.1"
+  },
+  "markUrl": "/models/marks/gemini.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "first_image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "last_image_url": {
+      "role": "end-frame",
+      "label": "Use as end frame"
+    },
+    "image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "video_url": {
+      "role": "continue-from",
+      "accepts": ["video"],
+      "label": "Continue from this clip"
+    }
+  },
+  "endpoints": {
+    "fal-ai/veo3.1": {
+      "group": "Text to Video",
+      "displayName": "Google Veo 3.1 Text to Video",
+      "description": "The full model. What Veo looks like when nothing is traded away. Here, writing a clip from a sentence.",
+      "sortOrder": 2600,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.4,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.2 per second of output without audio and $0.4 with it, at 720p and 1080p; at 4K it is $0.4 without and $0.6 with. Priced from 1080p with audio, which is the default, and scaled from there. The four rates are not a product of two factors, so they are keyed on both controls together.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.5,
+              "1080p|false": 0.5,
+              "4k|true": 1.5,
+              "4k|false": 1.0
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Veo 3.1 Image to Video",
+      "description": "The full model. What Veo looks like when nothing is traded away. Here, animating a still.",
+      "sortOrder": 2610,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.4,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.2 per second of output without audio and $0.4 with it, at 720p and 1080p; at 4K it is $0.4 without and $0.6 with. Priced from 1080p with audio, which is the default, and scaled from there. The four rates are not a product of two factors, so they are keyed on both controls together.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.5,
+              "1080p|false": 0.5,
+              "4k|true": 1.5,
+              "4k|false": 1.0
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/first-last-frame-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Veo 3.1 First Last Frame to Video",
+      "description": "The full model. What Veo looks like when nothing is traded away. Here, moving from a first frame to a last one.",
+      "sortOrder": 2620,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.4,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.2 per second of output without audio and $0.4 with it, at 720p and 1080p; at 4K it is $0.4 without and $0.6 with. Priced from 1080p with audio, which is the default, and scaled from there. The four rates are not a product of two factors, so they are keyed on both controls together.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.5,
+              "1080p|false": 0.5,
+              "4k|true": 1.5,
+              "4k|false": 1.0
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Veo 3.1 Reference to Video",
+      "description": "The full model. What Veo looks like when nothing is traded away. Here, keeping a set of reference images consistent.",
+      "sortOrder": 2630,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.4,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.2 per second of output without audio and $0.4 with it, at 720p and 1080p; at 4K it is $0.4 without and $0.6 with. Priced from 1080p with audio, which is the default, and scaled from there. The four rates are not a product of two factors, so they are keyed on both controls together.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.5,
+              "1080p|false": 0.5,
+              "4k|true": 1.5,
+              "4k|false": 1.0
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/extend-video": {
+      "group": "Video Editing",
+      "displayName": "Google Veo 3.1 Extend Video",
+      "description": "The full model. What Veo looks like when nothing is traded away. Here, carrying on from the end of a clip you already have.",
+      "sortOrder": 2640,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.4,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.2 per second of output without audio and $0.4 with it. This route offers 720p only and a fixed seven second length, so the 4K rates its siblings carry have nothing to key on here.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.5
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/fast": {
+      "group": "Text to Video",
+      "displayName": "Google Veo 3.1 Fast Text to Video",
+      "description": "Two thirds cheaper and quick enough to iterate with. Here, writing a clip from a sentence.",
+      "sortOrder": 2650,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.15,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.1 per second of output without audio and $0.15 with it, at 720p and 1080p; at 4K it is $0.3 without and $0.35 with. Priced from 1080p with audio, which is the default, and scaled from there. The four rates are not a product of two factors, so they are keyed on both controls together.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.6667,
+              "1080p|false": 0.6667,
+              "4k|true": 2.3333,
+              "4k|false": 2.0
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/fast/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Veo 3.1 Fast Image to Video",
+      "description": "Two thirds cheaper and quick enough to iterate with. Here, animating a still.",
+      "sortOrder": 2660,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.15,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.1 per second of output without audio and $0.15 with it, at 720p and 1080p; at 4K it is $0.3 without and $0.35 with. Priced from 1080p with audio, which is the default, and scaled from there. The four rates are not a product of two factors, so they are keyed on both controls together.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.6667,
+              "1080p|false": 0.6667,
+              "4k|true": 2.3333,
+              "4k|false": 2.0
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/fast/first-last-frame-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Veo 3.1 Fast First Last Frame to Video",
+      "description": "Two thirds cheaper and quick enough to iterate with. Here, moving from a first frame to a last one.",
+      "sortOrder": 2670,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.15,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.1 per second of output without audio and $0.15 with it, at 720p and 1080p; at 4K it is $0.3 without and $0.35 with. Priced from 1080p with audio, which is the default, and scaled from there. The four rates are not a product of two factors, so they are keyed on both controls together.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.6667,
+              "1080p|false": 0.6667,
+              "4k|true": 2.3333,
+              "4k|false": 2.0
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/fast/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Veo 3.1 Fast Reference to Video",
+      "description": "Two thirds cheaper and quick enough to iterate with. Here, keeping a set of reference images consistent.",
+      "sortOrder": 2680,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.15,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.1 per second of output without audio and $0.15 with it, at 720p and 1080p; at 4K it is $0.3 without and $0.35 with. Priced from 1080p with audio, which is the default, and scaled from there. The four rates are not a product of two factors, so they are keyed on both controls together.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.6667,
+              "1080p|false": 0.6667,
+              "4k|true": 2.3333,
+              "4k|false": 2.0
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/fast/extend-video": {
+      "group": "Video Editing",
+      "displayName": "Google Veo 3.1 Fast Extend Video",
+      "description": "Two thirds cheaper and quick enough to iterate with. Here, carrying on from the end of a clip you already have.",
+      "sortOrder": 2690,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.15,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.1 per second of output without audio and $0.15 with it. This route offers 720p only and a fixed seven second length, so the 4K rates its siblings carry have nothing to key on here.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|false": 0.6667
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/lite": {
+      "group": "Text to Video",
+      "displayName": "Google Veo 3.1 Lite Text to Video",
+      "description": "The cheapest Veo, for finding a shot rather than finishing one. Here, writing a clip from a sentence.",
+      "sortOrder": 2700,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.08,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 720p with audio, $0.03 at 720p without, $0.08 at 1080p with and $0.05 at 1080p without. Priced from 1080p with audio, which is the default, and scaled from there.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|true": 0.625,
+              "720p|false": 0.375,
+              "1080p|false": 0.625
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/lite/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Veo 3.1 Lite Image to Video",
+      "description": "The cheapest Veo, for finding a shot rather than finishing one. Here, animating a still.",
+      "sortOrder": 2710,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.08,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 720p with audio, $0.03 at 720p without, $0.08 at 1080p with and $0.05 at 1080p without. Priced from 1080p with audio, which is the default, and scaled from there.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|true": 0.625,
+              "720p|false": 0.375,
+              "1080p|false": 0.625
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/veo3.1/lite/first-last-frame-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Veo 3.1 Lite First Last Frame to Video",
+      "description": "The cheapest Veo, for finding a shot rather than finishing one. Here, moving from a first frame to a last one.",
+      "sortOrder": 2720,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.08,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 720p with audio, $0.03 at 720p without, $0.08 at 1080p with and $0.05 at 1080p without. Priced from 1080p with audio, which is the default, and scaled from there.",
+        "scale": [
+          {
+            "field": "resolution",
+            "and": "generate_audio",
+            "factors": {
+              "720p|true": 0.625,
+              "720p|false": 0.375,
+              "1080p|false": 0.625
+            }
+          }
+        ]
+      }
+    }
+  }
+}

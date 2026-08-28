@@ -1,0 +1,90 @@
+{
+  "endpointId": "fal-ai/kling-video/o3/standard/text-to-video",
+  "family": {
+    "id": "kling-o3",
+    "name": "Kling O3"
+  },
+  "modality": "video",
+  "group": "Text to Video",
+  "displayName": "Kling O3 Standard Text to Video",
+  "description": "Kling O3 at the standard tier, writing a clip from a sentence. Audio is generated unless you turn it off, and costs more when it is.",
+  "sortOrder": 2400,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.112,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.084 per second of output with audio off and $0.112 with it on. Priced from the audio-on default and scaled down when it is off. genmedia reports a flat $0.14 for every Kling O3 route.",
+    "scale": [
+      {
+        "field": "generate_audio",
+        "factors": {
+          "false": 0.75
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "generate_audio",
+      "label": "Generate audio",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "multi_prompt",
+      "label": "Multi prompt",
+      "type": "object-array",
+      "fields": [
+        {
+          "name": "prompt",
+          "label": "Prompt",
+          "required": true,
+          "type": "string"
+        },
+        {
+          "name": "duration",
+          "label": "Duration",
+          "default": "5",
+          "type": "enum",
+          "enum": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+        }
+      ]
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": "5",
+      "type": "enum",
+      "enum": ["3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+    },
+    {
+      "name": "shot_type",
+      "label": "Shot type",
+      "default": "customize",
+      "type": "enum",
+      "enum": ["customize", "intelligent"]
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "16:9",
+      "type": "enum",
+      "enum": ["16:9", "9:16", "1:1"]
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/kling.svg"
+}

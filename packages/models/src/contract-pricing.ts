@@ -49,15 +49,24 @@ export const PRICING_RULES: Rule[] = [
 /** Every value a rate keys on has to be a value the control can hold. */
 function ratesAgainstOptions(
   definition: CatalogEntry['definition'],
-  rate: { field: string; factors: Record<string, number> },
+  rate: { field: string; and?: string | undefined; factors: Record<string, number> },
 ): string | null {
-  const field = definition.inputs.find((input) => input.name === rate.field)
-  if (!field) return `pricing scales on ${rate.field}, which is not an input`
-  // A switch has two options and no enum listing them. Kling charges a third
-  // less with audio off, which is a rate on a boolean.
-  const options = field.type === 'boolean' ? ['true', 'false'] : (field.enum ?? [])
-  const unknown = Object.keys(rate.factors).find(
-    (value) => !options.some((option) => String(option) === value),
-  )
-  return unknown ? `pricing scales on ${rate.field}="${unknown}", not an option` : null
+  const names = rate.and ? [rate.field, rate.and] : [rate.field]
+  const options: string[][] = []
+  for (const name of names) {
+    const field = definition.inputs.find((input) => input.name === name)
+    if (!field) return `pricing scales on ${name}, which is not an input`
+    // A switch has two options and no enum listing them. Kling charges a third
+    // less with audio off, which is a rate on a boolean.
+    options.push(field.type === 'boolean' ? ['true', 'false'] : (field.enum ?? []).map(String))
+  }
+  for (const key of Object.keys(rate.factors)) {
+    const parts = key.split('|')
+    if (parts.length !== names.length) {
+      return `pricing scales on ${names.join(' and ')} but keys on "${key}"`
+    }
+    const wrong = parts.findIndex((part, at) => !options[at]?.includes(part))
+    if (wrong !== -1) return `pricing scales on ${names[wrong]}="${parts[wrong]}", not an option`
+  }
+  return null
 }

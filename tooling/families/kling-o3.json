@@ -1,0 +1,255 @@
+{
+  "_": "Kling O3. Same tiers as V3 plus reference-to-video and two video-to-video routes. Prices are fal's own; genmedia reports a flat $0.14 for every one of them.",
+  "family": {
+    "id": "kling-o3",
+    "name": "Kling O3"
+  },
+  "markUrl": "/models/marks/kling.svg",
+  "creditMultiplier": 1.25,
+  "require": ["prompt"],
+  "hidden": ["end_user_id"],
+  "roles": {
+    "start_image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "end_image_url": {
+      "role": "end-frame",
+      "label": "Use as end frame"
+    },
+    "image_url": {
+      "role": "source"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Edit this clip"
+    },
+    "image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    }
+  },
+  "endpoints": {
+    "fal-ai/kling-video/o3/standard/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Kling O3 Standard Text to Video",
+      "description": "Kling O3 at the standard tier, writing a clip from a sentence. Audio is generated unless you turn it off, and costs more when it is.",
+      "sortOrder": 2400,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.112,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.084 per second of output with audio off and $0.112 with it on. Priced from the audio-on default and scaled down when it is off. genmedia reports a flat $0.14 for every Kling O3 route.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.75
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/o3/standard/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling O3 Standard Image to Video",
+      "description": "Kling O3 at the standard tier, animating a still. Audio is generated unless you turn it off, and costs more when it is.",
+      "sortOrder": 2410,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.112,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.084 per second of output with audio off and $0.112 with it on. Priced from the audio-on default and scaled down when it is off. genmedia reports a flat $0.14 for every Kling O3 route.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.75
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/o3/standard/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling O3 Standard Reference to Video",
+      "description": "Kling O3 at the standard tier, holding a set of reference images consistent across the shot. Audio is generated unless you turn it off, and costs more when it is.",
+      "sortOrder": 2420,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.112,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.084 per second of output with audio off and $0.112 with it on. Priced from the audio-on default and scaled down when it is off. genmedia reports a flat $0.14 for every Kling O3 route.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.75
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/o3/pro/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Kling O3 Pro Text to Video",
+      "description": "Kling O3 at the pro tier, writing a clip from a sentence. Audio is generated unless you turn it off, and costs more when it is.",
+      "sortOrder": 2430,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.14,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.112 per second of output with audio off and $0.14 with it on. Priced from the audio-on default and scaled down when it is off. genmedia reports a flat $0.14 for every Kling O3 route.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.8
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/o3/pro/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling O3 Pro Image to Video",
+      "description": "Kling O3 at the pro tier, animating a still. Audio is generated unless you turn it off, and costs more when it is.",
+      "sortOrder": 2440,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.14,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.112 per second of output with audio off and $0.14 with it on. Priced from the audio-on default and scaled down when it is off. genmedia reports a flat $0.14 for every Kling O3 route.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.8
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/o3/pro/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling O3 Pro Reference to Video",
+      "description": "Kling O3 at the pro tier, holding a set of reference images consistent across the shot. Audio is generated unless you turn it off, and costs more when it is.",
+      "sortOrder": 2450,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.14,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.112 per second of output with audio off and $0.14 with it on. Priced from the audio-on default and scaled down when it is off. genmedia reports a flat $0.14 for every Kling O3 route.",
+        "scale": [
+          {
+            "field": "generate_audio",
+            "factors": {
+              "false": 0.8
+            }
+          }
+        ]
+      }
+    },
+    "fal-ai/kling-video/o3/4k/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Kling O3 4K Text to Video",
+      "description": "Four thousand pixels wide, writing a clip from a sentence. Three times the price of pro, so it is for the shot you have already chosen.",
+      "sortOrder": 2460,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.42,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.42 per second of output, audio on or off. genmedia reports $0.14."
+      }
+    },
+    "fal-ai/kling-video/o3/4k/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling O3 4K Image to Video",
+      "description": "Four thousand pixels wide, animating a still. Three times the price of pro, so it is for the shot you have already chosen.",
+      "sortOrder": 2470,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.42,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.42 per second of output, audio on or off. genmedia reports $0.14."
+      }
+    },
+    "fal-ai/kling-video/o3/4k/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Kling O3 4K Reference to Video",
+      "description": "Four thousand pixels wide, holding a set of reference images consistent across the shot. Three times the price of pro, so it is for the shot you have already chosen.",
+      "sortOrder": 2480,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.42,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.42 per second of output, audio on or off. genmedia reports $0.14."
+      }
+    },
+    "fal-ai/kling-video/o3/standard/video-to-video/edit": {
+      "group": "Video Editing",
+      "displayName": "Kling O3 Standard Video Edit",
+      "description": "Rewrites a clip you already have, following the prompt, at the standard tier.",
+      "sortOrder": 2490,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.126,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.126 per second of output. genmedia reports $0.14. It has no length control: the output is as long as the clip it is given, which fal limits to fifteen seconds, so the hold assumes that ceiling and settle returns the rest.",
+        "duration": {
+          "assume": 15,
+          "unit": "seconds"
+        }
+      }
+    },
+    "fal-ai/kling-video/o3/standard/video-to-video/reference": {
+      "group": "Video Editing",
+      "displayName": "Kling O3 Standard Video Reference",
+      "description": "Rebuilds a clip around reference images you supply, at the standard tier.",
+      "sortOrder": 2500,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.126,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.126 per second of output. genmedia reports $0.14. It has no length control: the output is as long as the clip it is given, which fal limits to fifteen seconds, so the hold assumes that ceiling and settle returns the rest.",
+        "duration": {
+          "assume": 15,
+          "unit": "seconds"
+        }
+      }
+    },
+    "fal-ai/kling-video/o3/pro/video-to-video/edit": {
+      "group": "Video Editing",
+      "displayName": "Kling O3 Pro Video Edit",
+      "description": "Rewrites a clip you already have, following the prompt, at the pro tier.",
+      "sortOrder": 2510,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.168,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.168 per second of output. genmedia reports $0.14. It has no length control: the output is as long as the clip it is given, which fal limits to fifteen seconds, so the hold assumes that ceiling and settle returns the rest.",
+        "duration": {
+          "assume": 15,
+          "unit": "seconds"
+        }
+      }
+    },
+    "fal-ai/kling-video/o3/pro/video-to-video/reference": {
+      "group": "Video Editing",
+      "displayName": "Kling O3 Pro Video Reference",
+      "description": "Rebuilds a clip around reference images you supply, at the pro tier.",
+      "sortOrder": 2520,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.168,
+        "waiveDriftCheck": true,
+        "note": "fal publishes a flat $0.168 per second of output. genmedia reports $0.14. It has no length control: the output is as long as the clip it is given, which fal limits to fifteen seconds, so the hold assumes that ceiling and settle returns the rest.",
+        "duration": {
+          "assume": 15,
+          "unit": "seconds"
+        }
+      }
+    }
+  }
+}

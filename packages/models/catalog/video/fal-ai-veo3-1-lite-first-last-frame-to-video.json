@@ -1,0 +1,115 @@
+{
+  "endpointId": "fal-ai/veo3.1/lite/first-last-frame-to-video",
+  "family": {
+    "id": "veo-31",
+    "name": "Google Veo 3.1"
+  },
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "Google Veo 3.1 Lite First Last Frame to Video",
+  "description": "The cheapest Veo, for finding a shot rather than finishing one. Here, moving from a first frame to a last one.",
+  "sortOrder": 2720,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.08,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.05 per second of output at 720p with audio, $0.03 at 720p without, $0.08 at 1080p with and $0.05 at 1080p without. Priced from 1080p with audio, which is the default, and scaled from there.",
+    "scale": [
+      {
+        "field": "resolution",
+        "and": "generate_audio",
+        "factors": {
+          "720p|true": 0.625,
+          "720p|false": 0.375,
+          "1080p|false": 0.625
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "safety_tolerance",
+      "label": "Safety tolerance",
+      "default": "4",
+      "type": "enum",
+      "enum": ["1", "2", "3", "4", "5", "6"]
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "16:9", "9:16"]
+    },
+    {
+      "name": "resolution",
+      "label": "Resolution",
+      "default": "720p",
+      "type": "enum",
+      "enum": ["720p", "1080p"]
+    },
+    {
+      "name": "auto_fix",
+      "label": "Auto fix",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": "8s",
+      "type": "enum",
+      "enum": ["8s"]
+    },
+    {
+      "name": "negative_prompt",
+      "label": "Negative prompt",
+      "type": "string"
+    },
+    {
+      "name": "generate_audio",
+      "label": "Generate audio",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    }
+  ],
+  "references": [
+    {
+      "field": "first_frame_url",
+      "role": "start-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    },
+    {
+      "field": "last_frame_url",
+      "role": "end-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": true,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/gemini.svg"
+}

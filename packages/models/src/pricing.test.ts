@@ -102,3 +102,35 @@ describe('how long the output is', () => {
     expect(estimateUnits(music, {})).toBe(1)
   })
 })
+
+describe('a rate that two controls decide together', () => {
+  /*
+   * Veo. $0.20 a second at 720p without audio and $0.40 with, $0.40 at 4K
+   * without and $0.60 with. No pair of factors multiplies to that table: the
+   * audio surcharge doubles the price at one resolution and adds half at the
+   * other.
+   */
+  const veo: ModelPricing = {
+    unit: 'seconds',
+    unitPriceUsd: 0.4,
+    scale: [
+      {
+        field: 'resolution',
+        and: 'generate_audio',
+        factors: { '720p|false': 0.5, '1080p|false': 0.5, '4k|true': 1.5, '4k|false': 1 },
+      },
+    ],
+  }
+  const at = (input: Record<string, unknown>) => estimateUnits({ pricing: veo }, input) * 0.4
+
+  it('prices every corner of the table', () => {
+    expect(at({ duration: 1, resolution: '720p', generate_audio: true })).toBeCloseTo(0.4, 10)
+    expect(at({ duration: 1, resolution: '720p', generate_audio: false })).toBeCloseTo(0.2, 10)
+    expect(at({ duration: 1, resolution: '4k', generate_audio: true })).toBeCloseTo(0.6, 10)
+    expect(at({ duration: 1, resolution: '4k', generate_audio: false })).toBeCloseTo(0.4, 10)
+  })
+
+  it('bills the base rate when only one of the two was chosen', () => {
+    expect(at({ duration: 1, resolution: '4k' })).toBeCloseTo(0.4, 10)
+  })
+})

@@ -117,7 +117,11 @@ export function inputFor(doc, name, raw, required) {
   const base = { name, label: titleOf(name), ...(required ? { required: true } : {}) }
   if (node.default !== undefined) base.default = node.default
 
-  if (node.enum) return { ...base, type: 'enum', enum: node.enum }
+  // `const` is an enum of one, and fal writes several that way. Read as a
+  // string it becomes a text box in which the only valid value is a word
+  // nobody is shown, and anything else is a 422.
+  const options = node.enum ?? (node.const !== undefined ? [node.const] : null)
+  if (options) return { ...base, type: 'enum', enum: options }
   if (node.type === 'array') return rowsFor(doc, base, node)
   const type = SCALAR[node.type]
   return type ? { ...base, type, ...bounds(node) } : null
