@@ -1,14 +1,33 @@
 import { execFileSync } from 'node:child_process'
 
 /**
- * Every catalog price, asked of the genmedia CLI in one request.
+ * How many ids one request will take.
  *
- * One request rather than one per model on purpose: asking seventeen times in a
- * row earns a 429, and a rate-limited answer looks exactly like "this endpoint
- * has no price" unless you are careful. Nothing here may treat a failed fetch
- * as a fact, which is why this throws rather than returning an empty map.
+ * Not a guess: 112 in one call answers 400 `validation_error`, and 25 answers
+ * fine. The other direction is worse, because asking one at a time earns a 429
+ * and a rate-limited answer looks exactly like "this endpoint has no price"
+ * unless you are careful.
+ */
+const PER_REQUEST = 25
+
+/**
+ * Every catalog price, in as few requests as the API will take.
+ *
+ * Nothing here may treat a failed fetch as a fact, which is why this throws
+ * rather than returning an empty map: a laptop on a plane and a catalog that is
+ * wrong must not look the same.
  */
 export function fetchPrices(endpointIds) {
+  const prices = new Map()
+  for (let at = 0; at < endpointIds.length; at += PER_REQUEST) {
+    for (const [id, price] of askFor(endpointIds.slice(at, at + PER_REQUEST))) {
+      prices.set(id, price)
+    }
+  }
+  return prices
+}
+
+function askFor(endpointIds) {
   if (endpointIds.length === 0) return new Map()
 
   const raw = execFileSync('genmedia', ['pricing', endpointIds.join(',')], {

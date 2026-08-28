@@ -27,7 +27,8 @@
     "cards": "node tooling/src/model-cards.mjs",
     "cards:check": "node tooling/src/model-cards.mjs --check",
     "cards:art": "node tooling/src/model-cards.mjs --art",
-    "catalog:check": "node tooling/src/catalog-check.mjs"
+    "catalog:check": "node tooling/src/catalog-check.mjs",
+    "catalog:draft": "node tooling/src/catalog-draft.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.10",

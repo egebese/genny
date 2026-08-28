@@ -6,7 +6,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "seed:models": "node --experimental-strip-types src/seed-models.ts",
-    "catalog:sync": "node src/catalog-sync.mjs"
+    "catalog:sync": "node src/catalog-sync.mjs",
+    "test": "node --test src/*.test.mjs"
   },
   "dependencies": {
     "@genny/db": "workspace:*",
