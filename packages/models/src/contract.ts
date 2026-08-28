@@ -40,6 +40,24 @@ const RULES: {
     },
   },
   {
+    rule: 'required-inputs-can-arrive',
+    check: ({ definition }) => {
+      // The dock starts with no settings and sends what was changed, so a
+      // required control nobody touched is simply absent. The prompt is exempt:
+      // it is injected by name rather than carried in settings.
+      const stuck = definition.inputs.find(
+        (input) =>
+          input.required &&
+          input.default === undefined &&
+          input.name !== definition.promptField &&
+          !input.hidden,
+      )
+      return stuck
+        ? `${stuck.name} is required with no default, so a generation nobody adjusted cannot validate`
+        : null
+    },
+  },
+  {
     rule: 'enum-options-exist',
     check: ({ definition }) => {
       const empty = definition.inputs.find(

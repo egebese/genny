@@ -15,6 +15,7 @@ describe('the catalog contract', () => {
     expect(contractRules).toEqual([
       'prompt-field-exists',
       'count-is-bounded',
+      'required-inputs-can-arrive',
       'enum-options-exist',
       'default-is-an-option',
       'slots-are-describable',

@@ -17,6 +17,24 @@ describe('buildInputSchema', () => {
     expect(parsed.output_format).toBe('png')
   })
 
+  it('takes a prompt and nothing else, for every model in the catalog', async () => {
+    /*
+     * What the dock actually submits. Settings start empty and fill as controls
+     * are touched, so a payload of nothing but the prompt is the ordinary case,
+     * not the edge one: someone types a sentence and presses the button.
+     *
+     * H3 Max shipped a field fal marks required and then defaults itself. The
+     * builder treated required and defaulted as exclusive, so every generation
+     * on it was refused with "the model rejected these settings" before a
+     * request was made, and no setting was wrong.
+     */
+    for (const { definition } of await loadCatalog()) {
+      const only = { [definition.promptField]: 'a paper boat in a rain gutter' }
+      const parsed = buildInputSchema(definition).safeParse(only)
+      expect(parsed.success, `${definition.endpointId}: ${parsed.error?.message}`).toBe(true)
+    }
+  })
+
   it('rejects a missing required prompt', async () => {
     const schema = await schemaFor('fal-ai/nano-banana-2')
     expect(() => schema.parse({})).toThrow()

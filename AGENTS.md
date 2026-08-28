@@ -126,7 +126,7 @@ default.
 
 ```bash
 pnpm up                  # docker: postgres + minio
-pnpm db:migrate          # apply migrations, then re-apply grants
+pnpm db:migrate          # migrations, grants, then the catalog into `models`
 pnpm dev                 # next dev on :3000
 pnpm check               # biome + tsc + architecture rules
 pnpm test                # unit

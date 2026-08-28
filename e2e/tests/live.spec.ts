@@ -39,6 +39,36 @@ test.describe('@live against real fal', () => {
   })
 
   /*
+   * Both H3 Max endpoints, because the family picks between them and nothing
+   * mocked can tell you it picked right. A tenth of a cent each.
+   */
+  test('H3 Max writes a clip from the prompt alone @live', async ({ page }) => {
+    await generate(page, 'MiniMax H3 Max', 'a paper boat drifting down a rain gutter, close up')
+    await expect(page.locator('main video').first()).toBeVisible({ timeout: 300_000 })
+    await expectRanOn(page, 'MiniMax H3 Max Text to Video')
+  })
+
+  test('an image attached to H3 Max sends it to the other endpoint @live', async ({ page }) => {
+    await generate(page, 'schnell', 'a single red leaf on wet slate, overhead')
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await expect(nodes.first().locator('img')).toBeVisible({ timeout: 300_000 })
+
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByPlaceholder('Search models').fill('MiniMax H3 Max')
+    await page.locator('[cmdk-group-items] [role=option]').first().click()
+
+    await nodes.first().click({ button: 'right' })
+    await page.getByRole('menuitem', { name: /start frame/i }).click()
+    await page.getByLabel('Prompt', { exact: true }).fill('the leaf lifts and turns in the wind')
+    await page.getByRole('button', { name: /^Generate/ }).click()
+
+    await expect(page.locator('main video').first()).toBeVisible({ timeout: 300_000 })
+    // The picker only ever offered the model. Which of its two endpoints ran is
+    // decided by what was attached, and this is the only place that shows.
+    await expectRanOn(page, 'MiniMax H3 Max Image to Video')
+  })
+
+  /*
    * The three below are the only place these can be proved. The mocked suite
    * never completes a job, so a placeholder never fills, an info button never
    * appears and there is nothing to inspect.
@@ -81,7 +111,7 @@ test.describe('@live against real fal', () => {
 
     await node.getByRole('button', { name: 'Generation details' }).click()
     await expect(panel).toBeVisible()
-    await expect(panel.getByText('fal-ai/flux/schnell')).toBeVisible()
+    await expect(panel.getByText('FLUX.1 [schnell]', { exact: true })).toBeVisible()
   })
 
   test('a dragged node lines up with its neighbours @live', async ({ page }) => {
@@ -227,6 +257,27 @@ test.describe('@live against real fal', () => {
     expect(await node.boundingBox()).toEqual(reserved)
   })
 })
+
+/** The endpoint the newest node actually ran on, read off its details panel. */
+/**
+ * Proves which endpoint of a family actually ran, by its name.
+ *
+ * Not by its id: the panel deliberately stopped printing `fal-ai/flux/schnell`
+ * under the model name, and the id now lives inside the clipboard payload of
+ * the support button, where nothing can read it. The display names differ per
+ * endpoint anyway, so this asserts the thing a person would check.
+ */
+async function expectRanOn(page: Page, modelName: string): Promise<void> {
+  const node = page
+    .getByRole('listbox', { name: 'Canvas' })
+    .getByRole('option')
+    .filter({ has: page.locator('video, audio, img') })
+    .last()
+  await node.getByRole('button', { name: 'Generation details' }).click()
+  const panel = page.getByRole('complementary', { name: 'Generation details' })
+  await expect(panel).toBeVisible()
+  await expect(panel.getByText(modelName, { exact: true })).toBeVisible()
+}
 
 async function generate(
   page: Page,

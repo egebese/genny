@@ -44,7 +44,16 @@ function bounded(base: z.ZodNumber, input: ModelInput): ZodType {
   return schema
 }
 
+/**
+ * A default satisfies a required field too.
+ *
+ * fal marks a field required and then fills it from its own default, which is
+ * a contradiction only on paper. Treating the two as exclusive meant the dock
+ * had to have touched that control for the payload to validate, and the dock
+ * only sends what someone changed. Every untouched generation on such a model
+ * was refused before it left us, with a sentence that blamed the settings.
+ */
 function applyOptionality(input: ModelInput, schema: ZodType): ZodType {
-  if (input.required) return schema
-  return input.default === undefined ? schema.optional() : schema.default(input.default)
+  if (input.default !== undefined) return schema.default(input.default)
+  return input.required ? schema : schema.optional()
 }

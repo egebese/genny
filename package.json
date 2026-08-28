@@ -16,7 +16,7 @@
     "e2e": "pnpm --filter @genny/e2e e2e",
     "deps:check": "node tooling/src/check-deps.mjs",
     "db:generate": "pnpm --filter @genny/db generate",
-    "db:migrate": "pnpm --filter @genny/db migrate",
+    "db:migrate": "pnpm --filter @genny/db migrate && pnpm --filter @genny/tooling seed:models",
     "db:seed:models": "pnpm --filter @genny/tooling seed:models",
     "catalog:sync": "pnpm --filter @genny/tooling catalog:sync",
     "changeset": "changeset",
