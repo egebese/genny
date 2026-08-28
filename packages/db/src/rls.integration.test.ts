@@ -4,6 +4,7 @@ import { withActor, withoutActor } from './actor.ts'
 import { agentRuns } from './schema/agents.ts'
 import { assets } from './schema/assets.ts'
 import { users } from './schema/auth.ts'
+import { projectAssets } from './schema/brand.ts'
 import { canvases, canvasNodes, projects } from './schema/canvas.ts'
 import { startTestDatabase, type TestDatabase } from './testing/container.ts'
 
@@ -196,6 +197,53 @@ describe('row level security', () => {
         tx.insert(canvases).values({ projectId: made.projectId, ownerId: bob, title: 'stolen' }),
       ),
       /canvases_project_owner_fk/,
+    )
+  })
+
+  it('refuses to pin somebody else asset, or to somebody else project', async () => {
+    /*
+     * Two composite keys, not a policy. Both rows bob would be writing are
+     * owned by bob, so RLS lets them through; only the keys tie the pin to a
+     * project and an asset that are also his.
+     */
+    const alicesProject = await withActor(database.app, alice, async (tx) => {
+      const [row] = await tx
+        .insert(projects)
+        .values({ ownerId: alice, title: 'Alice campaign' })
+        .returning({ id: projects.id })
+      if (!row) throw new Error('project insert returned no row')
+      return row.id
+    })
+    const [alicesAsset] = await withActor(database.app, alice, (tx) =>
+      tx.insert(assets).values(assetFixture(alice, 'alice-logo')).returning({ id: assets.id }),
+    )
+    const [bobsProject] = await withActor(database.app, bob, (tx) =>
+      tx.insert(projects).values({ ownerId: bob, title: 'Bob' }).returning({ id: projects.id }),
+    )
+    if (!alicesAsset || !bobsProject) throw new Error('fixtures failed')
+
+    await expectPgError(
+      withActor(database.app, bob, (tx) =>
+        tx.insert(projectAssets).values({
+          projectId: alicesProject,
+          assetId: alicesAsset.id,
+          ownerId: bob,
+          role: 'logo',
+        }),
+      ),
+      /project_assets_(project|asset)_owner_fk/,
+    )
+
+    await expectPgError(
+      withActor(database.app, bob, (tx) =>
+        tx.insert(projectAssets).values({
+          projectId: bobsProject.id,
+          assetId: alicesAsset.id,
+          ownerId: bob,
+          role: 'logo',
+        }),
+      ),
+      /project_assets_asset_owner_fk/,
     )
   })
 

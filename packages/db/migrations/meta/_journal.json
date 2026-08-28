@@ -64,6 +64,13 @@
       "when": 1787907125547,
       "tag": "0008_canvases_under_projects",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787907672786,
+      "tag": "0009_project_brand_kit",
+      "breakpoints": true
     }
   ]
 }

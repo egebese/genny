@@ -55,6 +55,15 @@ export const saveProjectRequest = z.object({
 
 export type SaveProjectRequest = z.infer<typeof saveProjectRequest>
 
+/** Pinning an asset to a project, or moving it between roles. */
+export const pinAssetRequest = z.object({
+  projectId: z.uuid(),
+  assetId: z.uuid(),
+  role: z.enum(['logo', 'product', 'reference']),
+})
+
+export const unpinAssetRequest = z.object({ projectId: z.uuid(), assetId: z.uuid() })
+
 /**
  * Variants of one node.
  *

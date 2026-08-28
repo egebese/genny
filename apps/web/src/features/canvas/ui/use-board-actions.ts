@@ -1,10 +1,13 @@
 'use client'
 
+import type { MediaKind } from '@genny/models/aspect.ts'
+import { slotsAccepting } from '@genny/models/slots.ts'
 import type { PickableFamily } from '../family-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
 import type { ReuseRequest } from './node-panel.tsx'
-import type { useAttachments } from './use-attachments.ts'
+import type { Attachable, useAttachments } from './use-attachments.ts'
 import type { useComposer } from './use-composer.ts'
+import { overlaySlots } from './use-overlay-slots.ts'
 import type { useSelection } from './use-selection.ts'
 import type { useSurfaces } from './use-surfaces.ts'
 import type { useViewport } from './use-viewport.ts'
@@ -60,7 +63,7 @@ export function useBoardActions({
    * second image takes PixVerse from its animator to its transition, and the
    * first stops being "the image" and becomes the first frame.
    */
-  const attachTo = (field: string, chosen: CanvasNodeView[]) => {
+  const attachTo = (field: string, chosen: readonly Attachable[]) => {
     const owner = family.variants.find((variant) =>
       variant.slots.some((slot) => slot.field === field),
     )
@@ -104,7 +107,21 @@ export function useBoardActions({
     pick.startMarquee(event, additive)
   }
 
-  const attachAndClose = (field: string, chosen: CanvasNodeView[]) => {
+  /**
+   * The same attach, from the shelf, where nobody picked a slot.
+   *
+   * The slots are the ones the endpoint would have *with this item added*, not
+   * the ones it has now. Asked the other way round, a text-to-image model with
+   * nothing attached reports no slots at all, because before the first image it
+   * is the text-only task, and clicking a product shot did nothing at all.
+   */
+  const attachMedia = (item: Attachable, carrying: readonly MediaKind[]) => {
+    const slots = overlaySlots(family, carrying, [item])
+    const slot = item.kind ? slotsAccepting(slots, item.kind)[0] : undefined
+    if (slot) attachTo(slot.field, [item])
+  }
+
+  const attachAndClose = (field: string, chosen: readonly Attachable[]) => {
     attachTo(field, chosen)
     surfaces.closeMenu()
   }
@@ -122,6 +139,7 @@ export function useBoardActions({
     pan,
     marquee,
     attachTo,
+    attachMedia,
     attachAndClose,
     removeNodes,
     mention,

@@ -6,8 +6,22 @@ import { slotsAccepting } from '@genny/models/slots.ts'
 import { useCallback, useState } from 'react'
 import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
-import type { CanvasNodeView } from '../node-view.ts'
 import type { Attachment } from './attachment-strip.tsx'
+
+/**
+ * The least a thing has to be to be attached: it exists as an asset, we know
+ * what kind of media it is, and we can show it.
+ *
+ * A node on the board satisfies this once it has finished, and so does an item
+ * pinned to the project, which is not a node and never will be. The nullable
+ * fields are the board's: a running node has no asset yet.
+ */
+export type Attachable = {
+  assetId: string | null
+  label: string | null
+  url: string | null
+  kind: 'image' | 'video' | 'audio' | null
+}
 
 /**
  * Assets pinned to named model inputs.
@@ -37,41 +51,44 @@ function lay(items: Attachment[], family: PickableFamily): Attachment[] {
 export function useAttachments() {
   const [attachments, setAttachments] = useState<Attachment[]>([])
 
-  const attach = useCallback((model: PickableModel, field: string, nodes: CanvasNodeView[]) => {
-    const slot = model.slots.find((candidate) => candidate.field === field)
-    if (!slot) return
+  const attach = useCallback(
+    (model: PickableModel, field: string, nodes: readonly Attachable[]) => {
+      const slot = model.slots.find((candidate) => candidate.field === field)
+      if (!slot) return
 
-    setAttachments((current) => {
-      type Ready = CanvasNodeView & {
-        kind: NonNullable<CanvasNodeView['kind']>
-        url: string
-        assetId: string
-      }
-      const usable = nodes.filter(
-        (node): node is Ready =>
-          node.kind !== null &&
-          node.url !== null &&
-          node.assetId !== null &&
-          slot.accepts.includes(node.kind),
-      )
-      // A single slot holds one thing, so re-picking replaces rather than
-      // stacking. An array slot keeps what is there and tops up to its limit.
-      const kept = slot.array ? current : current.filter((item) => item.field !== field)
-      const room = slot.maxCount - kept.filter((item) => item.field === field).length
+      setAttachments((current) => {
+        type Ready = Attachable & {
+          kind: NonNullable<Attachable['kind']>
+          url: string
+          assetId: string
+        }
+        const usable = nodes.filter(
+          (node): node is Ready =>
+            node.kind !== null &&
+            node.url !== null &&
+            node.assetId !== null &&
+            slot.accepts.includes(node.kind),
+        )
+        // A single slot holds one thing, so re-picking replaces rather than
+        // stacking. An array slot keeps what is there and tops up to its limit.
+        const kept = slot.array ? current : current.filter((item) => item.field !== field)
+        const room = slot.maxCount - kept.filter((item) => item.field === field).length
 
-      return [
-        ...kept,
-        ...usable.slice(0, Math.max(0, room)).map((node) => ({
-          field,
-          assetId: node.assetId,
-          slotLabel: slot.label,
-          label: node.label ?? 'result',
-          url: node.url,
-          kind: node.kind,
-        })),
-      ]
-    })
-  }, [])
+        return [
+          ...kept,
+          ...usable.slice(0, Math.max(0, room)).map((node) => ({
+            field,
+            assetId: node.assetId,
+            slotLabel: slot.label,
+            label: node.label ?? 'result',
+            url: node.url,
+            kind: node.kind,
+          })),
+        ]
+      })
+    },
+    [],
+  )
 
   /**
    * Lay the whole set out again, in the order it was added.
@@ -132,7 +149,7 @@ export function useAttachments() {
 
   /** True when this model has anywhere at all to put media of these kinds. */
   const canTake = useCallback(
-    (model: PickableModel, nodes: CanvasNodeView[]) =>
+    (model: PickableModel, nodes: readonly Attachable[]) =>
       nodes.some((node) => node.kind && slotsAccepting(model.slots, node.kind).length > 0),
     [],
   )

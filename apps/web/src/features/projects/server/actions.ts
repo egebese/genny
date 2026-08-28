@@ -1,8 +1,9 @@
 'use server'
 
-import { saveProjectRequest } from '@genny/canvas/requests.ts'
+import { pinAssetRequest, saveProjectRequest, unpinAssetRequest } from '@genny/canvas/requests.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
+import { pinToProject, unpinFromProject } from '@genny/db/repositories/brand-kit.ts'
 import { updateProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
 import { revalidatePath } from 'next/cache'
@@ -28,4 +29,32 @@ export async function saveProject(raw: unknown): Promise<{ ok: boolean; reason?:
   revalidatePath('/c')
   revalidatePath(`/p/${projectId}`)
   return { ok: true }
+}
+
+/**
+ * Pins an asset to the project, or moves one that is already pinned.
+ *
+ * `(project_id, asset_id)` is the key, so the same photograph cannot be both a
+ * product and a reference at once. Changing which is a move, not a second row.
+ */
+export async function pinAsset(raw: unknown): Promise<boolean> {
+  const parsed = pinAssetRequest.safeParse(raw)
+  if (!parsed.success) return false
+  const actorId = await ensureActorId()
+  await withActor(appDb(env().DATABASE_URL), actorId, (tx) =>
+    pinToProject(tx, { ...parsed.data, ownerId: actorId }),
+  )
+  revalidatePath(`/p/${parsed.data.projectId}`)
+  return true
+}
+
+export async function unpinAsset(raw: unknown): Promise<boolean> {
+  const parsed = unpinAssetRequest.safeParse(raw)
+  if (!parsed.success) return false
+  const actorId = await ensureActorId()
+  const gone = await withActor(appDb(env().DATABASE_URL), actorId, (tx) =>
+    unpinFromProject(tx, parsed.data),
+  )
+  revalidatePath(`/p/${parsed.data.projectId}`)
+  return gone
 }

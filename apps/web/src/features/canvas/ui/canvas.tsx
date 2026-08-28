@@ -6,6 +6,7 @@ import { persistViewport } from '../server/actions.ts'
 import type { CanvasPage } from '../server/canvas-page.ts'
 import { Board } from './board.tsx'
 import { BoardOverlays } from './board-overlays.tsx'
+import { BrandShelf } from './brand-shelf.tsx'
 import { CanvasDock } from './canvas-dock.tsx'
 import { EmptyHint } from './empty-hint.tsx'
 import { JobTracker } from './job-tracker.tsx'
@@ -115,6 +116,14 @@ export function Canvas(props: CanvasPage) {
         onFit={() => view.fit(nodes)}
       >
         {nodes.length === 0 ? <EmptyHint /> : null}
+
+        <BrandShelf
+          projectId={props.projectId}
+          projectTitle={props.projectTitle}
+          items={props.brandKit}
+          palette={props.palette}
+          onAttach={(item) => act.attachMedia(item, carrying)}
+        />
 
         <BoardOverlays
           menu={menu}

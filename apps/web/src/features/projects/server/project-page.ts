@@ -1,17 +1,28 @@
 import { assetUrl } from '@genny/assets/urls.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
+import { type BrandRole, listBrandKit } from '@genny/db/repositories/brand-kit.ts'
 import { listCanvases } from '@genny/db/repositories/canvases.ts'
 import { findProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
 import type { CanvasCard } from '@/features/canvas/server/canvas-list.ts'
 import { readActorId } from '@/features/session/actor.ts'
 
+export type PinnedAsset = {
+  assetId: string
+  role: BrandRole
+  label: string
+  url: string
+  kind: 'image' | 'video' | 'audio'
+}
+
 export type ProjectView = {
   id: string
   title: string
   brief: string
   palette: string[]
+  /** The project's own material: the logo, the products, the shots to work from. */
+  pinned: PinnedAsset[]
   canvases: CanvasCard[]
 }
 
@@ -25,12 +36,23 @@ export async function projectView(projectId: string): Promise<ProjectView | null
   const project = await withActor(db, actorId, (tx) => findProject(tx, projectId))
   if (!project) return null
 
-  const canvases = await withActor(db, actorId, (tx) => listCanvases(tx, { projectId }))
+  const [canvases, kit] = await Promise.all([
+    withActor(db, actorId, (tx) => listCanvases(tx, { projectId })),
+    withActor(db, actorId, (tx) => listBrandKit(tx, projectId)),
+  ])
+
   return {
     id: project.id,
     title: project.title,
     brief: project.brief ?? '',
     palette: project.palette,
+    pinned: kit.map((item) => ({
+      assetId: item.assetId,
+      role: item.role,
+      label: item.label,
+      url: assetUrl({ id: item.assetId, label: item.label, storageKey: item.storageKey }),
+      kind: item.kind,
+    })),
     canvases: canvases.map((row) => ({
       id: row.id,
       title: row.title,

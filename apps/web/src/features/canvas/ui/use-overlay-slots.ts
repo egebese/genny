@@ -3,7 +3,7 @@
 import type { MediaKind } from '@genny/models/aspect.ts'
 import type { ReferenceSlot } from '@genny/models/slots.ts'
 import { type PickableFamily, taskFor } from '../family-list.ts'
-import type { CanvasNodeView } from '../node-view.ts'
+import type { Attachable } from './use-attachments.ts'
 
 /**
  * Where the right-click menu's items come from.
@@ -20,8 +20,8 @@ import type { CanvasNodeView } from '../node-view.ts'
 export function overlaySlots(
   family: PickableFamily,
   carrying: readonly MediaKind[],
-  about: readonly CanvasNodeView[],
+  about: readonly Attachable[],
 ): ReferenceSlot[] {
-  const adding = about.map((node) => node.kind).filter((kind) => kind !== null)
+  const adding = about.map((item) => item.kind).filter((kind) => kind !== null)
   return taskFor(family, [...carrying, ...adding])?.slots ?? []
 }

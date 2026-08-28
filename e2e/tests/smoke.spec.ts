@@ -89,7 +89,26 @@ test.describe('shell', () => {
      * for the role would fail on something that is not a modal at all.
      */
     await expect(page.locator('[aria-modal="true"]')).toHaveCount(0)
-    await expect(page.locator('aside')).toHaveCount(0)
+
+    /*
+     * The rule is about geometry, not about a tag. "A panel anchored to
+     * something you selected is not a sidebar; a persistent column down the
+     * edge is." This used to assert no `<aside>` existed, which is a proxy that
+     * fails on a small floating panel and would pass on a full-height nav rail
+     * built out of divs.
+     *
+     * So: nothing may be flush against the left or right edge and most of the
+     * height of the viewport. The project shelf is inset, collapsed by default,
+     * and the board runs full width underneath it.
+     */
+    const rails = await page.evaluate(() => {
+      const viewport = { width: window.innerWidth, height: window.innerHeight }
+      return [...document.querySelectorAll('body *')]
+        .map((element) => element.getBoundingClientRect())
+        .filter((box) => box.height > viewport.height * 0.7 && box.width < viewport.width * 0.5)
+        .filter((box) => box.left <= 1 || box.right >= viewport.width - 1).length
+    })
+    expect(rails).toBe(0)
   })
 
   test('the page does not scroll sideways on a phone', async ({ page }) => {
@@ -757,6 +776,74 @@ test.describe('projects hold canvases', () => {
   test('a non-uuid project id is refused before any lookup', async ({ page }) => {
     const response = await page.goto('/p/not-a-uuid')
     expect(response?.status()).toBe(404)
+  })
+})
+
+test.describe('the project shelf', () => {
+  /** Uploads one image and pins it, returning the board it will show up on. */
+  async function pinSomething(page: Page, role: string): Promise<string> {
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/tiny.png')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    await openCanvas(page)
+    const board = page.url()
+
+    await page.goto('/c')
+    await page.locator('main section').first().getByRole('link').first().click()
+    await page.waitForURL(/\/p\/[0-9a-f-]{36}/)
+    const cards = page.locator('section:has-text("Project material") ul').last().locator('> li')
+    await cards.first().getByRole('button', { name: role, exact: true }).click()
+    await expect(page.getByRole('button', { name: /^Unpin / })).toBeVisible()
+    return board
+  }
+
+  test('what is pinned to the project is on the board of every canvas in it', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    const board = await pinSomething(page, 'Product')
+
+    await page.goto(board)
+    const shelf = page.getByRole('complementary', { name: 'Project material' })
+    await expect(shelf).toBeVisible()
+    // Collapsed until asked: open, it eats a third of a phone board.
+    await expect(shelf.getByRole('button', { name: /^Attach / })).toHaveCount(0)
+
+    await shelf.getByRole('button', { expanded: false }).click()
+    await expect(shelf.getByText('Product')).toBeVisible()
+    await expect(shelf.getByRole('button', { name: /^Attach / })).toHaveCount(1)
+  })
+
+  test('clicking a pinned asset attaches it to the prompt', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    const board = await pinSomething(page, 'Product')
+
+    await page.goto(board)
+    const shelf = page.getByRole('complementary', { name: 'Project material' })
+    await shelf.getByRole('button', { expanded: false }).click()
+    await shelf
+      .getByRole('button', { name: /^Attach / })
+      .first()
+      .click()
+
+    /*
+     * The slot comes from the endpoint this model would run *with the item
+     * added*, not the one it runs now. Asked the other way round a
+     * text-to-image model reports no slots at all, because before the first
+     * image it is the text-only task, and the click does nothing.
+     */
+    const strip = page.getByRole('list', { name: 'Attached to this generation' })
+    await expect(strip.getByRole('listitem')).toHaveCount(1)
+  })
+
+  test('the shelf does not make the board inert, because it is not a modal', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    const shelf = page.getByRole('complementary', { name: 'Project material' })
+    await shelf.getByRole('button', { expanded: false }).click()
+
+    await expect(page.locator('[aria-modal="true"]')).toHaveCount(0)
+    // The prompt behind it still takes what you type.
+    await fillPrompt(page, 'a concrete plinth under overcast light')
   })
 })
 
