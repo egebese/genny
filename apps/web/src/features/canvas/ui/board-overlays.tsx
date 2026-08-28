@@ -23,6 +23,7 @@ type OverlayProps = {
   bounds: Bounds
   onAttach: (field: string, nodes: CanvasNodeView[]) => void
   onMention: (label: string) => void
+  onVariants: (node: CanvasNodeView) => void
   onReuse: (request: ReuseRequest) => void
   onRemove: (ids: string[]) => void
   onCloseMenu: () => void
@@ -50,6 +51,7 @@ export function BoardOverlays(props: OverlayProps) {
             if (only?.label) props.onMention(only.label)
             props.onCloseMenu()
           }}
+          onVariants={variantsOf(menu.nodes, props.onVariants)}
           onDelete={() => props.onRemove(menu.nodes.map((node) => node.id))}
           onClose={props.onCloseMenu}
         />
@@ -70,4 +72,22 @@ export function BoardOverlays(props: OverlayProps) {
       ) : null}
     </>
   )
+}
+
+/**
+ * Whether varying makes sense here, and what it does if so.
+ *
+ * One finished still. The server has the real answer, since it knows whether
+ * the model that made this has an endpoint that takes an image back, and it
+ * says so for free without asking an agent. What is checked here is only the
+ * part the board already knows: four variants of a running placeholder, or of a
+ * sound, is not a question worth sending.
+ */
+function variantsOf(
+  chosen: CanvasNodeView[],
+  run: (node: CanvasNodeView) => void,
+): (() => void) | null {
+  const only = chosen.length === 1 ? chosen[0] : null
+  if (!only || only.kind !== 'image' || only.status !== 'ready') return null
+  return () => run(only)
 }

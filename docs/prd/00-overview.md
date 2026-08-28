@@ -62,5 +62,11 @@ One studio over the whole fal catalog, in two shapes from one codebase:
 
 ## Non-goals for v1
 
-Teams and sharing, a node editor, agents, on-prem inference, mobile native apps,
-i18n. Each has room in the architecture and none is in the first six phases.
+Teams and sharing, a node editor, on-prem inference, mobile native apps, i18n.
+Each has room in the architecture and none is in the first six phases.
+
+Agents were on this list and are not any more. What moved is not ambition but
+cost: a language model that answers in two seconds for a fraction of a cent
+makes "what four variants of this would be" and "what is this asset" ordinary
+questions rather than a research project. See
+[ADR 0012](../adr/0012-agents-on-openrouter.md).

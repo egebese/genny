@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "catalog:",
+    "@genny/agents": "workspace:*",
     "@genny/assets": "workspace:*",
     "@genny/auth": "workspace:*",
     "@genny/billing": "workspace:*",

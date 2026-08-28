@@ -68,6 +68,41 @@ test.describe('@live against real fal', () => {
     await expectRanOn(page, 'MiniMax H3 Max Image to Video')
   })
 
+  test('four variants of a still, each different in one way @live', async ({ page }) => {
+    /*
+     * The only place the agent path can be proved. Nothing mocked reaches a
+     * language model, so a broken system prompt, a schema that does not match
+     * what the model answers, or an endpoint that cannot take the image back
+     * all look exactly like a passing suite.
+     */
+    await generate(page, 'Nano Banana 2', 'a single red leaf on wet slate, overhead')
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await expect(nodes.first().locator('img')).toBeVisible({ timeout: 300_000 })
+
+    await nodes.first().click({ button: 'right' })
+    await page.getByRole('menuitem', { name: 'Make four variants' }).click()
+
+    // One agent call, then four generations. Five rectangles on the board.
+    await expect(nodes).toHaveCount(5, { timeout: 120_000 })
+    for (let at = 1; at <= 4; at++) {
+      await expect(nodes.nth(at).locator('img')).toBeVisible({ timeout: 300_000 })
+    }
+
+    // Each one ran on the edit endpoint, which is the part the family resolves:
+    // the picker only ever offered Nano Banana 2.
+    await expectRanOn(page, 'Nano Banana 2 Edit')
+  })
+
+  test('a model that cannot take an image says so before spending @live', async ({ page }) => {
+    await generate(page, 'ElevenLabs', 'Genny now speaks, not only draws.')
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await expect(nodes.first().locator('audio')).toBeVisible({ timeout: 300_000 })
+
+    // Not an image, so the item is not offered at all and no agent is asked.
+    await nodes.first().click({ button: 'right' })
+    await expect(page.getByRole('menuitem', { name: 'Make four variants' })).toHaveCount(0)
+  })
+
   /*
    * The three below are the only place these can be proved. The mocked suite
    * never completes a job, so a placeholder never fills, an info button never
@@ -276,7 +311,9 @@ async function expectRanOn(page: Page, modelName: string): Promise<void> {
   await node.getByRole('button', { name: 'Generation details' }).click()
   const panel = page.getByRole('complementary', { name: 'Generation details' })
   await expect(panel).toBeVisible()
-  await expect(panel.getByText(modelName, { exact: true })).toBeVisible()
+  // The panel names the model twice, as its heading and again in the Model
+  // block. Either one proves the point; asking for both is strict-mode noise.
+  await expect(panel.getByText(modelName, { exact: true }).first()).toBeVisible()
 }
 
 async function generate(

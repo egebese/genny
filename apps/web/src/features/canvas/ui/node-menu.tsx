@@ -20,6 +20,8 @@ type NodeMenuProps = {
   bounds: { width: number; height: number }
   onAttach: (field: string) => void
   onMention: () => void
+  /** Absent when this node cannot be varied, so the item is simply not offered. */
+  onVariants: (() => void) | null
   onDelete: () => void
   onClose: () => void
 }
@@ -98,6 +100,11 @@ export function NodeMenu(props: NodeMenuProps) {
       ) : null}
 
       <hr className="my-1 border-line" />
+      {props.onVariants ? (
+        <Item onClick={props.onVariants} disabled={count !== 1}>
+          Make four variants
+        </Item>
+      ) : null}
       <Item onClick={props.onMention} disabled={count !== 1}>
         Mention in the prompt
       </Item>

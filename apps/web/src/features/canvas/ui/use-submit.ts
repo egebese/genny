@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react'
 import type { PickableModel } from '../model-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
 import type { SubmitOutcome } from './use-generate.ts'
+import type { VariantOutcome } from './use-variants.ts'
 
 type Options = {
   generate: (
@@ -12,6 +13,7 @@ type Options = {
     settings: Record<string, unknown>,
     attachments: { field: string; assetId: string }[],
   ) => Promise<SubmitOutcome>
+  variants: (source: CanvasNodeView) => Promise<VariantOutcome>
   onPlaced: (nodes: CanvasNodeView[]) => void
 }
 
@@ -22,7 +24,7 @@ type Options = {
  * is this one with a word changed, and clearing them made people redo the setup
  * every time.
  */
-export function useSubmit({ generate, onPlaced }: Options) {
+export function useSubmit({ generate, variants, onPlaced }: Options) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -52,5 +54,27 @@ export function useSubmit({ generate, onPlaced }: Options) {
     [generate, onPlaced],
   )
 
-  return { pending, error, setError, submit }
+  /*
+   * The same two pieces of state, because it is the same sentence: the board is
+   * spending money and the dock is where that shows. An agent takes about two
+   * seconds before any image starts, which is long enough that a button doing
+   * nothing reads as a button that did not work.
+   */
+  const runVariants = useCallback(
+    async (source: CanvasNodeView) => {
+      setPending(true)
+      setError(null)
+      const made = await variants(source)
+      setPending(false)
+
+      if (!made.ok) {
+        setError(made.reason)
+        return
+      }
+      onPlaced(made.nodes)
+    },
+    [variants, onPlaced],
+  )
+
+  return { pending, error, setError, submit, runVariants }
 }

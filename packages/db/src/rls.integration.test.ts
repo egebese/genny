@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { withActor, withoutActor } from './actor.ts'
+import { agentRuns } from './schema/agents.ts'
 import { assets } from './schema/assets.ts'
 import { users } from './schema/auth.ts'
 import { canvasNodes, projects } from './schema/canvas.ts'
@@ -185,6 +186,49 @@ describe('row level security', () => {
       ),
       /canvas_nodes_project_owner_fk/,
     )
+  })
+
+  it('hides what one actor asked an agent from another', async () => {
+    /*
+     * Agent inputs carry the brief, the prompts and eventually the memory, which
+     * is the most descriptive thing in the database about what someone is
+     * working on. It is not media, so nobody looks at it, which is exactly why
+     * it gets a test rather than an assumption.
+     */
+    const run = { kind: 'variants' as const, model: 'test', input: { prompt: 'secret brief' } }
+    await withActor(database.app, alice, (tx) =>
+      tx.insert(agentRuns).values({ ...run, ownerId: alice }),
+    )
+
+    const mine = await withActor(database.app, alice, (tx) =>
+      tx.select({ id: agentRuns.id }).from(agentRuns),
+    )
+    const theirs = await withActor(database.app, bob, (tx) =>
+      tx.select({ id: agentRuns.id }).from(agentRuns),
+    )
+    expect(mine).toHaveLength(1)
+    expect(theirs).toHaveLength(0)
+  })
+
+  it('refuses an agent run that claims another actor as owner', async () => {
+    await expectPgError(
+      withActor(database.app, bob, (tx) =>
+        tx.insert(agentRuns).values({ ownerId: alice, kind: 'variants', model: 'test', input: {} }),
+      ),
+      /row-level security/i,
+    )
+  })
+
+  it('refuses to delete another actor agent runs', async () => {
+    const deleted = await withActor(database.app, bob, (tx) =>
+      tx.delete(agentRuns).returning({ id: agentRuns.id }),
+    )
+    expect(deleted).toHaveLength(0)
+
+    const survivors = await withActor(database.app, alice, (tx) =>
+      tx.select({ id: agentRuns.id }).from(agentRuns),
+    )
+    expect(survivors).toHaveLength(1)
   })
 
   it('lets every actor read the shared model catalog', async () => {

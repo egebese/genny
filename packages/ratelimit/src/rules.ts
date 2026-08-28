@@ -13,6 +13,13 @@ export const LIMITS = {
   // Per email, which is what protects one account from being guessed at. Ten in
   // a quarter of an hour is generous for a person and useless for a script.
   signIn: { limit: 10, windowSeconds: 900 },
+  /*
+   * Agent calls. Each one costs a fraction of a cent, so this is not about the
+   * money: it is that an agent can ask for generations, and a loop between the
+   * two spends real money at machine speed. Two hundred an hour is far more
+   * thinking than anyone does by hand.
+   */
+  agent: { limit: 200, windowSeconds: 3600 },
 } as const
 
 export type LimitName = keyof typeof LIMITS

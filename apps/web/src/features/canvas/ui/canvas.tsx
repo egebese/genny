@@ -20,6 +20,7 @@ import { useSelection } from './use-selection.ts'
 import { useSize } from './use-size.ts'
 import { useSubmit } from './use-submit.ts'
 import { useSurfaces } from './use-surfaces.ts'
+import { useVariants } from './use-variants.ts'
 import { useViewport } from './use-viewport.ts'
 
 export function Canvas(props: ProjectPage) {
@@ -65,7 +66,8 @@ export function Canvas(props: ProjectPage) {
     mentionables: handles.mentionables,
     centreOfView: view.centreOfView,
   })
-  const { pending, error, submit } = useSubmit({ generate, onPlaced: add })
+  const variants = useVariants(projectId, nodes)
+  const { pending, error, submit, runVariants } = useSubmit({ generate, variants, onPlaced: add })
 
   const act = useBoardActions({
     family,
@@ -125,6 +127,10 @@ export function Canvas(props: ProjectPage) {
           bounds={bounds}
           onAttach={act.attachAndClose}
           onMention={act.mention}
+          onVariants={(node) => {
+            surfaces.closeMenu()
+            void runVariants(node)
+          }}
           onReuse={act.reuse}
           onRemove={act.removeNodes}
           onCloseMenu={surfaces.closeMenu}
