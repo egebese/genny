@@ -34,8 +34,6 @@ type PromptDockProps = {
   mentions: MentionChip[]
   /** Which of those handles resolve; the rest are marked as a miss in the text. */
   resolvable: ReadonlySet<string>
-  /** The nearest model that could take what this one cannot, if there is one. */
-
   settings: Record<string, unknown>
   onSettingChange: (name: string, value: unknown) => void
   pending: boolean
