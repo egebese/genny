@@ -43,10 +43,23 @@ export function NodeMedia({ node }: { node: CanvasNodeView }) {
 
   return (
     <img
-      src={node.url}
+      /*
+       * A board-sized copy, not the original.
+       *
+       * A node is three hundred and sixty units across and a generated picture
+       * is several thousand pixels: one canvas of thirty-one of them was two
+       * hundred and twenty-seven megabytes, every one decoded to a full bitmap
+       * and re-rastered on every zoom. A thousand pixels is still sharp at any
+       * zoom anybody works at, and it is the difference between a board that
+       * moves and one that does not.
+       */
+      src={`${node.url}?w=1024`}
       alt={node.label ?? ''}
       draggable={false}
       loading="lazy"
+      // Off the main thread. Thirty synchronous decodes is a visible stall on
+      // the first paint of a full board.
+      decoding="async"
       className="h-full w-full bg-surface object-cover"
     />
   )

@@ -235,6 +235,9 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(postgres@3.4.9)
+      sharp:
+        specifier: ^0.35.3
+        version: 0.35.3(@types/node@26.3.0)
     devDependencies:
       '@genny/tsconfig':
         specifier: workspace:*
@@ -4605,8 +4608,7 @@ snapshots:
       protobufjs: 7.6.5
       yargs: 17.7.3
 
-  '@img/colour@1.1.0':
-    optional: true
+  '@img/colour@1.1.0': {}
 
   '@img/sharp-darwin-arm64@0.35.3':
     optionalDependencies:
@@ -6808,7 +6810,6 @@ snapshots:
       '@img/sharp-win32-ia32': 0.35.3
       '@img/sharp-win32-x64': 0.35.3
       '@types/node': 26.3.0
-    optional: true
 
   shebang-command@2.0.0:
     dependencies:

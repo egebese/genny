@@ -16,7 +16,8 @@
     "@aws-sdk/s3-request-presigner": "catalog:",
     "@genny/db": "workspace:*",
     "@genny/env": "workspace:*",
-    "drizzle-orm": "catalog:"
+    "drizzle-orm": "catalog:",
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "@genny/tsconfig": "workspace:*",
