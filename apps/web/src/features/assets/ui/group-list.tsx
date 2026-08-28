@@ -2,31 +2,31 @@
 
 import type { MentionableView } from '../server/list.ts'
 
-type CharacterListProps = {
-  characters: MentionableView[]
+type GroupListProps = {
+  groups: MentionableView[]
   onDeleted: (id: string) => void
 }
 
-export function CharacterList({ characters, onDeleted }: CharacterListProps) {
-  if (characters.length === 0) return null
+export function GroupList({ groups, onDeleted }: GroupListProps) {
+  if (groups.length === 0) return null
 
   async function remove(id: string) {
-    const response = await fetch(`/api/characters?id=${id}`, { method: 'DELETE' }).catch(() => null)
+    const response = await fetch(`/api/groups?id=${id}`, { method: 'DELETE' }).catch(() => null)
     if (response?.ok) onDeleted(id)
   }
 
   return (
     <section className="space-y-3">
-      <h2 className="font-medium text-sm">Characters</h2>
+      <h2 className="font-medium text-sm">Groups</h2>
       <ul className="flex flex-wrap gap-2">
-        {characters.map((character) => (
+        {groups.map((group) => (
           <li
-            key={character.id}
+            key={group.id}
             className="flex items-center gap-2 rounded-(--radius-control) bg-control py-1 pr-2 pl-1"
           >
-            {character.previewUrl ? (
+            {group.previewUrl ? (
               <img
-                src={character.previewUrl}
+                src={group.previewUrl}
                 alt=""
                 loading="lazy"
                 className="size-7 rounded-full object-cover"
@@ -34,12 +34,12 @@ export function CharacterList({ characters, onDeleted }: CharacterListProps) {
             ) : (
               <span className="size-7 rounded-full bg-control" />
             )}
-            <span className="font-mono text-ink text-sm">@{character.label}</span>
-            <span className="text-ink-faint text-xs">{character.count}</span>
+            <span className="font-mono text-ink text-sm">@{group.label}</span>
+            <span className="text-ink-faint text-xs">{group.count}</span>
             <button
               type="button"
-              onClick={() => void remove(character.id)}
-              aria-label={`Delete character ${character.label}`}
+              onClick={() => void remove(group.id)}
+              aria-label={`Delete group ${group.label}`}
               className="rounded-(--radius-control) px-1.5 text-ink-faint outline-none hover:text-danger focus-visible:ring-2 focus-visible:ring-accent"
             >
               ×

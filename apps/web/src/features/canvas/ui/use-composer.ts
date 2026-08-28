@@ -71,6 +71,6 @@ export function useComposer(
  */
 export function kindsOf(attachments: Attachment[], mentionCount: number): MediaKind[] {
   // A mention resolves to an image today: `listMentionablesFor` only offers
-  // images and characters, and a character is a bundle of them.
+  // images and assetGroups, and a character is a bundle of them.
   return [...attachments.map((attachment) => attachment.kind), ...Array(mentionCount).fill('image')]
 }

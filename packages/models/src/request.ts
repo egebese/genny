@@ -15,7 +15,7 @@ export const generationRequest = z.object({
       z.object({
         token: z.string().min(2).max(80),
         label: z.string().min(1).max(64),
-        kind: z.enum(['asset', 'character']),
+        kind: z.enum(['asset', 'group']),
         id: z.uuid(),
       }),
     )

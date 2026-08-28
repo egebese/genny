@@ -1,4 +1,4 @@
-import { findCharactersByIds } from '@genny/assets/characters.ts'
+import { findGroupsByIds } from '@genny/assets/groups.ts'
 import { findAssetsByIds } from '@genny/assets/repository.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { appDb } from '@genny/db/connection.ts'
@@ -21,16 +21,16 @@ export async function resolveReferences(
   db: ReturnType<typeof appDb>,
   actorId: string,
   credentials: FalCredentials,
-  requested: { token: string; label: string; kind: 'asset' | 'character'; id: string }[],
+  requested: { token: string; label: string; kind: 'asset' | 'group'; id: string }[],
 ): Promise<PromptReference[]> {
   if (requested.length === 0) return []
 
   const assetIds = requested.filter((item) => item.kind === 'asset').map((item) => item.id)
-  const characterIds = requested.filter((item) => item.kind === 'character').map((item) => item.id)
+  const characterIds = requested.filter((item) => item.kind === 'group').map((item) => item.id)
 
   const [foundAssets, foundCharacters] = await withActor(db, actorId, async (tx) => [
     await findAssetsByIds(tx, assetIds),
-    await findCharactersByIds(tx, characterIds),
+    await findGroupsByIds(tx, characterIds),
   ])
   const assetById = new Map(foundAssets.map((asset) => [asset.id, asset]))
   const characterById = new Map(foundCharacters.map((character) => [character.id, character]))
@@ -45,7 +45,7 @@ export async function resolveReferences(
      * the rest come back as dropped.
      */
     const members =
-      item.kind === 'character'
+      item.kind === 'group'
         ? (characterById.get(item.id)?.members ?? [])
         : assetById.has(item.id)
           ? [assetById.get(item.id) as { storageKey: string; mime: string }]

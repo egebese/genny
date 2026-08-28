@@ -40,3 +40,29 @@ export function matches(asset: Searchable, query: string): boolean {
 
   return words.every((word) => haystack.includes(word))
 }
+
+/**
+ * Assets that a model said are the same subject, grouped by that key.
+ *
+ * The offer, not the group. Four shots sharing `offwhite-oversize-hoodie` is a
+ * strong hint and not a decision: the person may have meant them as one product
+ * or as four separate listings, and only they know. Singletons are dropped,
+ * since "these one things belong together" is not a suggestion.
+ */
+export function looksGrouped<T extends Searchable & { id: string }>(
+  assets: readonly T[],
+): { groupKey: string; assets: T[] }[] {
+  const byKey = new Map<string, T[]>()
+  for (const asset of assets) {
+    const key = asset.facts?.groupKey
+    if (!key) continue
+    const found = byKey.get(key)
+    if (found) found.push(asset)
+    else byKey.set(key, [asset])
+  }
+
+  return [...byKey.entries()]
+    .filter(([, members]) => members.length > 1)
+    .map(([groupKey, members]) => ({ groupKey, assets: members }))
+    .sort((a, b) => b.assets.length - a.assets.length)
+}

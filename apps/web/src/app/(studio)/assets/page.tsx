@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Assets' }
 
 export default async function AssetsPage() {
   const actorId = await readActorId()
-  if (!actorId) return <AssetLibrary initialAssets={[]} initialCharacters={[]} />
+  if (!actorId) return <AssetLibrary initialAssets={[]} initialGroups={[]} />
 
   const [assets, mentionables] = await Promise.all([
     listAssetsFor(actorId),
@@ -16,7 +16,7 @@ export default async function AssetsPage() {
   return (
     <AssetLibrary
       initialAssets={assets}
-      initialCharacters={mentionables.filter((item) => item.kind === 'character')}
+      initialGroups={mentionables.filter((item) => item.kind === 'group')}
     />
   )
 }

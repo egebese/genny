@@ -1,24 +1,31 @@
 'use client'
 
-import { matches } from '@genny/assets/search.ts'
+import { looksGrouped, matches } from '@genny/assets/search.ts'
 import { useState } from 'react'
 import type { AssetView, MentionableView } from '../server/list.ts'
 import { AssetCard } from './asset-card.tsx'
-import { CharacterBar } from './character-bar.tsx'
-import { CharacterList } from './character-list.tsx'
+import { GroupBar } from './group-bar.tsx'
+import { GroupList } from './group-list.tsx'
 import { UploadZone } from './upload-zone.tsx'
 
 type AssetLibraryProps = {
   initialAssets: AssetView[]
-  initialCharacters: MentionableView[]
+  initialGroups: MentionableView[]
 }
 
-export function AssetLibrary({ initialAssets, initialCharacters }: AssetLibraryProps) {
+export function AssetLibrary({ initialAssets, initialGroups }: AssetLibraryProps) {
   const [assets, setAssets] = useState(initialAssets)
-  const [characters, setCharacters] = useState(initialCharacters)
+  const [groups, setGroups] = useState(initialGroups)
   const [selected, setSelected] = useState<string[]>([])
   const [query, setQuery] = useState('')
   const shown = assets.filter((asset) => matches(asset, query))
+  /*
+   * Offers, not groups. Four shots that a model says are the same product is a
+   * strong hint and not a decision: only the person knows whether they meant
+   * one product or four listings. Hidden once anything is picked by hand, so
+   * the page is never proposing one selection while holding another.
+   */
+  const offers = selected.length === 0 ? looksGrouped(assets).slice(0, 3) : []
 
   function toggle(id: string) {
     setSelected((current) =>
@@ -51,15 +58,46 @@ export function AssetLibrary({ initialAssets, initialCharacters }: AssetLibraryP
 
       <UploadZone onUploaded={(asset) => setAssets((current) => [asset, ...current])} />
 
-      <CharacterList
-        characters={characters}
-        onDeleted={(id) => setCharacters((current) => current.filter((c) => c.id !== id))}
+      <GroupList
+        groups={groups}
+        onDeleted={(id) => setGroups((current) => current.filter((c) => c.id !== id))}
       />
 
+      {offers.length > 0 ? (
+        <section aria-label="Suggested groups" className="space-y-2">
+          {offers.map((offer) => (
+            <button
+              key={offer.groupKey}
+              type="button"
+              onClick={() => setSelected(offer.assets.map((asset) => asset.id))}
+              className="flex w-full items-center gap-3 rounded-(--radius-panel) border border-line bg-surface p-2 text-left outline-none hover:border-ink-faint focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <span className="flex shrink-0 -space-x-2">
+                {offer.assets.slice(0, 4).map((asset) => (
+                  <img
+                    key={asset.id}
+                    src={asset.url}
+                    alt=""
+                    loading="lazy"
+                    className="size-8 rounded-[3px] object-cover ring-1 ring-canvas"
+                  />
+                ))}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-ink text-sm">
+                {offer.assets.length} of these look like{' '}
+                <span className="font-mono">{offer.groupKey}</span>
+              </span>
+              <span className="shrink-0 text-ink-faint text-xs">Group them</span>
+            </button>
+          ))}
+        </section>
+      ) : null}
+
       {selected.length > 0 ? (
-        <CharacterBar
+        <GroupBar
           selectedIds={selected}
-          onCreated={(character) => setCharacters((current) => [character, ...current])}
+          suggestion={suggestionFor(assets, selected)}
+          onCreated={(character) => setGroups((current) => [character, ...current])}
           onClear={() => setSelected([])}
         />
       ) : null}
@@ -82,4 +120,19 @@ export function AssetLibrary({ initialAssets, initialCharacters }: AssetLibraryP
       )}
     </main>
   )
+}
+
+/** The key these all share, when they do, so the bar can propose a name. */
+function suggestionFor(
+  assets: AssetView[],
+  selected: string[],
+): { kind: string; label: string } | undefined {
+  const keys = new Set(
+    assets.filter((asset) => selected.includes(asset.id)).map((asset) => asset.facts?.groupKey),
+  )
+  const [only] = [...keys]
+  if (keys.size !== 1 || !only) return undefined
+
+  const kind = assets.find((asset) => asset.facts?.groupKey === only)?.facts?.kind
+  return { label: only, kind: kind === 'product' || kind === 'character' ? kind : 'set' }
 }

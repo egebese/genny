@@ -4,12 +4,12 @@ import { startTestDatabase, type TestDatabase } from '@genny/db/testing/containe
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {
-  createCharacter,
-  deleteCharacter,
-  findCharactersByIds,
-  listCharacters,
-  takenCharacterLabels,
-} from './characters.ts'
+  createGroup,
+  deleteGroup,
+  findGroupsByIds,
+  listGroups,
+  takenGroupLabels,
+} from './groups.ts'
 import { createAsset } from './repository.ts'
 
 let database: TestDatabase
@@ -31,7 +31,7 @@ afterAll(async () => {
 })
 
 beforeEach(async () => {
-  await database.owner.execute(sql`delete from characters`)
+  await database.owner.execute(sql`delete from asset_groups`)
   await database.owner.execute(sql`delete from assets`)
 })
 
@@ -55,11 +55,11 @@ async function makeAssets(ownerId: string, labels: string[]) {
   })
 }
 
-describe('characters', () => {
+describe('asset groups', () => {
   it('bundles assets under one handle, in the order given', async () => {
     const made = await makeAssets(owner, ['front', 'side', 'back'])
     const character = await withActor(database.app, owner, (tx) =>
-      createCharacter(tx, { ownerId: owner, label: 'ayse', assetIds: made.map((a) => a.id) }),
+      createGroup(tx, { ownerId: owner, label: 'ayse', assetIds: made.map((a) => a.id) }),
     )
 
     expect(character.label).toBe('ayse')
@@ -70,7 +70,7 @@ describe('characters', () => {
   it('refuses a character with no assets, which could never resolve', async () => {
     await expect(
       withActor(database.app, owner, (tx) =>
-        createCharacter(tx, { ownerId: owner, label: 'empty', assetIds: [] }),
+        createGroup(tx, { ownerId: owner, label: 'empty', assetIds: [] }),
       ),
     ).rejects.toThrow(/at least one asset/)
   })
@@ -79,7 +79,7 @@ describe('characters', () => {
     const made = await makeAssets(owner, ['one'])
     const create = () =>
       withActor(database.app, owner, (tx) =>
-        createCharacter(tx, { ownerId: owner, label: 'twin', assetIds: [made[0]?.id ?? ''] }),
+        createGroup(tx, { ownerId: owner, label: 'twin', assetIds: [made[0]?.id ?? ''] }),
       )
     await create()
     await expect(create()).rejects.toThrow()
@@ -90,11 +90,11 @@ describe('characters', () => {
     const theirs = await makeAssets(stranger, ['theirs'])
 
     await withActor(database.app, owner, (tx) =>
-      createCharacter(tx, { ownerId: owner, label: 'shared', assetIds: [mine[0]?.id ?? ''] }),
+      createGroup(tx, { ownerId: owner, label: 'shared', assetIds: [mine[0]?.id ?? ''] }),
     )
     await expect(
       withActor(database.app, stranger, (tx) =>
-        createCharacter(tx, {
+        createGroup(tx, {
           ownerId: stranger,
           label: 'shared',
           assetIds: [theirs[0]?.id ?? ''],
@@ -103,24 +103,24 @@ describe('characters', () => {
     ).resolves.toBeTruthy()
   })
 
-  it('hides one owner characters from another', async () => {
+  it('hides one owner groups from another', async () => {
     const made = await makeAssets(owner, ['hidden'])
     await withActor(database.app, owner, (tx) =>
-      createCharacter(tx, { ownerId: owner, label: 'secret', assetIds: [made[0]?.id ?? ''] }),
+      createGroup(tx, { ownerId: owner, label: 'secret', assetIds: [made[0]?.id ?? ''] }),
     )
 
-    const theirView = await withActor(database.app, stranger, (tx) => listCharacters(tx))
+    const theirView = await withActor(database.app, stranger, (tx) => listGroups(tx))
     expect(theirView).toEqual([])
   })
 
   it('does not resolve a character id belonging to somebody else', async () => {
     const made = await makeAssets(owner, ['guarded'])
     const character = await withActor(database.app, owner, (tx) =>
-      createCharacter(tx, { ownerId: owner, label: 'guarded', assetIds: [made[0]?.id ?? ''] }),
+      createGroup(tx, { ownerId: owner, label: 'guarded', assetIds: [made[0]?.id ?? ''] }),
     )
 
     const found = await withActor(database.app, stranger, (tx) =>
-      findCharactersByIds(tx, [character.id]),
+      findGroupsByIds(tx, [character.id]),
     )
     expect(found).toEqual([])
   })
@@ -129,7 +129,7 @@ describe('characters', () => {
     const theirs = await makeAssets(stranger, ['not-mine'])
     await expect(
       withActor(database.app, owner, (tx) =>
-        createCharacter(tx, { ownerId: owner, label: 'theft', assetIds: [theirs[0]?.id ?? ''] }),
+        createGroup(tx, { ownerId: owner, label: 'theft', assetIds: [theirs[0]?.id ?? ''] }),
       ),
     ).rejects.toThrow()
   })
@@ -137,22 +137,20 @@ describe('characters', () => {
   it('reports taken handles so a new one can avoid colliding', async () => {
     const made = await makeAssets(owner, ['a', 'b'])
     await withActor(database.app, owner, (tx) =>
-      createCharacter(tx, { ownerId: owner, label: 'taken-one', assetIds: [made[0]?.id ?? ''] }),
+      createGroup(tx, { ownerId: owner, label: 'taken-one', assetIds: [made[0]?.id ?? ''] }),
     )
-    const taken = await withActor(database.app, owner, (tx) => takenCharacterLabels(tx))
+    const taken = await withActor(database.app, owner, (tx) => takenGroupLabels(tx))
     expect(taken).toContain('taken-one')
   })
 
   it('deletes a character without touching its assets', async () => {
     const made = await makeAssets(owner, ['keep-me'])
     const character = await withActor(database.app, owner, (tx) =>
-      createCharacter(tx, { ownerId: owner, label: 'temporary', assetIds: [made[0]?.id ?? ''] }),
+      createGroup(tx, { ownerId: owner, label: 'temporary', assetIds: [made[0]?.id ?? ''] }),
     )
 
-    expect(await withActor(database.app, owner, (tx) => deleteCharacter(tx, character.id))).toBe(
-      true,
-    )
-    expect(await withActor(database.app, owner, (tx) => listCharacters(tx))).toEqual([])
+    expect(await withActor(database.app, owner, (tx) => deleteGroup(tx, character.id))).toBe(true)
+    expect(await withActor(database.app, owner, (tx) => listGroups(tx))).toEqual([])
 
     const assetsLeft = await database.owner.execute<{ count: string }>(
       sql`select count(*) from assets`,
@@ -163,9 +161,9 @@ describe('characters', () => {
   it('cannot delete somebody else character', async () => {
     const made = await makeAssets(owner, ['safe'])
     const character = await withActor(database.app, owner, (tx) =>
-      createCharacter(tx, { ownerId: owner, label: 'safe', assetIds: [made[0]?.id ?? ''] }),
+      createGroup(tx, { ownerId: owner, label: 'safe', assetIds: [made[0]?.id ?? ''] }),
     )
-    expect(await withActor(database.app, stranger, (tx) => deleteCharacter(tx, character.id))).toBe(
+    expect(await withActor(database.app, stranger, (tx) => deleteGroup(tx, character.id))).toBe(
       false,
     )
   })

@@ -53,30 +53,46 @@ export const assets = pgTable(
 ).enableRLS()
 
 /**
- * A named bundle of reference images: `@ayse` resolves to every asset attached
- * here. This is what keeps an identity stable across generations without asking
- * the user to re-pick four files every time.
+ * What kind of thing a group stands for.
+ *
+ * It used to be only assetGroups, and a table called `assetGroups` holding four
+ * angles of a hoodie is a table nobody can read. The kind decides how the
+ * library files it and what an agent is told the set is, which is why it is a
+ * closed list rather than a label.
  */
-export const characters = pgTable(
-  'characters',
+export const groupKind = pgEnum('group_kind', ['character', 'product', 'style', 'set'])
+
+/**
+ * A named bundle of assets: `@ayse` resolves to every asset attached here, and
+ * so does `@offwhite-hoodie`. This is what keeps a subject stable across
+ * generations without asking anyone to re-pick four files every time.
+ */
+export const assetGroups = pgTable(
+  'asset_groups',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     ownerId: uuid('owner_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     label: text('label').notNull(),
+    kind: groupKind('kind').notNull().default('character'),
     description: text('description'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [unique('characters_owner_label').on(t.ownerId, t.label), ownerPolicy('characters')],
+  (t) => [
+    unique('asset_groups_owner_label').on(t.ownerId, t.label),
+    // Referenced as a composite key, so a member cannot join somebody else's group.
+    unique('asset_groups_id_owner').on(t.id, t.ownerId),
+    ownerPolicy('asset_groups'),
+  ],
 ).enableRLS()
 
-export const characterAssets = pgTable(
-  'character_assets',
+export const assetGroupMembers = pgTable(
+  'asset_group_members',
   {
-    characterId: uuid('character_id')
+    groupId: uuid('group_id')
       .notNull()
-      .references(() => characters.id, { onDelete: 'cascade' }),
+      .references(() => assetGroups.id, { onDelete: 'cascade' }),
     assetId: uuid('asset_id')
       .notNull()
       .references(() => assets.id, { onDelete: 'cascade' }),
@@ -85,17 +101,17 @@ export const characterAssets = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     sortOrder: integer('sort_order').notNull().default(0),
   },
-  (t) => [primaryKey({ columns: [t.characterId, t.assetId] }), ownerPolicy('character_assets')],
+  (t) => [primaryKey({ columns: [t.groupId, t.assetId] }), ownerPolicy('asset_group_members')],
 ).enableRLS()
 
-export const charactersRelations = relations(characters, ({ many }) => ({
-  members: many(characterAssets),
+export const assetGroupsRelations = relations(assetGroups, ({ many }) => ({
+  members: many(assetGroupMembers),
 }))
 
-export const characterAssetsRelations = relations(characterAssets, ({ one }) => ({
-  character: one(characters, {
-    fields: [characterAssets.characterId],
-    references: [characters.id],
+export const assetGroupMembersRelations = relations(assetGroupMembers, ({ one }) => ({
+  group: one(assetGroups, {
+    fields: [assetGroupMembers.groupId],
+    references: [assetGroups.id],
   }),
-  asset: one(assets, { fields: [characterAssets.assetId], references: [assets.id] }),
+  asset: one(assets, { fields: [assetGroupMembers.assetId], references: [assets.id] }),
 }))

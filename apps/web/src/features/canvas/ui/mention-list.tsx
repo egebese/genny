@@ -28,7 +28,7 @@ export function MentionList({ candidates, highlighted, query, onChoose }: Mentio
     <div
       id="mention-list"
       role="listbox"
-      aria-label="Assets and characters you can mention"
+      aria-label="Assets and groups you can mention"
       className="max-h-56 overflow-y-auto border-line border-b p-1"
     >
       {candidates.map((item, index) => (
@@ -53,7 +53,7 @@ export function MentionList({ candidates, highlighted, query, onChoose }: Mentio
             <span className="min-w-0 flex-1">
               <span className="block truncate font-mono text-ink text-sm">@{item.label}</span>
               <span className="block text-ink-faint text-xs">
-                {item.kind === 'character'
+                {item.kind === 'group'
                   ? `character, ${item.count} image${item.count === 1 ? '' : 's'}`
                   : 'image'}
               </span>
@@ -77,7 +77,7 @@ function Thumb({ item }: { item: MentionableView }) {
       className={cn(
         'size-8 shrink-0 object-cover',
         // Characters read as people, so they get the rounder shape.
-        item.kind === 'character' ? 'rounded-full' : 'rounded-(--radius-control)',
+        item.kind === 'group' ? 'rounded-full' : 'rounded-(--radius-control)',
       )}
     />
   )

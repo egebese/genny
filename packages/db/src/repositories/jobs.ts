@@ -6,7 +6,7 @@ export type JobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancele
 
 export type StoredPrompt = {
   text: string
-  references: { token: string; label: string; kind: 'asset' | 'character'; id: string }[]
+  references: { token: string; label: string; kind: 'asset' | 'group'; id: string }[]
 }
 
 export type JobRecord = {

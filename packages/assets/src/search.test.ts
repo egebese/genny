@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matches, type Searchable } from './search.ts'
+import { looksGrouped, matches, type Searchable } from './search.ts'
 
 const asset = (overrides: Partial<Searchable> = {}): Searchable => ({
   label: 'wet-slate-2',
@@ -43,5 +43,43 @@ describe('matches', () => {
     const plain = asset({ facts: null })
     expect(matches(plain, 'wet-slate')).toBe(true)
     expect(matches(plain, 'leaf')).toBe(false)
+  })
+})
+
+describe('looksGrouped', () => {
+  const at = (id: string, groupKey: string | null) => ({
+    id,
+    label: id,
+    facts: groupKey ? { shortName: id, subject: '', kind: 'product', groupKey, tags: [] } : null,
+  })
+
+  it('offers a group where several assets say they are the same subject', () => {
+    const found = looksGrouped([
+      at('a', 'offwhite-hoodie'),
+      at('b', 'offwhite-hoodie'),
+      at('c', 'brass-compass'),
+    ])
+    expect(found).toHaveLength(1)
+    expect(found[0]?.groupKey).toBe('offwhite-hoodie')
+    expect(found[0]?.assets.map((one) => one.id)).toEqual(['a', 'b'])
+  })
+
+  it('says nothing about a subject that appears once', () => {
+    expect(looksGrouped([at('a', 'brass-compass')])).toEqual([])
+  })
+
+  it('says nothing about assets nobody has described', () => {
+    expect(looksGrouped([at('a', null), at('b', null)])).toEqual([])
+  })
+
+  it('puts the biggest group first, since that is the most worth doing', () => {
+    const found = looksGrouped([
+      at('a', 'small'),
+      at('b', 'small'),
+      at('c', 'big'),
+      at('d', 'big'),
+      at('e', 'big'),
+    ])
+    expect(found.map((one) => one.groupKey)).toEqual(['big', 'small'])
   })
 })

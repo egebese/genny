@@ -1,4 +1,4 @@
-import { listCharacters } from '@genny/assets/characters.ts'
+import { listGroups } from '@genny/assets/groups.ts'
 import { type AssetRecord, listAssets } from '@genny/assets/repository.ts'
 import { assetUrl } from '@genny/assets/urls.ts'
 import { withActor } from '@genny/db/actor.ts'
@@ -32,7 +32,7 @@ export type AssetView = {
 export type MentionableView = {
   id: string
   label: string
-  kind: 'asset' | 'character'
+  kind: 'asset' | 'group'
   /** A single image for the asset, or the character's first member. */
   previewUrl: string | null
   /** How many images this contributes. Always 1 for an asset. */
@@ -66,21 +66,21 @@ function factsOf(facts: AssetFacts | undefined): AssetView['facts'] {
 }
 
 /**
- * The mentionable list: characters first, because a character is the more
+ * The mentionable list: groups first, because a group is the more
  * specific thing to reach for and is usually what someone wants.
  */
 export async function listMentionablesFor(actorId: string): Promise<MentionableView[]> {
   const db = appDb(env().DATABASE_URL)
-  const [characters, assets] = await withActor(db, actorId, async (tx) => [
-    await listCharacters(tx),
+  const [assetGroups, assets] = await withActor(db, actorId, async (tx) => [
+    await listGroups(tx),
     await listAssets(tx, { limit: 60, kind: 'image' }),
   ])
 
   return [
-    ...characters.map((character) => ({
+    ...assetGroups.map((character) => ({
       id: character.id,
       label: character.label,
-      kind: 'character' as const,
+      kind: 'group' as const,
       previewUrl: character.members[0]
         ? assetUrl({
             id: character.members[0].assetId,

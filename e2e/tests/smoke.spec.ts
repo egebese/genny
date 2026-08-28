@@ -589,7 +589,7 @@ test.describe('serving media', () => {
   })
 })
 
-test.describe('characters', () => {
+test.describe('groups', () => {
   /** Two assets in the library, ready to bundle. */
   async function uploadTwo(page: import('@playwright/test').Page) {
     await page.goto('/assets')
@@ -602,52 +602,66 @@ test.describe('characters', () => {
 
   test('selecting assets reveals the naming bar in the page, not over it', async ({ page }) => {
     await uploadTwo(page)
-    await expect(page.locator('#character-label')).toHaveCount(0)
+    await expect(page.locator('#group-label')).toHaveCount(0)
 
     await page.locator('ul.grid li label').first().click()
-    await expect(page.locator('#character-label')).toBeVisible()
+    await expect(page.locator('#group-label')).toBeVisible()
     await expect(page.locator('[aria-modal="true"]')).toHaveCount(0)
   })
 
-  test('a character is created and shown with how many images it carries', async ({ page }) => {
+  test('a group is created and shown with how many images it carries', async ({ page }) => {
     await uploadTwo(page)
     await page.locator('ul.grid li label').nth(0).click()
     await page.locator('ul.grid li label').nth(1).click()
-    await page.locator('#character-label').fill('ayse')
-    await page.getByRole('button', { name: 'Create character' }).click()
+    await page.locator('#group-label').fill('ayse')
+    await page.getByRole('button', { name: 'Create group' }).click()
 
     const chip = page.locator('section li').first()
     await expect(chip).toContainText('@ayse')
     await expect(chip).toContainText('2')
     // Selection clears, so the bar goes away on its own.
-    await expect(page.locator('#character-label')).toHaveCount(0)
+    await expect(page.locator('#group-label')).toHaveCount(0)
   })
 
-  test('a character cannot be created without a name', async ({ page }) => {
+  test('a group cannot be created without a name', async ({ page }) => {
     await uploadTwo(page)
     await page.locator('ul.grid li label').first().click()
-    await expect(page.getByRole('button', { name: 'Create character' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Create group' })).toBeDisabled()
   })
 
-  test('a character can be deleted without taking its assets', async ({ page }) => {
+  test('a group can be deleted without taking its assets', async ({ page }) => {
     await uploadTwo(page)
     await page.locator('ul.grid li label').first().click()
-    await page.locator('#character-label').fill('temporary')
-    await page.getByRole('button', { name: 'Create character' }).click()
+    await page.locator('#group-label').fill('temporary')
+    await page.getByRole('button', { name: 'Create group' }).click()
     await expect(page.locator('section li').first()).toContainText('@temporary')
 
-    await page.getByRole('button', { name: /Delete character temporary/ }).click()
+    await page.getByRole('button', { name: /Delete group temporary/ }).click()
     await expect(page.locator('section li')).toHaveCount(0)
     await expect(page.locator('ul.grid li')).toHaveCount(2)
   })
 
-  test('a character appears in the mention list ahead of plain assets', async ({ page }) => {
+  test('a group can be a product, not only a character', async ({ page }) => {
+    await uploadTwo(page)
+    await page.locator('ul.grid li label').nth(0).click()
+    await page.locator('ul.grid li label').nth(1).click()
+
+    // The kind is a real choice, because four angles of a hoodie were being
+    // filed under a table called "characters".
+    await page.getByRole('button', { name: 'Product', exact: true }).click()
+    await page.locator('#group-label').fill('offwhite hoodie')
+    await page.getByRole('button', { name: 'Create group' }).click()
+
+    await expect(page.locator('section li').first()).toContainText('@offwhite-hoodie')
+  })
+
+  test('a group appears in the mention list ahead of plain assets', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await uploadTwo(page)
     await page.locator('ul.grid li label').nth(0).click()
     await page.locator('ul.grid li label').nth(1).click()
-    await page.locator('#character-label').fill('ayse')
-    await page.getByRole('button', { name: 'Create character' }).click()
+    await page.locator('#group-label').fill('ayse')
+    await page.getByRole('button', { name: 'Create group' }).click()
     await expect(page.locator('section li').first()).toContainText('@ayse')
 
     await openCanvas(page)
