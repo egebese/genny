@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
+import { catalogueOutput } from './catalogue.ts'
 import { parseAgentOutput } from './parse.ts'
 import { variantOutput } from './variants.ts'
 
@@ -57,5 +58,33 @@ describe('parseAgentOutput', () => {
     const parsed = parseAgentOutput(answer, variantOutput)
     expect(parsed.ok).toBe(true)
     if (parsed.ok) expect(parsed.value.variants).toHaveLength(2)
+  })
+})
+
+describe('catalogueOutput', () => {
+  it('adds the hash the model leaves off a colour', () => {
+    /*
+     * Measured, not imagined: told "six-digit hex", gemini-3.1-flash-lite
+     * answered `"3d4348"`. One reading, so the answer is kept rather than
+     * refused and charged for twice.
+     */
+    const answer = `{"shortName":"Red Leaf Rain","kind":"scene",
+      "subject":"A red leaf on wet stone.","palette":["3d4348","#e30b15"],
+      "tags":["leaf"],"groupKey":"red-leaf-on-stone"}`
+    const parsed = parseAgentOutput(answer, catalogueOutput)
+    expect(parsed.ok).toBe(true)
+    if (parsed.ok) expect(parsed.value.palette).toEqual(['#3d4348', '#e30b15'])
+  })
+
+  it('still refuses a missing kind, which is a fact and not a format', () => {
+    const answer = `{"shortName":"Red Leaf","subject":"A leaf.","palette":[],
+      "tags":[],"groupKey":"red-leaf"}`
+    expect(parseAgentOutput(answer, catalogueOutput).ok).toBe(false)
+  })
+
+  it('refuses a group key that only this one image could match', () => {
+    const answer = `{"shortName":"Red Leaf","kind":"scene","subject":"A leaf.",
+      "palette":[],"tags":[],"groupKey":"Red Leaf 2026-08-28"}`
+    expect(parseAgentOutput(answer, catalogueOutput).ok).toBe(false)
   })
 })

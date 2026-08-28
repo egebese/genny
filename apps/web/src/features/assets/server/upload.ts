@@ -5,7 +5,9 @@ import { type AssetRecord, createAsset, takenLabels } from '@genny/assets/reposi
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { env } from '@genny/env/env.ts'
+import { after } from 'next/server'
 import { storage } from '@/features/storage.ts'
+import { catalogueAsset } from './catalogue.ts'
 
 export type UploadOutcome =
   | { ok: true; asset: AssetRecord }
@@ -57,6 +59,15 @@ export async function uploadAsset(
       source: 'upload',
     }),
   )
+
+  /*
+   * Uploaded means kept, so this one is worth describing. After the response,
+   * not before it: the upload is finished and correct whether or not a model
+   * has an opinion about what is in the picture, and three seconds is a long
+   * time to hold a progress bar for a nicety.
+   */
+  after(() => catalogueAsset({ actorId, assetId: asset.id }))
+
   return { ok: true, asset }
 }
 

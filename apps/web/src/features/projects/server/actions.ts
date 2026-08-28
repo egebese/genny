@@ -4,9 +4,11 @@ import { pinAssetRequest, saveProjectRequest, unpinAssetRequest } from '@genny/c
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { pinToProject, unpinFromProject } from '@genny/db/repositories/brand-kit.ts'
-import { updateProject } from '@genny/db/repositories/projects.ts'
+import { findProject, updateProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
+import { catalogueAsset } from '@/features/assets/server/catalogue.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 
 /**
@@ -44,6 +46,22 @@ export async function pinAsset(raw: unknown): Promise<boolean> {
   await withActor(appDb(env().DATABASE_URL), actorId, (tx) =>
     pinToProject(tx, { ...parsed.data, ownerId: actorId }),
   )
+  /*
+   * Pinned means kept, and the project's own words are the best context this
+   * asset will ever be described with. Only the first pin pays: `catalogueAsset`
+   * asks whether the asset already has a description before it asks a model.
+   */
+  after(async () => {
+    const project = await withActor(appDb(env().DATABASE_URL), actorId, (tx) =>
+      findProject(tx, parsed.data.projectId),
+    )
+    await catalogueAsset({
+      actorId,
+      assetId: parsed.data.assetId,
+      ...(project?.brief ? { brief: project.brief } : {}),
+    })
+  })
+
   revalidatePath(`/p/${parsed.data.projectId}`)
   return true
 }

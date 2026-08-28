@@ -103,6 +103,38 @@ test.describe('@live against real fal', () => {
     await expect(page.getByRole('menuitem', { name: 'Make four variants' })).toHaveCount(0)
   })
 
+  test('an upload is catalogued, and then findable by what it is @live', async ({ page }) => {
+    /*
+     * The whole point of the library rework, and unprovable anywhere else: a
+     * mocked suite never reaches a model, so a wrong system prompt, a schema
+     * that does not match what comes back, or an analysis that silently never
+     * runs all look like a passing test.
+     */
+    await withKey(page)
+    await page.goto('/assets')
+    await page.locator('input[type=file]').setInputFiles('fixtures/leaf.jpg')
+    await expect(page.locator('ul.grid li').first()).toBeVisible()
+
+    /*
+     * Filed after the response, so the first render shows the handle and the
+     * description lands on a later one. The handle never goes away, it moves to
+     * the second line, so what proves this is the title line ceasing to be it.
+     */
+    const title = page.locator('ul.grid li').first().locator('span.text-sm').first()
+    await expect(title).toHaveText('@leaf')
+    await expect(async () => {
+      await page.reload()
+      await expect(title).not.toHaveText(/^@/)
+    }).toPass({ timeout: 120_000 })
+
+    // And the search that only works because something described it.
+    await page.getByLabel('Search assets').fill('leaf')
+    await expect(page.locator('ul.grid li')).toHaveCount(1)
+
+    await page.getByLabel('Search assets').fill('hoodie')
+    await expect(page.getByText('Nothing matches that.')).toBeVisible()
+  })
+
   /*
    * The three below are the only place these can be proved. The mocked suite
    * never completes a job, so a placeholder never fills, an info button never
@@ -314,6 +346,18 @@ async function expectRanOn(page: Page, modelName: string): Promise<void> {
   // The panel names the model twice, as its heading and again in the Model
   // block. Either one proves the point; asking for both is strict-mode noise.
   await expect(panel.getByText(modelName, { exact: true }).first()).toBeVisible()
+}
+
+/** The key, through the route: Next's dev logger prints server action arguments. */
+async function withKey(page: Page): Promise<void> {
+  await page.goto('/c')
+  await page.evaluate(async (value) => {
+    await fetch('/api/session/fal-key', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ key: value }),
+    })
+  }, key)
 }
 
 async function generate(

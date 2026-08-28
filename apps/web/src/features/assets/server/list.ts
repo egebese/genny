@@ -3,6 +3,7 @@ import { type AssetRecord, listAssets } from '@genny/assets/repository.ts'
 import { assetUrl } from '@genny/assets/urls.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
+import { type AssetFacts, factsFor } from '@genny/db/repositories/asset-facts.ts'
 import { env } from '@genny/env/env.ts'
 
 /** What the browser needs about an asset. Storage keys stay on the server. */
@@ -14,6 +15,13 @@ export type AssetView = {
   mime: string
   bytes: number
   createdAt: string
+  /**
+   * What a model said this is, when one has been asked.
+   *
+   * Null is the ordinary case, not a failure: cataloguing costs money, so it
+   * runs on what somebody keeps rather than on everything that lands.
+   */
+  facts: Omit<AssetFacts, 'assetId' | 'analysedAt'> | null
 }
 
 /**
@@ -35,10 +43,26 @@ export async function listAssetsFor(
   actorId: string,
   options: { limit?: number | undefined; kind?: AssetView['kind'] | undefined } = {},
 ): Promise<AssetView[]> {
-  const rows = await withActor(appDb(env().DATABASE_URL), actorId, (tx) =>
+  const db = appDb(env().DATABASE_URL)
+  const rows = await withActor(db, actorId, (tx) =>
     listAssets(tx, { limit: options.limit ?? 60, kind: options.kind }),
   )
-  return rows.map(toView)
+  // One extra query for the whole page rather than one per card. Most rows have
+  // no description, so this is usually a short list.
+  const described = await withActor(db, actorId, (tx) =>
+    factsFor(
+      tx,
+      rows.map((row) => row.id),
+    ),
+  )
+  const byId = new Map(described.map((facts) => [facts.assetId, facts]))
+  return rows.map((row) => ({ ...toView(row), facts: factsOf(byId.get(row.id)) }))
+}
+
+function factsOf(facts: AssetFacts | undefined): AssetView['facts'] {
+  if (!facts) return null
+  const { assetId: _id, analysedAt: _at, ...rest } = facts
+  return rest
 }
 
 /**
@@ -85,5 +109,6 @@ export function toView(asset: AssetRecord): AssetView {
     mime: asset.mime,
     bytes: asset.bytes,
     createdAt: asset.createdAt.toISOString(),
+    facts: null,
   }
 }

@@ -6,6 +6,7 @@ import { assets } from './schema/assets.ts'
 import { users } from './schema/auth.ts'
 import { projectAssets } from './schema/brand.ts'
 import { canvases, canvasNodes, projects } from './schema/canvas.ts'
+import { assetFacts } from './schema/facts.ts'
 import { startTestDatabase, type TestDatabase } from './testing/container.ts'
 
 let database: TestDatabase
@@ -244,6 +245,30 @@ describe('row level security', () => {
         }),
       ),
       /project_assets_asset_owner_fk/,
+    )
+  })
+
+  it('refuses to file a description against somebody else asset', async () => {
+    const [alicesAsset] = await withActor(database.app, alice, (tx) =>
+      tx.insert(assets).values(assetFixture(alice, 'alice-described')).returning({ id: assets.id }),
+    )
+    if (!alicesAsset) throw new Error('fixture failed')
+
+    // The composite key again, not a policy: the facts row bob writes is owned
+    // by bob, so RLS is satisfied and only the key notices whose asset it is.
+    await expectPgError(
+      withActor(database.app, bob, (tx) =>
+        tx.insert(assetFacts).values({
+          assetId: alicesAsset.id,
+          ownerId: bob,
+          shortName: 'Mine now',
+          kind: 'other',
+          subject: 'x',
+          groupKey: 'x',
+          model: 'test',
+        }),
+      ),
+      /asset_facts_asset_owner_fk/,
     )
   })
 

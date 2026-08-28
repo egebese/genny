@@ -52,9 +52,26 @@ export function AssetCard({ asset, selected, onToggle }: AssetCardProps) {
           ) : null}
         </span>
 
+        {/*
+          The name it was given, over the name it arrived with. A slug from a
+          filename tells you which upload this was; "Off-white Hoodie, Plinth"
+          tells you what it is, which is the question anyone scanning a grid of
+          two hundred thumbnails is actually asking.
+        */}
         <span className="block space-y-1 p-3">
-          <span className="block truncate font-mono text-ink text-sm">@{asset.label}</span>
-          <span className="block text-ink-faint text-xs">{formatBytes(asset.bytes)}</span>
+          <span className="block truncate text-ink text-sm" title={asset.facts?.subject}>
+            {asset.facts?.shortName ?? `@${asset.label}`}
+          </span>
+          <span className="flex items-center gap-2 text-ink-faint text-xs">
+            <span className="truncate font-mono">@{asset.label}</span>
+            {asset.facts ? (
+              <span className="shrink-0 font-mono uppercase tracking-wider">
+                {asset.facts.kind}
+              </span>
+            ) : (
+              <span className="shrink-0">{formatBytes(asset.bytes)}</span>
+            )}
+          </span>
         </span>
 
         <input

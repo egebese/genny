@@ -15,6 +15,8 @@ import { outputCount } from '@genny/models/aspect.ts'
 import { creditsFor, estimateUnits } from '@genny/models/credits.ts'
 import { type CanvasGenerationRequest, canvasGenerationRequest } from '@genny/models/request.ts'
 import type { ModelDefinition } from '@genny/models/schema.ts'
+import { after } from 'next/server'
+import { catalogueAsset } from '@/features/assets/server/catalogue.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 import type { GenerationResult } from '../schema.ts'
 import { prepareGeneration } from './prepare.ts'
@@ -87,6 +89,17 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
       falWebhookUrl({ mode: env().GENNY_MODE, appUrl: env().APP_URL }),
     )
     await withActor(db, actorId, (tx) => attachFalRequest(tx, job.id, requestId))
+
+    /*
+     * Anything handed to a model is something someone reached for, which is the
+     * signal that it is worth describing. After the response: the generation is
+     * already running and nothing here should make the button feel slower.
+     * Only the first reach pays, since `catalogueAsset` checks before it asks.
+     */
+    for (const attachment of request.attachments) {
+      after(() => catalogueAsset({ actorId, assetId: attachment.assetId }))
+    }
+
     return {
       ok: true,
       jobId: job.id,
