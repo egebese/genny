@@ -2,6 +2,7 @@
 
 import type { MediaKind } from '@genny/models/aspect.ts'
 import { cn } from '@genny/ui/cn.ts'
+import { Fragment } from 'react'
 
 /**
  * The categories down the side of the picker, or across the top on a phone.
@@ -39,12 +40,21 @@ export function CategoryRail({
         const mine = groups.filter((group) => group.modality === modality)
         if (mine.length === 0) return null
         return (
-          <li key={modality} className="contents">
+          /*
+           * A fragment, not a wrapper. Every child of a list has to be a list
+           * item, and a `<li>` holding the buttons put one inside another,
+           * which is invalid and breaks hydration. The heading is a list item
+           * of its own instead, marked presentational so it is not counted.
+           */
+          <Fragment key={modality}>
             {/* Hidden on a phone, where the rail is a row and a heading in the
                 middle of it would read as another category. */}
-            <p className="hidden px-2 pt-3 pb-1 font-mono text-[10px] text-ink-faint uppercase tracking-wider sm:block">
+            <li
+              role="presentation"
+              className="hidden px-2 pt-3 pb-1 font-mono text-[10px] text-ink-faint uppercase tracking-wider sm:block"
+            >
               {heading}
-            </p>
+            </li>
             {mine.map((group) => (
               <CategoryButton
                 key={group.name}
@@ -53,7 +63,7 @@ export function CategoryRail({
                 label={group.name}
               />
             ))}
-          </li>
+          </Fragment>
         )
       })}
     </ul>

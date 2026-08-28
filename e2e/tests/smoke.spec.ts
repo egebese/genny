@@ -915,6 +915,14 @@ test.describe('the board', () => {
     const cards = page.getByRole('option')
 
     /*
+     * Valid markup, which neither the type checker nor the tests noticed: the
+     * category rail grouped its headings in an `<li>` that held the buttons,
+     * each of which is an `<li>` of its own. React only says so in the console,
+     * and it says it is a hydration error.
+     */
+    expect(await page.locator('li li').count()).toBe(0)
+
+    /*
      * cmdk matched the family name and its group, which found nothing for any
      * of these at thirty-five families: "upscale" is in the group of three
      * models and the name of none, and no lab could be searched for at all.
