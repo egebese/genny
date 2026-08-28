@@ -1,4 +1,5 @@
 import type { CatalogEntry } from './catalog.ts'
+import { familyViolations, orderViolations } from './contract-set.ts'
 import { allSlots } from './slots.ts'
 
 export type Violation = { endpointId: string; rule: string; detail: string }
@@ -73,7 +74,9 @@ const RULES: {
         (input) =>
           input.type === 'enum' &&
           input.default !== undefined &&
-          !input.enum?.includes(String(input.default)),
+          // Compared as text: the options may be numbers and the default is
+          // `unknown`, and `5` and `"5"` are the same choice to a person.
+          !input.enum?.some((option) => String(option) === String(input.default)),
       )
       return wrong ? `${wrong.name} defaults to a value it does not offer` : null
     },
@@ -113,12 +116,18 @@ const RULES: {
       if (!scale) return null
       const field = definition.inputs.find((input) => input.name === scale.field)
       if (!field) return `pricing scales on ${scale.field}, which is not an input`
-      const unknown = Object.keys(scale.factors).find((value) => !field.enum?.includes(value))
+      const unknown = Object.keys(scale.factors).find(
+        (value) => !field.enum?.some((option) => String(option) === value),
+      )
       return unknown ? `pricing scales on ${scale.field}="${unknown}", not an option` : null
     },
   },
   {
     rule: 'family-agrees-on-its-name',
+    check: () => null,
+  },
+  {
+    rule: 'sort-order-is-unique',
     check: () => null,
   },
   {
@@ -136,33 +145,7 @@ export function contractViolations(entries: readonly CatalogEntry[]): Violation[
       if (detail) found.push({ endpointId: entry.definition.endpointId, rule, detail })
     }
   }
-  return [...found, ...familyViolations(entries)]
-}
-
-/**
- * A family is a set, so its rule is about the set rather than about one entry.
- *
- * The name is repeated on every member because deriving it would mean picking
- * whichever member happens to sort first; repeating it means they can disagree,
- * so they are checked.
- */
-function familyViolations(entries: readonly CatalogEntry[]): Violation[] {
-  const names = new Map<string, string>()
-  const found: Violation[] = []
-
-  for (const { definition } of entries) {
-    const seen = names.get(definition.family.id)
-    if (seen === undefined) {
-      names.set(definition.family.id, definition.family.name)
-    } else if (seen !== definition.family.name) {
-      found.push({
-        endpointId: definition.endpointId,
-        rule: 'family-agrees-on-its-name',
-        detail: `calls its family "${definition.family.name}" where another member calls it "${seen}"`,
-      })
-    }
-  }
-  return found
+  return [...found, ...familyViolations(entries), ...orderViolations(entries)]
 }
 
 export const contractRules = RULES.map(({ rule }) => rule)

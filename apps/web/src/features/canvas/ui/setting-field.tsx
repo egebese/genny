@@ -31,24 +31,29 @@ export function SettingField({ input, value, onChange }: SettingFieldProps) {
   const current = value ?? input.default
 
   if (input.type === 'enum' && input.enum) {
-    const chosen = String(current ?? input.enum[0])
+    /*
+     * Chips draw strings; the payload wants what the catalog wrote. FLUX 3
+     * spells its duration `["auto", 5, ... 20]`, so picking "12" has to send
+     * the number 12 back, not the two characters that were drawn.
+     */
+    const options = input.enum
+    const chosen = String(current ?? options[0])
+    const pick = (picked: string) =>
+      onChange(options.find((option) => String(option) === picked) ?? picked)
+    const labels = options.map(String)
     if (ASPECTS.has(input.name)) {
-      return (
-        <AspectChip label={input.label} value={chosen} options={input.enum} onChange={onChange} />
-      )
+      return <AspectChip label={input.label} value={chosen} options={labels} onChange={pick} />
     }
     if (SCALES.has(input.name)) {
-      return (
-        <ScaleChip label={input.label} value={chosen} options={input.enum} onChange={onChange} />
-      )
+      return <ScaleChip label={input.label} value={chosen} options={labels} onChange={pick} />
     }
     return (
       <SelectChip
         icon={settingIcon(input.name)}
         label={input.label}
         value={chosen}
-        options={input.enum}
-        onChange={onChange}
+        options={labels}
+        onChange={pick}
       />
     )
   }

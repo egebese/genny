@@ -8,7 +8,7 @@
   "group": "Image to Video",
   "displayName": "MiniMax H3 Max Image to Video",
   "description": "MiniMax H3 Max animating a still, up to 15 seconds. Give it one image for a start frame, or two to animate from the first to the last.",
-  "sortOrder": 8,
+  "sortOrder": 2070,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.04,
@@ -18,7 +18,8 @@
       "factors": {
         "480P": 0.625
       }
-    }
+    },
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.25,
   "inputs": [

@@ -8,11 +8,12 @@
   "group": "Image to Video",
   "displayName": "PixVerse C1 Image to Video",
   "description": "PixVerse C1 animating a still.",
-  "sortOrder": 72,
+  "sortOrder": 2100,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.05,
-    "note": "Same tier and the same caveat as PixVerse C1 text to video: 720p without audio, and `genmedia pricing` answers a $0.005 base unit no request is ever charged."
+    "note": "Same tier and the same caveat as PixVerse C1 text to video: 720p without audio, and `genmedia pricing` answers a $0.005 base unit no request is ever charged.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.25,
   "inputs": [

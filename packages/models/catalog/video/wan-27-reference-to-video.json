@@ -8,11 +8,12 @@
   "group": "Reference to Video",
   "displayName": "Wan 2.7 Reference to Video",
   "description": "Wan 2.7 is the latest generation AI video model, delivering enhanced motion smoothness, superior scene fidelity, and greater visual coherence.",
-  "sortOrder": 5,
+  "sortOrder": 2050,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.1,
-    "note": "Flat per second of output, at every resolution. fal's prose and `genmedia pricing` agree. fal bills input video duration on top when a reference video is sent, which is why this entry declares no video reference slot."
+    "note": "Flat per second of output, at every resolution. fal's prose and `genmedia pricing` agree. fal bills input video duration on top when a reference video is sent, which is why this entry declares no video reference slot.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.2,
   "inputs": [

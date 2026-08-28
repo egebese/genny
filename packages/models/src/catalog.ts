@@ -13,12 +13,26 @@ export type CatalogEntry = {
   path: string
 }
 
+let loaded: Promise<CatalogEntry[]> | undefined
+
 /**
  * Reads every catalog file and validates it. A malformed entry throws with its
  * path, because a model that is half-defined is worse than one that is absent:
  * it reaches the picker and fails at generation time, after the user has waited.
+ *
+ * Read once per process. The catalog is files on disk that only change with a
+ * deploy, and this sits on the path that spends money: `prepareGeneration`
+ * calls it on every submit, before the hold, and at a hundred entries that is a
+ * hundred reads, a hundred zod parses and a hundred hashes in front of the
+ * button. The promise is cached rather than the result so two callers racing on
+ * a cold start do the work once.
  */
 export async function loadCatalog(): Promise<CatalogEntry[]> {
+  loaded ??= readCatalog()
+  return loaded
+}
+
+async function readCatalog(): Promise<CatalogEntry[]> {
   const entries: CatalogEntry[] = []
   for (const modality of await readdir(catalogRoot)) {
     const dir = join(catalogRoot, modality)

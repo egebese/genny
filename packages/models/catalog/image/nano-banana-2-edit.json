@@ -9,7 +9,7 @@
   "displayName": "Nano Banana 2 Edit",
   "description": "Nano Banana 2 is Google's new state-of-the-art image generation and editing model",
   "featured": true,
-  "sortOrder": 20,
+  "sortOrder": 1030,
   "pricing": {
     "unit": "images",
     "unitPriceUsd": 0.08,

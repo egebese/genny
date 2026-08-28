@@ -13,11 +13,14 @@ const slot = (over: Partial<ReferenceSlot> = {}): ReferenceSlot => ({
   ...over,
 })
 
+let declared = 0
 const task = (
   endpointId: string,
   slots: ReferenceSlot[],
   required: ReferenceSlot[] = [],
-): Task<Slotted> => ({ endpointId, modality: 'image', slots, required })
+  sortOrder = (declared +=
+    10),
+): Task<Slotted> => ({ endpointId, modality: 'image', slots, required, sortOrder })
 
 const t2i = task('fal-ai/nano-banana-2', [])
 const edit = task(
@@ -116,11 +119,19 @@ describe('the plainest task', () => {
    */
   const needsImage = slot({ field: 'image_url', required: true })
   const needsVideo = slot({ field: 'video_url', accepts: ['video'], required: true })
+  // Listed in the order they were added, and ordered by what the catalog says.
+  // Both facts matter: the answer is the one the catalog puts first, not the
+  // one that happens to appear first here.
   const wan = [
-    task('fal-ai/wan/v2.7/image-to-video', [needsImage], [needsImage]),
-    task('fal-ai/wan/v2.7/reference-to-video', [slot({ field: 'reference_image_urls' })]),
-    task('fal-ai/wan/v2.7/edit-video', [needsVideo], [needsVideo]),
-    task('fal-ai/wan/v2.7/text-to-video', [slot({ field: 'audio_url', accepts: ['audio'] })]),
+    task('fal-ai/wan/v2.7/image-to-video', [needsImage], [needsImage], 40),
+    task('fal-ai/wan/v2.7/reference-to-video', [slot({ field: 'reference_image_urls' })], [], 50),
+    task('fal-ai/wan/v2.7/edit-video', [needsVideo], [needsVideo], 80),
+    task(
+      'fal-ai/wan/v2.7/text-to-video',
+      [slot({ field: 'audio_url', accepts: ['audio'] })],
+      [],
+      30,
+    ),
   ]
 
   it('is the endpoint that runs with nothing attached', () => {

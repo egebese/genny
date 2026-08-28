@@ -22,6 +22,7 @@ describe('the catalog contract', () => {
       'priced-in-a-unit-we-can-estimate',
       'conditional-rates-are-decided',
       'family-agrees-on-its-name',
+      'sort-order-is-unique',
       'has-a-provider-mark',
     ])
   })

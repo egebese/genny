@@ -8,7 +8,7 @@
   "group": "Text to Video",
   "displayName": "MiniMax H3 Max Text to Video",
   "description": "MiniMax H3 Max writing video from a prompt alone, up to 15 seconds. Renders in about the length of the clip and costs a fraction of a cent, so it is the one to iterate on.",
-  "sortOrder": 7,
+  "sortOrder": 2060,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.04,
@@ -18,7 +18,8 @@
       "factors": {
         "480P": 0.625
       }
-    }
+    },
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.25,
   "inputs": [

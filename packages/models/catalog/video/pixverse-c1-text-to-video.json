@@ -8,11 +8,12 @@
   "group": "Text to Video",
   "displayName": "PixVerse C1 Text to Video",
   "description": "PixVerse C1 generating video from a prompt alone.",
-  "sortOrder": 71,
+  "sortOrder": 2090,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.05,
-    "note": "720p without audio, the tier this entry pins. fal's prose opens with the 360p price ($0.030) and climbs to $0.120 at 1080p with audio, so the sync report reads a smaller number and is wrong about it. `genmedia pricing` answers $0.005, a base unit no request is ever charged."
+    "note": "720p without audio, the tier this entry pins. fal's prose opens with the 360p price ($0.030) and climbs to $0.120 at 1080p with audio, so the sync report reads a smaller number and is wrong about it. `genmedia pricing` answers $0.005, a base unit no request is ever charged.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.25,
   "inputs": [

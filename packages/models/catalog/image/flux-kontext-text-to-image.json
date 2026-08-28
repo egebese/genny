@@ -8,11 +8,12 @@
   "group": "Text to Image",
   "displayName": "FLUX.1 Kontext [pro] Text to Image",
   "description": "FLUX.1 Kontext writing an image from a prompt alone.",
-  "sortOrder": 41,
+  "sortOrder": 1100,
   "pricing": {
     "unit": "images",
     "unitPriceUsd": 0.04,
-    "note": "`genmedia pricing` only; fal does not list this endpoint in its search. The same $0.04 as the editing endpoint of the same model, which is the cross-check."
+    "note": "`genmedia pricing` only; fal does not list this endpoint in its search. The same $0.04 as the editing endpoint of the same model, which is the cross-check.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.25,
   "inputs": [

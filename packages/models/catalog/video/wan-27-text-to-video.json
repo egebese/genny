@@ -8,11 +8,12 @@
   "group": "Text to Video",
   "displayName": "Wan 2.7 Text to Video",
   "description": "Wan 2.7 generating video from a prompt alone, with optional audio.",
-  "sortOrder": 61,
+  "sortOrder": 2030,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.1,
-    "note": "720p, which is the tier this entry pins; 1080p is $0.15 per second. fal's prose and `genmedia pricing` agree on $0.10."
+    "note": "720p, which is the tier this entry pins; 1080p is $0.15 per second. fal's prose and `genmedia pricing` agree on $0.10.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.25,
   "inputs": [

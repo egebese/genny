@@ -8,11 +8,12 @@
   "group": "Image to Video",
   "displayName": "PixVerse C1 Transition",
   "description": "Create seamless cinematic transitions between two images with PixVerse C1, with native audio and up to 1080p.",
-  "sortOrder": 3,
+  "sortOrder": 2020,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.05,
-    "note": "720p without audio, which is the tier this entry pins. fal's prose opens with the 360p price ($0.030) and climbs to $0.120 at 1080p with audio, so the sync report will read a smaller number than this one and be wrong about it. `genmedia pricing` answers $0.005, a base unit no request is ever charged."
+    "note": "720p without audio, which is the tier this entry pins. fal's prose opens with the 360p price ($0.030) and climbs to $0.120 at 1080p with audio, so the sync report will read a smaller number than this one and be wrong about it. `genmedia pricing` answers $0.005, a base unit no request is ever charged.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.2,
   "inputs": [

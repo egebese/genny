@@ -8,11 +8,12 @@
   "group": "Editing",
   "displayName": "FLUX.1 [dev] Image to Image",
   "description": "FLUX.1 [dev] redrawing an image towards a prompt, with adjustable strength.",
-  "sortOrder": 31,
+  "sortOrder": 1080,
   "pricing": {
     "unit": "megapixels",
     "unitPriceUsd": 0.03,
-    "note": "`genmedia pricing` only; fal does not list this endpoint in its model search and publishes no prose for it. A little above the $0.025 of plain flux/dev, which is what an image-to-image pass costs."
+    "note": "`genmedia pricing` only; fal does not list this endpoint in its model search and publishes no prose for it. A little above the $0.025 of plain flux/dev, which is what an image-to-image pass costs.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.25,
   "inputs": [

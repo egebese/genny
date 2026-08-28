@@ -38,6 +38,8 @@ export type PickableModel = {
   /** True when the endpoint refuses to run without one. */
   requiresReference: boolean
   featured: boolean
+  /** Which of two endpoints that both fit gets picked. Not for display. */
+  sortOrder: number
 }
 
 export function toPickable(model: ModelDefinition): PickableModel {
@@ -65,5 +67,6 @@ export function toPickable(model: ModelDefinition): PickableModel {
     acceptsReferences: model.references.length > 0,
     requiresReference: model.references.some((mapping) => mapping.required),
     featured: model.featured,
+    sortOrder: model.sortOrder,
   }
 }

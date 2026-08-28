@@ -8,11 +8,12 @@
   "group": "Editing",
   "displayName": "Wan 2.7 Video Edit",
   "description": "Wan 2.7 is the latest generation AI video model, delivering enhanced motion smoothness, superior scene fidelity, and greater visual coherence.",
-  "sortOrder": 6,
+  "sortOrder": 2080,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.1,
-    "note": "720p, which is the tier this entry pins; 1080p is $0.15 per second. Billed on output seconds, so the length control below is what the request costs. fal's prose and `genmedia pricing` agree on $0.10."
+    "note": "720p, which is the tier this entry pins; 1080p is $0.15 per second. Billed on output seconds, so the length control below is what the request costs. fal's prose and `genmedia pricing` agree on $0.10.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.2,
   "inputs": [

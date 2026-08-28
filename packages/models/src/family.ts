@@ -56,7 +56,14 @@ export function resolveTask<T extends Slotted>(
           // Between two that both fit, the one asking for more of what is on
           // offer is the one being aimed at: two images mean the transition.
           b.required.length - a.required.length ||
-          a.endpointId.length - b.endpointId.length,
+          /*
+           * Declared order, not the length of a URL. Kling V3 ships standard,
+           * pro and master as one family with identical slots, so the first two
+           * comparisons tie for all three and the winner used to be whichever
+           * word was shortest. `sortOrder` is what the catalog author decides
+           * and what the picker already shows them in.
+           */
+          a.sortOrder - b.sortOrder,
       )
       .at(0) ?? null
   )

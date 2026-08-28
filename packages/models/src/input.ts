@@ -27,9 +27,9 @@ function fieldSchema(input: ModelInput): ZodType {
     case 'boolean':
       return z.boolean()
     case 'enum':
-      return input.enum && input.enum.length > 0
-        ? z.enum(input.enum as [string, ...string[]])
-        : z.string().min(1)
+      // `literal` rather than `enum`: the options can be numbers, and a list
+      // that mixes both is how fal spells a duration that also accepts "auto".
+      return input.enum && input.enum.length > 0 ? z.literal(input.enum) : z.string().min(1)
     case 'integer':
       return bounded(z.int(), input)
     case 'number':

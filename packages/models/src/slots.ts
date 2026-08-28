@@ -10,8 +10,10 @@ const ROLE_LABELS: Record<ReferenceRole, string> = {
   'input-images': 'Add to input images',
   'style-reference': 'Use as style reference',
   'driving-audio': 'Use as driving audio',
+  'driving-video': 'Use as driving video',
   'voice-sample': 'Use as voice sample',
   mask: 'Use as mask',
+  'continue-from': 'Continue from this clip',
 }
 
 export type ReferenceSlot = {
@@ -98,6 +100,9 @@ export type Slotted = {
   endpointId: string
   modality: MediaKind
   slots: readonly ReferenceSlot[]
+  /** The declared order, which is how two endpoints that both fit are told
+   * apart. Kling V3 ships three quality tiers with identical slots. */
+  sortOrder: number
 }
 
 /**

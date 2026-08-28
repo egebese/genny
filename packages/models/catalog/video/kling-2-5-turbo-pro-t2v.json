@@ -9,7 +9,7 @@
   "displayName": "Kling 2.5 Turbo Pro",
   "description": "Kling 2.5 Turbo Pro: Top-tier text-to-video generation with unparalleled motion fluidity, cinematic visuals, and exceptional prompt precision.",
   "featured": true,
-  "sortOrder": 1,
+  "sortOrder": 2000,
   "pricing": {
     "unit": "seconds",
     "unitPriceUsd": 0.07,

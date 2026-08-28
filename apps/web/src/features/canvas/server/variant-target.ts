@@ -30,6 +30,7 @@ export async function editEndpointFor(endpointId: string | null): Promise<Varian
       modality: entry.definition.modality,
       slots: allSlots(entry.definition),
       required: allSlots(entry.definition).filter((slot) => slot.required),
+      sortOrder: entry.definition.sortOrder,
       definition: entry.definition,
     }))
 

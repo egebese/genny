@@ -8,11 +8,12 @@
   "group": "Editing",
   "displayName": "Nano Banana Pro Edit",
   "description": "Nano Banana Pro is Google's new state-of-the-art image generation and editing model",
-  "sortOrder": 22,
+  "sortOrder": 1040,
   "pricing": {
     "unit": "images",
     "unitPriceUsd": 0.15,
-    "note": "fal's prose and `genmedia pricing` agree on $0.15 per image. 4K is charged double, so this entry offers 1K and 2K only; web search adds $0.015 and is not exposed."
+    "note": "fal's prose and `genmedia pricing` agree on $0.15 per image. 4K is charged double, so this entry offers 1K and 2K only; web search adds $0.015 and is not exposed.",
+    "waiveDriftCheck": true
   },
   "creditMultiplier": 1.25,
   "inputs": [

@@ -8,7 +8,7 @@
   "group": "Text to Audio",
   "displayName": "Stable Audio 2.5",
   "description": "Generate high quality music and sound effects using Stable Audio 2.5 from StabilityAI",
-  "sortOrder": 2,
+  "sortOrder": 3010,
   "pricing": {
     "unit": "requests",
     "unitPriceUsd": 0.2

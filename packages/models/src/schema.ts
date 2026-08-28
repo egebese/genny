@@ -37,8 +37,15 @@ export const referenceRole = z.enum([
   'input-images',
   'style-reference',
   'driving-audio',
+  /* The twin of `driving-audio`: a clip whose motion is copied onto something
+   * else, which is what Kling's motion control takes. */
+  'driving-video',
   'voice-sample',
   'mask',
+  /* A finished clip this generation continues from. Not `source`: an edit
+   * replaces what it is given and an extension keeps it and adds to the end,
+   * and a menu that called both "use as input" would be lying about one. */
+  'continue-from',
 ])
 
 export const referenceMapping = z.object({
@@ -80,7 +87,12 @@ export const modelInput = z.object({
   label: z.string().min(1),
   required: z.boolean().default(false),
   default: z.unknown().optional(),
-  enum: z.array(z.string()).optional(),
+  /*
+   * Numbers as well as strings, because fal writes both and sometimes in one
+   * list: FLUX 3's duration is `["auto", 5, 6, ... 20]`. Declaring that as
+   * strings would send `"12"` to an endpoint that wants `12`.
+   */
+  enum: z.array(z.union([z.string(), z.number()])).optional(),
   min: z.number().optional(),
   max: z.number().optional(),
   /** Hidden inputs are sent but never rendered, for things like safety flags. */
@@ -133,6 +145,15 @@ export const modelDefinition = z.object({
      * in the file rather than rediscovered every week.
      */
     note: z.string().optional(),
+    /*
+     * Set when this entry disagrees with `genmedia pricing` on purpose.
+     *
+     * It used to be inferred from the note containing the word "genmedia",
+     * which is not a decision anybody made. That silence hid an endpoint
+     * resold at a two hundredth of its cost for as long as it shipped, so the
+     * waiver is now something a person has to write down and mean.
+     */
+    waiveDriftCheck: z.boolean().optional(),
     /**
      * Options that bill at a different rate from the rest.
      *

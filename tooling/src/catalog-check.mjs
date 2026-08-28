@@ -42,14 +42,18 @@ if (!quoted.ok) {
 /**
  * An entry may disagree with genmedia on purpose. genmedia answers $0.005/s for
  * PixVerse against a published $0.03 to $0.12, a base unit no request is ever
- * charged, so the catalog is right and the CLI is not. Saying so in the note is
- * what turns a known exception into a recorded one.
+ * charged, so the catalog is right and the CLI is not.
+ *
+ * The waiver is an explicit field, and it used to be the note containing the
+ * word "genmedia". That was not a decision anybody made: H3 Max shipped resold
+ * at a two hundredth of its cost, and the note explaining the price hid the
+ * only check that would have caught it. A waiver has to be meant.
  */
 const problems = []
 for (const entry of entries) {
   const note = comparePrice(entry, quoted.prices.get(entry.endpointId))
   if (!note) continue
-  const waived = entry.pricing?.note?.includes('genmedia') ?? false
+  const waived = entry.pricing?.waiveDriftCheck === true
   if (waived) continue
   problems.push(`${note}\n    No pricing.note explains this. Check fal's own page, then write one.`)
 }

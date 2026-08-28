@@ -9,7 +9,7 @@
   "displayName": "Nano Banana Pro",
   "description": "Nano Banana Pro is Google's new state-of-the-art image generation and editing model",
   "featured": true,
-  "sortOrder": 15,
+  "sortOrder": 1020,
   "pricing": {
     "unit": "images",
     "unitPriceUsd": 0.15,
