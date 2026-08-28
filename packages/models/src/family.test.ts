@@ -14,12 +14,17 @@ const slot = (over: Partial<ReferenceSlot> = {}): ReferenceSlot => ({
 })
 
 let declared = 0
+/** Declaration order, unless a case is about the catalog saying otherwise. */
+function next(): number {
+  declared += 10
+  return declared
+}
+
 const task = (
   endpointId: string,
   slots: ReferenceSlot[],
   required: ReferenceSlot[] = [],
-  sortOrder = (declared +=
-    10),
+  sortOrder = next(),
 ): Task<Slotted> => ({ endpointId, modality: 'image', slots, required, sortOrder })
 
 const t2i = task('fal-ai/nano-banana-2', [])

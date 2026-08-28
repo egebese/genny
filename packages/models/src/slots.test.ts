@@ -137,6 +137,10 @@ describe('unusableKinds', () => {
 
 describe('suggestFor', () => {
   let ranked = 0
+  const next = () => {
+    ranked += 10
+    return ranked
+  }
   const pickable = (
     endpointId: string,
     references: unknown[],
@@ -145,7 +149,7 @@ describe('suggestFor', () => {
     endpointId,
     modality,
     slots: allSlots(model(references)),
-    sortOrder: (ranked += 10),
+    sortOrder: next(),
   })
   const t2i = pickable('fal-ai/nano-banana-2', [])
   const edit = pickable('fal-ai/nano-banana-2/edit', [
