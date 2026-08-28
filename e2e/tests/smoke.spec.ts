@@ -309,20 +309,26 @@ test.describe('the dock', () => {
     await expect(cards.filter({ hasText: 'MiniMax H3 Max' })).toContainText('+ image')
   })
 
-  test('no category promises a model that is only ever an endpoint', async ({ page }) => {
+  test('a model appears in every category it can work in', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     await openCanvas(page)
     await page.getByRole('button', { name: /^Model:/ }).click()
 
     /*
-     * "Image to Video" and "Reference to Video" were categories with nothing in
-     * them: every family that does either also writes from text, so its card is
-     * filed under that. A heading you can click and get an empty grid from is
-     * worse than no heading.
+     * A family is not one thing. Four of them write video from a prompt and
+     * animate a still, and filing each under only the first left an Image to
+     * Video heading that was either empty or absent while four models did
+     * exactly that. The categories are capabilities, not a label each model
+     * gets one of.
      */
-    for (const empty of ['Image to Video', 'Reference to Video']) {
-      await expect(page.getByRole('button', { name: empty, exact: true })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Image to Video', exact: true }).click()
+    const cards = page.locator('[cmdk-group-items] [role=option]')
+    for (const name of ['Kling 2.5 Turbo Pro', 'PixVerse C1', 'Wan 2.7', 'MiniMax H3 Max']) {
+      await expect(cards.filter({ hasText: name })).toHaveCount(1)
     }
+
+    // And the card names the category you came in through, not the other one.
+    await expect(cards.filter({ hasText: 'MiniMax H3 Max' })).toContainText('Image to Video')
   })
 
   test('the picker lists models, not the endpoints they are split across', async ({ page }) => {

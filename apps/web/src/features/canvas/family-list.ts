@@ -6,7 +6,17 @@ export type PickableFamily = {
   id: string
   name: string
   modality: PickableModel['modality']
+  /** What the card says it does: the plainest task's own group. */
   group: string
+  /**
+   * Every category this model belongs in, one per endpoint it has.
+   *
+   * A family is not one thing. Kling writes video from a prompt and animates a
+   * still, and filing it only under the first meant the picker had an Image to
+   * Video heading with nothing under it while four models could do exactly
+   * that. The categories are capabilities, not a label each model gets one of.
+   */
+  groups: string[]
   artUrl: string | null
   markUrl: string | null
   priceLabel: string
@@ -53,6 +63,7 @@ export function toFamilies(models: PickableModel[]): PickableFamily[] {
       name: base.family.name,
       modality: base.modality,
       group: base.group,
+      groups: [...new Set(variants.map((variant) => variant.group))],
       artUrl: base.artUrl,
       markUrl: base.markUrl,
       priceLabel: base.priceLabel,

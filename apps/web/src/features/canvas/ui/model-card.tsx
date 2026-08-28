@@ -19,7 +19,16 @@ const TINT = {
  * size the grid draws them. Now the art and the mark are the two files, and
  * everything with an edge you might want to move is CSS.
  */
-export function ModelCard({ model, current }: { model: PickableFamily; current: boolean }) {
+export function ModelCard({
+  model,
+  current,
+  group,
+}: {
+  model: PickableFamily
+  current: boolean
+  /** The category being browsed, when one is. Defaults to its plainest task. */
+  group?: string
+}) {
   return (
     <span className="flex w-full min-w-0 flex-col gap-2">
       <span
@@ -64,7 +73,7 @@ export function ModelCard({ model, current }: { model: PickableFamily; current: 
         />
 
         <span className="absolute top-2 left-2 rounded-[3px] bg-canvas/70 px-2 py-1 font-mono text-[11px] text-ink uppercase leading-none tracking-wider backdrop-blur">
-          {model.group}
+          {group ?? model.group}
         </span>
 
         {/*

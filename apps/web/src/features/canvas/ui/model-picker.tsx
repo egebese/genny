@@ -12,6 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@genny/ui/vendor/ui/popover.tsx'
 import { useMemo, useRef, useState } from 'react'
 import type { PickableFamily } from '../family-list.ts'
+import { CategoryRail } from './category-rail.tsx'
 import { ModelCard } from './model-card.tsx'
 
 type ModelPickerProps = {
@@ -31,8 +32,15 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
   const trigger = useRef<HTMLButtonElement>(null)
   const [offset, setOffset] = useState(8)
 
-  const groups = useMemo(() => [...new Set(models.map((m) => m.group))], [models])
-  const visible = group ? models.filter((m) => m.group === group) : models
+  /*
+   * Every category any endpoint covers, and a model shows in all of its own.
+   * Kling appears under Text to Video and under Image to Video, because it
+   * does both and which one runs is decided by what you attach.
+   */
+  // Browsing a category, a card names that one rather than its plainest task:
+  // picked out of Image to Video it should not go on saying Text to Video.
+  const groups = useMemo(() => [...new Set(models.flatMap((m) => m.groups))], [models])
+  const visible = group ? models.filter((m) => m.groups.includes(group)) : models
 
   return (
     <Popover
@@ -95,17 +103,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
           {/* Stacked on a phone: a category rail plus a grid in 343px leaves no
               room for either, so the rail becomes a row that scrolls sideways. */}
           <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
-            <ul className="flex shrink-0 gap-1 overflow-x-auto border-line border-b p-1 text-sm sm:w-40 sm:flex-col sm:gap-0 sm:overflow-y-auto sm:border-r sm:border-b-0 scrollbar-none">
-              <CategoryButton active={group === null} onClick={() => setGroup(null)} label="All" />
-              {groups.map((name) => (
-                <CategoryButton
-                  key={name}
-                  active={group === name}
-                  onClick={() => setGroup(name)}
-                  label={name}
-                />
-              ))}
-            </ul>
+            <CategoryRail groups={groups} chosen={group} onChoose={setGroup} />
             <CommandList className="max-h-none min-h-0 flex-1 overflow-y-auto">
               <CommandEmpty className="px-3 py-6 text-center text-ink-faint text-sm">
                 Nothing matches that.
@@ -123,7 +121,11 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
                     }}
                     className="cursor-pointer rounded-(--radius-control) p-1 data-[selected=true]:bg-surface-hover"
                   >
-                    <ModelCard model={model} current={model.id === selected.id} />
+                    <ModelCard
+                      model={model}
+                      current={model.id === selected.id}
+                      {...(group ? { group } : {})}
+                    />
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -157,35 +159,4 @@ function dockClearance(trigger: HTMLElement | null): number {
   const dock = trigger?.closest('[data-dock]')
   if (!trigger || !dock) return 8
   return Math.max(8, trigger.getBoundingClientRect().top - dock.getBoundingClientRect().top + 12)
-}
-
-function CategoryButton({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean
-  label: string
-  onClick: () => void
-}) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onClick}
-        aria-pressed={active}
-        className={cn(
-          'w-full shrink-0 truncate rounded-(--radius-control) px-3 py-1.5 text-left whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent',
-          // Hover one step below the selection rather than at the same token.
-          // Both were surface-hover, so the chosen category read as a row
-          // somebody's cursor happened to be resting on.
-          active
-            ? 'bg-surface-hover font-medium text-ink'
-            : 'text-ink-muted hover:bg-control hover:text-ink',
-        )}
-      >
-        {label}
-      </button>
-    </li>
-  )
 }
