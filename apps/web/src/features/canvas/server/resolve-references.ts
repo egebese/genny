@@ -3,10 +3,9 @@ import { findAssetsByIds } from '@genny/assets/repository.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { appDb } from '@genny/db/connection.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
-import { uploadReference } from '@genny/fal/upload.ts'
 import type { ResolvedAttachment } from '@genny/models/attachments.ts'
 import type { PromptReference } from '@genny/models/references.ts'
-import { storage } from '@/features/storage.ts'
+import { falUrlFor, type Uploadable } from './fal-url.ts'
 
 /**
  * Turns the asset ids the client sent into urls a model can fetch, in the order
@@ -35,7 +34,6 @@ export async function resolveReferences(
   const assetById = new Map(foundAssets.map((asset) => [asset.id, asset]))
   const characterById = new Map(foundCharacters.map((character) => [character.id, character]))
 
-  const bucket = storage()
   const resolved: PromptReference[] = []
 
   for (const item of requested) {
@@ -44,19 +42,19 @@ export async function resolveReferences(
      * The mapping in the catalog then decides how many the model can take, and
      * the rest come back as dropped.
      */
-    const members =
+    const asset = assetById.get(item.id)
+    const members: Uploadable[] =
       item.kind === 'group'
-        ? (characterById.get(item.id)?.members ?? [])
-        : assetById.has(item.id)
-          ? [assetById.get(item.id) as { storageKey: string; mime: string }]
+        ? (characterById.get(item.id)?.members ?? []).map((one) => ({ ...one, id: one.assetId }))
+        : asset
+          ? [asset]
           : []
 
     for (const member of members) {
-      const bytes = await bucket.get(member.storageKey)
       resolved.push({
         token: item.token,
         label: item.label,
-        url: await uploadReference(credentials, bytes, member.mime),
+        url: await withActor(db, actorId, (tx) => falUrlFor(tx, credentials, member)),
       })
     }
   }
@@ -87,15 +85,13 @@ export async function resolveAttachments(
   )
   const byId = new Map(found.map((asset) => [asset.id, asset]))
 
-  const bucket = storage()
   const resolved: ResolvedAttachment[] = []
   for (const item of requested) {
     const asset = byId.get(item.assetId)
     if (!asset) continue
-    const bytes = await bucket.get(asset.storageKey)
     resolved.push({
       field: item.field,
-      url: await uploadReference(credentials, bytes, asset.mime),
+      url: await withActor(db, actorId, (tx) => falUrlFor(tx, credentials, asset)),
     })
   }
   return resolved

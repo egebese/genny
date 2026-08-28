@@ -1,6 +1,7 @@
 'use server'
 
 import { directorAgent, directorPrompt } from '@genny/agents/director.ts'
+import { findAssetsByIds } from '@genny/assets/repository.ts'
 import { directorRequest } from '@genny/canvas/requests.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
@@ -10,10 +11,9 @@ import { findCanvas } from '@genny/db/repositories/canvases.ts'
 import { findJob } from '@genny/db/repositories/jobs.ts'
 import { findProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
-import { uploadReference } from '@genny/fal/upload.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
-import { storage } from '@/features/storage.ts'
+import { falUrlFor } from './fal-url.ts'
 import { runAgent } from './run-agent.ts'
 
 export type DirectorReply =
@@ -67,14 +67,23 @@ export async function askDirector(raw: unknown): Promise<DirectorReply> {
   const chosen = selected.length > 0 ? ready.filter((node) => selected.includes(node.id)) : ready
   const looking = chosen.slice(-LOOKING_AT)
 
+  /*
+   * Through the same cache as a generation. Asking the director twice about the
+   * same four shots used to send those four shots to fal twice, and asking it
+   * after generating from one of them sent that one a third time.
+   */
+  const shown = await withActor(db, actorId, (tx) =>
+    findAssetsByIds(
+      tx,
+      looking.map((node) => node.assetId).filter((id): id is string => id !== null),
+    ),
+  )
   const urls: string[] = []
-  for (const node of looking) {
-    if (!node.assetId || !node.label || !node.storageKey) continue
-    const bytes = await storage()
-      .get(node.storageKey)
-      .catch(() => null)
-    if (!bytes) continue
-    urls.push(await uploadReference(credentials, bytes, 'image/png'))
+  for (const asset of shown) {
+    const url = await withActor(db, actorId, (tx) => falUrlFor(tx, credentials, asset)).catch(
+      () => null,
+    )
+    if (url) urls.push(url)
   }
 
   const prompts = await withActor(db, actorId, async (tx) => {

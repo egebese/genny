@@ -5,10 +5,9 @@ import { appDb } from '@genny/db/connection.ts'
 import { isCatalogued, recordAssetFacts } from '@genny/db/repositories/asset-facts.ts'
 import { findJob } from '@genny/db/repositories/jobs.ts'
 import { env } from '@genny/env/env.ts'
-import { uploadReference } from '@genny/fal/upload.ts'
+import { falUrlFor } from '@/features/canvas/server/fal-url.ts'
 import { runAgent } from '@/features/canvas/server/run-agent.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
-import { storage } from '@/features/storage.ts'
 
 /**
  * Works out what one asset is, and files it.
@@ -48,8 +47,7 @@ export async function catalogueAsset(input: {
       ? await withActor(db, input.actorId, (tx) => findJob(tx, asset.jobId ?? ''))
       : null
 
-    const bytes = await storage().get(asset.storageKey)
-    const url = await uploadReference(credentials, bytes, asset.mime)
+    const url = await withActor(db, input.actorId, (tx) => falUrlFor(tx, credentials, asset))
 
     const answered = await runAgent({
       agent: catalogueAgent,

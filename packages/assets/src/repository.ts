@@ -16,6 +16,9 @@ export type AssetRecord = {
   source: 'upload' | 'generation' | 'external'
   jobId: string | null
   createdAt: Date
+  /** Where fal can fetch this, if it has been sent there, and when. */
+  falUrl: string | null
+  falUrlAt: Date | null
 }
 
 const columns = {
@@ -31,6 +34,8 @@ const columns = {
   source: assets.source,
   jobId: assets.jobId,
   createdAt: assets.createdAt,
+  falUrl: assets.falUrl,
+  falUrlAt: assets.falUrlAt,
 }
 
 export type NewAsset = {
@@ -111,4 +116,15 @@ export async function findAssetsByIds(tx: Database, ids: string[]): Promise<Asse
 export async function deleteAsset(tx: Database, id: string): Promise<AssetRecord | null> {
   const [row] = await tx.delete(assets).where(eq(assets.id, id)).returning(columns)
   return (row as AssetRecord | undefined) ?? null
+}
+
+/**
+ * Records where fal can fetch this asset from.
+ *
+ * Written after an upload, read before the next one. fal's guidance is to
+ * upload once and reuse the url; without somewhere to keep it, every
+ * generation that referenced an asset sent its bytes again.
+ */
+export async function rememberFalUrl(tx: Database, id: string, url: string): Promise<void> {
+  await tx.update(assets).set({ falUrl: url, falUrlAt: new Date() }).where(eq(assets.id, id))
 }

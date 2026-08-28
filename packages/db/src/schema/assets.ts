@@ -39,6 +39,19 @@ export const assets = pgTable(
     height: integer('height'),
     durationMs: integer('duration_ms'),
     source: assetSource('source').notNull(),
+    /*
+     * Where this asset lives on fal's CDN, if it has been sent there.
+     *
+     * fal's own guidance: upload once, reuse the url across as many inference
+     * requests as you need. We were uploading the same bytes again for every
+     * generation that referenced them, so four variants of one photograph meant
+     * five uploads of the same photograph.
+     *
+     * With its date, because the url does not live forever and nothing tells us
+     * when it dies. Past a conservative age it is treated as gone.
+     */
+    falUrl: text('fal_url'),
+    falUrlAt: timestamp('fal_url_at', { withTimezone: true }),
     jobId: uuid('job_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },

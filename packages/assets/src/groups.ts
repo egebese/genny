@@ -13,7 +13,14 @@ export type GroupRecord = {
   description: string | null
   createdAt: Date
   /** Storage keys of its reference images, in the order they should be sent. */
-  members: { assetId: string; storageKey: string; mime: string }[]
+  members: {
+    assetId: string
+    storageKey: string
+    mime: string
+    /** Carried so a member can be sent to fal without being looked up again. */
+    falUrl: string | null
+    falUrlAt: Date | null
+  }[]
 }
 
 /**
@@ -141,6 +148,8 @@ async function membersByCharacter(tx: Database, characterIds: string[]) {
       assetId: assets.id,
       storageKey: assets.storageKey,
       mime: assets.mime,
+      falUrl: assets.falUrl,
+      falUrlAt: assets.falUrlAt,
       sortOrder: assetGroupMembers.sortOrder,
     })
     .from(assetGroupMembers)
@@ -150,7 +159,13 @@ async function membersByCharacter(tx: Database, characterIds: string[]) {
 
   for (const row of rows) {
     const list = grouped.get(row.groupId) ?? []
-    list.push({ assetId: row.assetId, storageKey: row.storageKey, mime: row.mime })
+    list.push({
+      assetId: row.assetId,
+      storageKey: row.storageKey,
+      mime: row.mime,
+      falUrl: row.falUrl,
+      falUrlAt: row.falUrlAt,
+    })
     grouped.set(row.groupId, list)
   }
   return grouped
