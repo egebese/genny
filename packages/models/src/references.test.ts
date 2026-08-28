@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import type { MediaKind } from './aspect.ts'
 import { missingRequiredReferences, type PromptReference, resolvePrompt } from './references.ts'
 import type { ModelDefinition } from './schema.ts'
 
-const ref = (label: string, url: string): PromptReference => ({ token: `@${label}`, label, url })
+const ref = (label: string, url: string, kind: MediaKind = 'image'): PromptReference => ({
+  token: `@${label}`,
+  label,
+  url,
+  kind,
+})
 
 /** The catalog defaults these; the inferred output type does not, so tests do. */
 type PartialMapping = Omit<ModelDefinition['references'][number], 'role' | 'accepts'> &
@@ -119,5 +125,41 @@ describe('missingRequiredReferences', () => {
 
   it('says nothing about a model with no reference slots', () => {
     expect(missingRequiredReferences(withMapping([]), [])).toEqual([])
+  })
+})
+
+describe('a reference goes where its kind fits', () => {
+  /*
+   * Assigning by declaration order alone put a clip's url into `image_url` on
+   * any model that declared one first, and the endpoint answered 422 with a
+   * reason nobody could see. Live from the moment a video model that takes
+   * driving audio shipped.
+   */
+  const wan = withMapping([
+    { field: 'image_url', maxCount: 1, array: false, required: false, token: 'strip' },
+    {
+      field: 'audio_url',
+      accepts: ['audio'],
+      maxCount: 1,
+      array: false,
+      required: false,
+      token: 'strip',
+    },
+  ])
+
+  it('puts a sound in the sound slot and a picture in the picture slot', () => {
+    const { patch } = resolvePrompt(wan, '@song over @still', [
+      ref('song', 'https://cdn/a.mp3', 'audio'),
+      ref('still', 'https://cdn/b.png'),
+    ])
+    expect(patch).toEqual({ image_url: 'https://cdn/b.png', audio_url: 'https://cdn/a.mp3' })
+  })
+
+  it('drops what no slot will take rather than putting it somewhere wrong', () => {
+    const { patch, dropped } = resolvePrompt(wan, '@clip', [
+      ref('clip', 'https://cdn/c.mp4', 'video'),
+    ])
+    expect(patch).toEqual({})
+    expect(dropped.map((one) => one.label)).toEqual(['clip'])
   })
 })

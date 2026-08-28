@@ -1,3 +1,4 @@
+import type { MediaKind } from './aspect.ts'
 import type { ModelDefinition } from './schema.ts'
 
 export type PromptReference = {
@@ -7,6 +8,8 @@ export type PromptReference = {
   label: string
   /** Resolved, publicly fetchable url of the asset. */
   url: string
+  /** What it is. A slot that takes stills has nowhere to put a clip. */
+  kind: MediaKind
 }
 
 /** Reference slots the model insists on that the prompt did not fill. */
@@ -44,8 +47,15 @@ export function resolvePrompt(
   let out = text
 
   for (const mapping of model.references) {
-    const taken = remaining.slice(0, mapping.maxCount)
-    remaining = remaining.slice(mapping.maxCount)
+    /*
+     * Only what this slot will take. Assigning by declaration order alone put
+     * a clip's url into `image_url` on any model that declared one first, and
+     * the endpoint answered 422 with a reason nobody could see. The slot says
+     * what it accepts; that is what it is for.
+     */
+    const fits = remaining.filter((reference) => mapping.accepts.includes(reference.kind))
+    const taken = fits.slice(0, mapping.maxCount)
+    remaining = remaining.filter((reference) => !taken.includes(reference))
     if (taken.length === 0) continue
 
     patch[mapping.field] = mapping.array ? taken.map((r) => r.url) : taken[0]?.url

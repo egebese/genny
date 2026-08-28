@@ -22,6 +22,15 @@ export type PickableFamily = {
   priceLabel: string
   /** Every kind this model can take, across all of its endpoints. */
   accepts: MediaKind[]
+  /**
+   * Other words this model answers to, beside its name.
+   *
+   * The picker matched the name and the group, which is fine at a dozen models
+   * and useless at thirty-five families: no lab could be searched for at all,
+   * and a family whose tasks are named on its other endpoints could not be
+   * found by what those tasks are.
+   */
+  keywords: string[]
   /** Its endpoints, in catalog order. The picker never shows these. */
   variants: PickableModel[]
 }
@@ -68,9 +77,34 @@ export function toFamilies(models: PickableModel[]): PickableFamily[] {
       markUrl: base.markUrl,
       priceLabel: base.priceLabel,
       accepts: familyAccepts(variants),
+      keywords: keywordsOf(variants),
       variants,
     }
   })
+}
+
+/**
+ * The words that should find this model, beside its name.
+ *
+ * Keywords rather than a longer `value`, which is the seam cmdk offers for
+ * exactly this: it scores what it matched against the length of the value, so
+ * stuffing every word into that string does not add a way to find a model, it
+ * dilutes every other way. Searching "upscale" with a stuffed value ranked
+ * Ideogram above the three models with the word in their name.
+ *
+ * The endpoint ids carry the lab, which is how "google", "bytedance" and
+ * "blackforestlabs" become searchable without a field for it; the groups carry
+ * every task the family has, not only its plainest one.
+ */
+function keywordsOf(variants: readonly PickableModel[]): string[] {
+  const words = new Set<string>()
+  for (const variant of variants) {
+    const parts = [variant.group, variant.modality, variant.endpointId.replace(/[/_.-]+/g, ' ')]
+    for (const word of parts.join(' ').toLowerCase().split(/\s+/)) {
+      if (word.length > 1) words.add(word)
+    }
+  }
+  return [...words]
 }
 
 /** The endpoint to send to, given what is attached. Null when nothing fits. */

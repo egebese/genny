@@ -22,13 +22,20 @@ export function useMentionables(initial: MentionableView[]) {
       const known = new Set(current.map((item) => item.label))
       const fresh = nodes
         .filter((node) => node.assetId && node.label && !known.has(node.label))
-        .map((node) => ({
-          id: node.assetId as string,
-          label: node.label as string,
-          kind: 'asset' as const,
-          previewUrl: node.kind === 'image' ? node.url : null,
-          count: 1,
-        }))
+        .flatMap((node) =>
+          node.assetId && node.label && node.kind
+            ? [
+                {
+                  id: node.assetId,
+                  label: node.label,
+                  kind: 'asset' as const,
+                  media: node.kind,
+                  previewUrl: node.kind === 'image' ? node.url : null,
+                  count: 1,
+                },
+              ]
+            : [],
+        )
       return fresh.length > 0 ? [...fresh, ...current] : current
     })
   }, [])

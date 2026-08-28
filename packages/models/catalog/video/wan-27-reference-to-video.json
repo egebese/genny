@@ -5,7 +5,7 @@
     "name": "Wan 2.7"
   },
   "modality": "video",
-  "group": "Reference to Video",
+  "group": "Image to Video",
   "displayName": "Wan 2.7 Reference to Video",
   "description": "Wan 2.7 is the latest generation AI video model, delivering enhanced motion smoothness, superior scene fidelity, and greater visual coherence.",
   "sortOrder": 2050,

@@ -3,6 +3,7 @@ import { findAssetsByIds } from '@genny/assets/repository.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { appDb } from '@genny/db/connection.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
+import type { MediaKind } from '@genny/models/aspect.ts'
 import type { ResolvedAttachment } from '@genny/models/attachments.ts'
 import type { PromptReference } from '@genny/models/references.ts'
 import { falUrlFor, type Uploadable } from './fal-url.ts'
@@ -43,18 +44,29 @@ export async function resolveReferences(
      * the rest come back as dropped.
      */
     const asset = assetById.get(item.id)
-    const members: Uploadable[] =
+    /*
+     * A group's members are its reference images, which is what a group is for,
+     * so they are stills whatever the assets around them are. An asset knows
+     * its own kind, and it travels with the url now: a slot that takes stills
+     * has nowhere to put a clip, and finding that out from a 422 costs a round
+     * trip and says nothing.
+     */
+    const members: { file: Uploadable; kind: MediaKind }[] =
       item.kind === 'group'
-        ? (characterById.get(item.id)?.members ?? []).map((one) => ({ ...one, id: one.assetId }))
+        ? (characterById.get(item.id)?.members ?? []).map((one) => ({
+            file: { ...one, id: one.assetId },
+            kind: 'image' as const,
+          }))
         : asset
-          ? [asset]
+          ? [{ file: asset, kind: asset.kind }]
           : []
 
     for (const member of members) {
       resolved.push({
         token: item.token,
         label: item.label,
-        url: await withActor(db, actorId, (tx) => falUrlFor(tx, credentials, member)),
+        kind: member.kind,
+        url: await withActor(db, actorId, (tx) => falUrlFor(tx, credentials, member.file)),
       })
     }
   }
@@ -91,6 +103,7 @@ export async function resolveAttachments(
     if (!asset) continue
     resolved.push({
       field: item.field,
+      kind: asset.kind,
       url: await withActor(db, actorId, (tx) => falUrlFor(tx, credentials, asset)),
     })
   }

@@ -37,8 +37,8 @@ describe('applyAttachments', () => {
       slot({ field: 'tail_image_url', role: 'end-frame' }),
     ])
     const { patch, dropped } = applyAttachments(subject, [
-      { field: 'tail_image_url', url: 'https://cdn/b.png' },
-      { field: 'image_url', url: 'https://cdn/a.png' },
+      { field: 'tail_image_url', url: 'https://cdn/b.png', kind: 'image' as const },
+      { field: 'image_url', url: 'https://cdn/a.png', kind: 'image' as const },
     ])
     // The order they were pinned in is not the order the fields are declared in,
     // and that is the whole reason this exists.
@@ -49,9 +49,9 @@ describe('applyAttachments', () => {
   it('fills an array slot up to its limit and reports the rest', () => {
     const subject = model([slot({ field: 'image_urls', array: true, maxCount: 2 })])
     const { patch, dropped } = applyAttachments(subject, [
-      { field: 'image_urls', url: 'https://cdn/1.png' },
-      { field: 'image_urls', url: 'https://cdn/2.png' },
-      { field: 'image_urls', url: 'https://cdn/3.png' },
+      { field: 'image_urls', url: 'https://cdn/1.png', kind: 'image' as const },
+      { field: 'image_urls', url: 'https://cdn/2.png', kind: 'image' as const },
+      { field: 'image_urls', url: 'https://cdn/3.png', kind: 'image' as const },
     ])
     expect(patch).toEqual({ image_urls: ['https://cdn/1.png', 'https://cdn/2.png'] })
     expect(dropped).toEqual(['image_urls'])
@@ -60,8 +60,8 @@ describe('applyAttachments', () => {
   it('lets a second pick replace the first on a single slot', () => {
     const subject = model([slot({ field: 'image_url' })])
     const { patch } = applyAttachments(subject, [
-      { field: 'image_url', url: 'https://cdn/old.png' },
-      { field: 'image_url', url: 'https://cdn/new.png' },
+      { field: 'image_url', url: 'https://cdn/old.png', kind: 'image' as const },
+      { field: 'image_url', url: 'https://cdn/new.png', kind: 'image' as const },
     ])
     expect(patch).toEqual({ image_url: 'https://cdn/new.png' })
   })
@@ -69,7 +69,7 @@ describe('applyAttachments', () => {
   it('refuses a field the catalog does not declare', () => {
     const subject = model([slot({ field: 'image_url' })])
     const { patch, dropped } = applyAttachments(subject, [
-      { field: 'webhook_url', url: 'https://evil/hook' },
+      { field: 'webhook_url', url: 'https://evil/hook', kind: 'image' as const },
     ])
     expect(patch).toEqual({})
     expect(dropped).toEqual(['webhook_url'])

@@ -1,5 +1,6 @@
 'use client'
 
+import type { MediaKind } from '@genny/models/aspect.ts'
 import { cn } from '@genny/ui/cn.ts'
 import {
   Command,
@@ -12,6 +13,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@genny/ui/vendor/ui/popover.tsx'
 import { useMemo, useRef, useState } from 'react'
 import type { PickableFamily } from '../family-list.ts'
+import { matching } from '../model-search.ts'
 import { CategoryRail } from './category-rail.tsx'
 import { ModelCard } from './model-card.tsx'
 
@@ -29,6 +31,7 @@ type ModelPickerProps = {
 export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
   const [open, setOpen] = useState(false)
   const [group, setGroup] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
   const trigger = useRef<HTMLButtonElement>(null)
   const [offset, setOffset] = useState(8)
 
@@ -39,8 +42,15 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
    */
   // Browsing a category, a card names that one rather than its plainest task:
   // picked out of Image to Video it should not go on saying Text to Video.
-  const groups = useMemo(() => [...new Set(models.flatMap((m) => m.groups))], [models])
-  const visible = group ? models.filter((m) => m.groups.includes(group)) : models
+  const groups = useMemo(() => {
+    const seen = new Map<string, MediaKind>()
+    for (const model of models) {
+      for (const name of model.groups) if (!seen.has(name)) seen.set(name, model.modality)
+    }
+    return [...seen].map(([name, modality]) => ({ name, modality }))
+  }, [models])
+  const inGroup = group ? models.filter((m) => m.groups.includes(group)) : models
+  const visible = useMemo(() => matching(inGroup, query), [inGroup, query])
 
   return (
     <Popover
@@ -52,6 +62,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
          * flush against the prompt with nothing between them.
          */
         if (next) setOffset(dockClearance(trigger.current))
+        if (!next) setQuery('')
         setOpen(next)
       }}
     >
@@ -92,13 +103,16 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
          */
         className="panel h-[min(30rem,70dvh)] w-[min(54rem,calc(100vw-2rem))] overflow-hidden rounded-(--radius-panel) p-0"
       >
-        <Command className="flex h-full flex-col bg-transparent">
+        {/* Filtered here rather than by cmdk, which scores letters found
+            scattered in order and ranked FLUX above the upscalers for
+            "upscale". `matching` is ours and has a test. */}
+        <Command shouldFilter={false} className="flex h-full flex-col bg-transparent">
           {/* cmdk draws its input as a full-bleed strip with a rule under it,
               which reads as a browser chrome bar rather than as part of the
               panel. Restyled through its own slot rather than by editing the
               vendored file, which an upstream `shadcn add` would overwrite. */}
           <div className={SEARCH}>
-            <CommandInput placeholder="Search models" />
+            <CommandInput placeholder="Search models" value={query} onValueChange={setQuery} />
           </div>
           {/* Stacked on a phone: a category rail plus a grid in 343px leaves no
               room for either, so the rail becomes a row that scrolls sideways. */}
@@ -114,7 +128,7 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
                 {visible.map((model) => (
                   <CommandItem
                     key={model.id}
-                    value={`${model.name} ${model.group}`}
+                    value={model.id}
                     onSelect={() => {
                       onSelect(model)
                       setOpen(false)

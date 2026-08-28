@@ -5,6 +5,7 @@ import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { type AssetFacts, factsFor } from '@genny/db/repositories/asset-facts.ts'
 import { env } from '@genny/env/env.ts'
+import type { MediaKind } from '@genny/models/aspect.ts'
 
 /** What the browser needs about an asset. Storage keys stay on the server. */
 export type AssetView = {
@@ -33,6 +34,12 @@ export type MentionableView = {
   id: string
   label: string
   kind: 'asset' | 'group'
+  /**
+   * What it is. A group is always stills, because that is what a group is for;
+   * an asset is whatever it is. The list says so, and until the catalog had
+   * models that take a clip or a sound it said "image" about all of them.
+   */
+  media: MediaKind
   /** A single image for the asset, or the character's first member. */
   previewUrl: string | null
   /** How many images this contributes. Always 1 for an asset. */
@@ -73,7 +80,10 @@ export async function listMentionablesFor(actorId: string): Promise<MentionableV
   const db = appDb(env().DATABASE_URL)
   const [assetGroups, assets] = await withActor(db, actorId, async (tx) => [
     await listGroups(tx),
-    await listAssets(tx, { limit: 60, kind: 'image' }),
+    // Not stills only. Video upscalers, video editing and voice cloning all
+    // take something else, and a clip that cannot be mentioned cannot be given
+    // to the one model in the catalog that exists to work on it.
+    await listAssets(tx, { limit: 60 }),
   ])
 
   return [
@@ -81,6 +91,7 @@ export async function listMentionablesFor(actorId: string): Promise<MentionableV
       id: character.id,
       label: character.label,
       kind: 'group' as const,
+      media: 'image' as const,
       previewUrl: character.members[0]
         ? assetUrl({
             id: character.members[0].assetId,
@@ -94,7 +105,8 @@ export async function listMentionablesFor(actorId: string): Promise<MentionableV
       id: asset.id,
       label: asset.label,
       kind: 'asset' as const,
-      previewUrl: assetUrl(asset),
+      media: asset.kind,
+      previewUrl: asset.kind === 'image' ? assetUrl(asset) : null,
       count: 1,
     })),
   ]

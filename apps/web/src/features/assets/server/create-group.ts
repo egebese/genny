@@ -63,6 +63,8 @@ function toMentionable(group: GroupRecord): MentionableView {
     id: group.id,
     label: group.label,
     kind: 'group',
+    // A group is a set of reference images, which is what a group is for.
+    media: 'image',
     previewUrl: first
       ? assetUrl({ id: first.assetId, label: group.label, storageKey: first.storageKey })
       : null,

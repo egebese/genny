@@ -84,12 +84,20 @@ export async function prepareGeneration(context: {
    * Partial drops stay a warning further down. Four of five taken is what was
    * asked for, mostly; none of five taken is a different generation.
    */
-  const offered = request.references.length + request.attachments.length
-  if (offered > 0 && unusableKinds(allSlots(model), ['image']).length > 0) {
-    return refuse(
-      `${model.displayName} makes images from text alone and cannot take a reference. Pick a model that edits.`,
-      false,
-    )
+  const offered = [...references, ...attachments].map((one) => one.kind)
+  const unusable = unusableKinds(allSlots(model), offered)
+  if (unusable.length > 0) {
+    /*
+     * Asked about what was actually handed over, not about stills.
+     *
+     * It used to ask `['image']` literally, which was two wrong answers at
+     * once: attaching a sound to a model that declares an audio slot was
+     * refused with "makes images from text alone", and attaching a clip to a
+     * model with only an image slot passed the guard, was dropped further down,
+     * and surfaced as a warning after the money had been held.
+     */
+    const named = unusable.join(' or a ')
+    return refuse(`${model.displayName} cannot take a ${named}. Pick a model that can.`, false)
   }
 
   const resolved = resolvePrompt(model, request.prompt, references)

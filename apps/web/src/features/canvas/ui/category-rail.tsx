@@ -1,5 +1,6 @@
 'use client'
 
+import type { MediaKind } from '@genny/models/aspect.ts'
 import { cn } from '@genny/ui/cn.ts'
 
 /**
@@ -8,26 +9,53 @@ import { cn } from '@genny/ui/cn.ts'
  * A category rail plus a grid in 343px leaves no room for either, so the rail
  * becomes a row that scrolls sideways rather than something that collapses.
  */
+/** The order the rail reads in, and the heading each category sits under. */
+const ORDER: { modality: MediaKind; heading: string }[] = [
+  { modality: 'image', heading: 'Images' },
+  { modality: 'video', heading: 'Video' },
+  { modality: 'audio', heading: 'Audio' },
+]
+
 export function CategoryRail({
   groups,
   chosen,
   onChoose,
 }: {
-  groups: string[]
+  /** Each category and what it makes, so the rail can cluster them. */
+  groups: { name: string; modality: MediaKind }[]
   chosen: string | null
   onChoose: (group: string | null) => void
 }) {
   return (
+    /*
+     * Grouped by what comes out. Thirteen categories in one flat column reads
+     * as a list to search rather than a shape to scan, and "Editing" means a
+     * different thing three rows apart depending on whether the row above it
+     * said Image or Video.
+     */
     <ul className="flex shrink-0 gap-1 overflow-x-auto border-line border-b p-1 text-sm sm:w-40 sm:flex-col sm:gap-0 sm:overflow-y-auto sm:border-r sm:border-b-0 scrollbar-none">
       <CategoryButton active={chosen === null} onClick={() => onChoose(null)} label="All" />
-      {groups.map((name) => (
-        <CategoryButton
-          key={name}
-          active={chosen === name}
-          onClick={() => onChoose(name)}
-          label={name}
-        />
-      ))}
+      {ORDER.map(({ modality, heading }) => {
+        const mine = groups.filter((group) => group.modality === modality)
+        if (mine.length === 0) return null
+        return (
+          <li key={modality} className="contents">
+            {/* Hidden on a phone, where the rail is a row and a heading in the
+                middle of it would read as another category. */}
+            <p className="hidden px-2 pt-3 pb-1 font-mono text-[10px] text-ink-faint uppercase tracking-wider sm:block">
+              {heading}
+            </p>
+            {mine.map((group) => (
+              <CategoryButton
+                key={group.name}
+                active={chosen === group.name}
+                onClick={() => onChoose(group.name)}
+                label={group.name}
+              />
+            ))}
+          </li>
+        )
+      })}
     </ul>
   )
 }

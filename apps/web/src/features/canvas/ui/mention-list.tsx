@@ -55,7 +55,7 @@ export function MentionList({ candidates, highlighted, query, onChoose }: Mentio
               <span className="block text-ink-faint text-xs">
                 {item.kind === 'group'
                   ? `character, ${item.count} image${item.count === 1 ? '' : 's'}`
-                  : 'image'}
+                  : item.media}
               </span>
             </span>
           </button>

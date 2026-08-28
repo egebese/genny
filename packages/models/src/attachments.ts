@@ -1,7 +1,13 @@
+import type { MediaKind } from './aspect.ts'
 import type { ModelDefinition } from './schema.ts'
 import { allSlots } from './slots.ts'
 
-export type ResolvedAttachment = { field: string; url: string }
+export type ResolvedAttachment = {
+  field: string
+  url: string
+  /** What it is, so a slot that takes stills can refuse a clip. */
+  kind: MediaKind
+}
 
 export type AppliedAttachments = {
   /** Fields to merge into the payload, after the prompt has had its turn. */
@@ -32,6 +38,12 @@ export function applyAttachments(
   for (const attachment of attachments) {
     const slot = slots.get(attachment.field)
     if (!slot) {
+      dropped.push(attachment.field)
+      continue
+    }
+    // Pinned to a field that does not take this kind. The menu should never
+    // have offered it, and the endpoint would answer 422 without saying why.
+    if (!slot.accepts.includes(attachment.kind)) {
       dropped.push(attachment.field)
       continue
     }

@@ -43,7 +43,10 @@ export function SelectChip(props: SelectChipProps) {
         collisionPadding={12}
         aria-label={props.label}
         // Sized to what is in it, never narrower than the chip it came from.
-        className="panel w-auto min-w-(--radix-popover-trigger-width) max-w-64 rounded-(--radius-panel) p-1"
+        // Capped and scrolling. A voice list is thirty options and a couple of
+        // endpoints offer more; without this the popover runs off the screen
+        // and the last option cannot be reached at all.
+        className="panel max-h-72 w-auto min-w-(--radix-popover-trigger-width) max-w-64 overflow-y-auto rounded-(--radius-panel) p-1"
       >
         <ul>
           {props.options.map((option) => (

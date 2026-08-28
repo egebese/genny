@@ -907,6 +907,30 @@ test.describe('the board', () => {
     await expect(page.getByText('120%')).toBeVisible()
   })
 
+  test('the picker finds a model by what it is, not only by its name', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    await openCanvas(page)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    const search = page.getByPlaceholder('Search models')
+    const cards = page.getByRole('option')
+
+    /*
+     * cmdk matched the family name and its group, which found nothing for any
+     * of these at thirty-five families: "upscale" is in the group of three
+     * models and the name of none, and no lab could be searched for at all.
+     */
+    for (const [term, expected] of [
+      ['upscale', /Upscale/i],
+      ['google', /Veo|Omni|Lyria|Gemini|Nano Banana/i],
+      ['bytedance', /Seedream|Seedance|Seed Audio|SeedVR/i],
+      ['speech', /Speech/i],
+    ] as const) {
+      await search.fill(term)
+      await expect(cards.first()).toBeVisible()
+      await expect(cards.first()).toContainText(expected)
+    }
+  })
+
   test('the browser never gets to show its own right-click menu', async ({ page }) => {
     await openCanvas(page)
     /*
