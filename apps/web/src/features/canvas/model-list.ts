@@ -51,7 +51,9 @@ export function toPickable(model: ModelDefinition): PickableModel {
     group: model.group,
     artUrl: model.artUrl ?? null,
     markUrl: model.markUrl ?? null,
-    priceLabel: `$${model.pricing.unitPriceUsd} / ${model.pricing.unit}`,
+    // Singular: the unit vocabulary is plural because it names a quantity, and
+    // this names one of them. "$0.07 / seconds" is a per-what nobody can read.
+    priceLabel: `$${model.pricing.unitPriceUsd} / ${model.pricing.unit.replace(/s$/, '')}`,
     pricing: model.pricing,
     creditMultiplier: model.creditMultiplier,
     promptField: model.promptField,

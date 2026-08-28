@@ -24,7 +24,7 @@
     {
       "name": "seconds_total",
       "type": "integer",
-      "label": "Length (seconds)",
+      "label": "Length",
       "default": 30,
       "min": 1,
       "max": 190

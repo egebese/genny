@@ -85,7 +85,13 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
         className="panel h-[min(30rem,70dvh)] w-[min(54rem,calc(100vw-2rem))] overflow-hidden rounded-(--radius-panel) p-0"
       >
         <Command className="flex h-full flex-col bg-transparent">
-          <CommandInput placeholder="Search models" className="border-line" />
+          {/* cmdk draws its input as a full-bleed strip with a rule under it,
+              which reads as a browser chrome bar rather than as part of the
+              panel. Restyled through its own slot rather than by editing the
+              vendored file, which an upstream `shadcn add` would overwrite. */}
+          <div className={SEARCH}>
+            <CommandInput placeholder="Search models" />
+          </div>
           {/* Stacked on a phone: a category rail plus a grid in 343px leaves no
               room for either, so the rail becomes a row that scrolls sideways. */}
           <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
@@ -129,6 +135,23 @@ export function ModelPicker({ models, selected, onSelect }: ModelPickerProps) {
   )
 }
 
+/**
+ * The search row, as a contained field on a header band.
+ *
+ * Reaches into cmdk's markup because its input hardcodes its own wrapper. The
+ * slot attribute is the seam it offers for exactly this.
+ */
+const SEARCH = cn(
+  'border-line border-b p-2',
+  '[&_[data-slot=command-input-wrapper]]:h-9 [&_[data-slot=command-input-wrapper]]:gap-2',
+  '[&_[data-slot=command-input-wrapper]]:rounded-(--radius-control)',
+  '[&_[data-slot=command-input-wrapper]]:border-0 [&_[data-slot=command-input-wrapper]]:bg-control',
+  '[&_[data-slot=command-input-wrapper]]:px-2.5',
+  '[&_[data-slot=command-input-wrapper]>svg]:text-ink-faint [&_[data-slot=command-input-wrapper]>svg]:opacity-100',
+  '[&_[data-slot=command-input]]:h-9 [&_[data-slot=command-input]]:py-0',
+  '[&_[data-slot=command-input]]:text-ink [&_[data-slot=command-input]]:placeholder:text-ink-faint',
+)
+
 /** How far above the trigger the dock's own top edge is, plus room to breathe. */
 function dockClearance(trigger: HTMLElement | null): number {
   const dock = trigger?.closest('[data-dock]')
@@ -153,7 +176,12 @@ function CategoryButton({
         aria-pressed={active}
         className={cn(
           'w-full shrink-0 truncate rounded-(--radius-control) px-3 py-1.5 text-left whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent',
-          active ? 'bg-surface-hover text-ink' : 'text-ink-muted hover:text-ink',
+          // Hover one step below the selection rather than at the same token.
+          // Both were surface-hover, so the chosen category read as a row
+          // somebody's cursor happened to be resting on.
+          active
+            ? 'bg-surface-hover font-medium text-ink'
+            : 'text-ink-muted hover:bg-control hover:text-ink',
         )}
       >
         {label}

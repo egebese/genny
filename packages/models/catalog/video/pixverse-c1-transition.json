@@ -25,7 +25,7 @@
     {
       "name": "duration",
       "type": "integer",
-      "label": "Length (seconds)",
+      "label": "Length",
       "default": 5,
       "min": 1,
       "max": 15

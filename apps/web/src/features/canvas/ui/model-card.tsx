@@ -27,7 +27,11 @@ export function ModelCard({ model, current }: { model: PickableFamily; current: 
           'relative block aspect-3/2 w-full overflow-hidden rounded-(--radius-control)',
           'bg-gradient-to-br to-canvas',
           TINT[model.modality],
-          current ? 'ring-2 ring-accent' : 'ring-1 ring-line',
+          // One pixel, and only the ring: a 2px accent border plus a filled
+          // accent badge made the chosen card the most saturated thing in a
+          // panel whose whole job is showing generated art. Same width either
+          // way, so choosing one does not nudge the grid.
+          current ? 'ring-1 ring-accent' : 'ring-1 ring-line',
         )}
       >
         {model.artUrl ? (
@@ -64,14 +68,17 @@ export function ModelCard({ model, current }: { model: PickableFamily; current: 
         </span>
 
         {current ? (
-          <span className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-[3px] bg-accent text-[11px] text-accent-ink">
+          <span className="absolute top-2 right-2 flex size-5 items-center justify-center rounded-[3px] bg-canvas/80 text-[11px] text-accent leading-none ring-1 ring-accent/50 backdrop-blur">
             <span className="sr-only">Selected</span>✓
           </span>
         ) : null}
       </span>
 
       <span className="flex min-w-0 flex-col">
-        <span className="truncate font-medium text-ink text-sm" title={model.name}>
+        <span
+          className={cn('truncate font-medium text-sm', current ? 'text-accent' : 'text-ink')}
+          title={model.name}
+        >
           {model.name}
         </span>
         <span className="truncate text-ink-faint text-xs tabular-nums">{model.priceLabel}</span>

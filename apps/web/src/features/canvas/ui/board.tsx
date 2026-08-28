@@ -50,7 +50,7 @@ export function Board(props: BoardProps) {
       style={{
         // The dots ride along with the board, which is what makes panning read
         // as moving over something rather than as content sliding around.
-        backgroundImage: 'radial-gradient(rgb(255 255 255 / 0.09) 1px, transparent 1px)',
+        backgroundImage: 'radial-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px)',
         backgroundSize: `${GRID * viewport.zoom}px ${GRID * viewport.zoom}px`,
         backgroundPosition: `${viewport.x}px ${viewport.y}px`,
       }}
