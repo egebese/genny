@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { creditsFor, estimateUnits, megapixelsFor } from './credits.ts'
+import { creditsFor, effectiveInput, estimateUnits, megapixelsFor } from './credits.ts'
 import type { ModelDefinition } from './schema.ts'
 
 const model = (overrides: Partial<ModelDefinition> = {}): ModelDefinition =>
@@ -127,5 +127,44 @@ describe('options that bill at a different rate', () => {
   it('ignores a value that is not one of the options', () => {
     expect(estimateUnits(perImage, { resolution: 'enormous' })).toBe(1)
     expect(estimateUnits(perImage, { resolution: 4 })).toBe(1)
+  })
+})
+
+describe('what the button prices, as opposed to what the server holds', () => {
+  const ideogram = {
+    inputs: [{ name: 'rendering_speed', default: 'BALANCED' }],
+    promptField: 'prompt',
+    pricing: {
+      unit: 'images' as const,
+      unitPriceUsd: 0.03,
+      scale: { field: 'rendering_speed', factors: { TURBO: 1, BALANCED: 2, QUALITY: 3 } },
+    },
+  }
+  const tts = {
+    inputs: [{ name: 'voice', default: 'Rachel' }],
+    promptField: 'text',
+    pricing: { unit: 'characters' as const, unitPriceUsd: 0.0001 },
+  }
+
+  it('bills at the default rate nobody chose, because the server will', () => {
+    // The dock holds a delta and starts empty, so this is the untouched form.
+    expect(estimateUnits(ideogram, {})).toBe(1)
+    expect(estimateUnits(ideogram, effectiveInput(ideogram, {}, 'a fox'))).toBe(2)
+  })
+
+  it('still takes the choice that was made over the default', () => {
+    expect(
+      estimateUnits(ideogram, effectiveInput(ideogram, { rendering_speed: 'TURBO' }, 'a')),
+    ).toBe(1)
+  })
+
+  it('counts the script a per-character model is about to read', () => {
+    const script = 'Twelve chars'
+    expect(estimateUnits(tts, {})).toBe(1)
+    expect(estimateUnits(tts, effectiveInput(tts, {}, script))).toBe(script.length)
+  })
+
+  it('puts the prompt under the field the model names it', () => {
+    expect(effectiveInput(tts, {}, 'hello')).toMatchObject({ text: 'hello', voice: 'Rachel' })
   })
 })

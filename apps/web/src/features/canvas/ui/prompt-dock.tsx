@@ -174,6 +174,7 @@ export function PromptDock(props: PromptDockProps) {
         family={props.family}
         model={shown}
         settings={settings}
+        prompt={props.prompt}
         credits={props.credits}
         pending={pending}
         blocked={block !== null}

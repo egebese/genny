@@ -91,3 +91,31 @@ function positiveNumber(value: unknown, fallback: number): number {
   const parsed = Number.parseFloat(String(value))
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback
 }
+
+/** Just enough of an input to know what it is called and what it defaults to. */
+type Defaulted = { name: string; default?: unknown }
+
+/**
+ * What the server will price, built from what the dock is holding.
+ *
+ * The dock keeps its settings as a delta: it starts empty and records only what
+ * somebody changed, because the catalog's defaults are applied on the way in by
+ * `buildInputSchema`. An estimate over the delta therefore prices a request
+ * nobody is making. Ideogram bills double at its own default rendering speed,
+ * so a form nobody touched quoted half of what it took.
+ *
+ * The prompt is merged under the model's own field name for the same reason: it
+ * is injected server-side rather than carried in settings, and a model billed
+ * per character was quoting for one character until it was sent.
+ */
+export function effectiveInput(
+  model: { inputs: readonly Defaulted[]; promptField: string },
+  settings: Record<string, unknown>,
+  prompt: string,
+): Record<string, unknown> {
+  const defaults: Record<string, unknown> = {}
+  for (const input of model.inputs) {
+    if (input.default !== undefined) defaults[input.name] = input.default
+  }
+  return { ...defaults, ...settings, [model.promptField]: prompt }
+}

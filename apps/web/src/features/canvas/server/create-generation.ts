@@ -59,7 +59,7 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
    */
   const rects = siblingRects(request.node, outputCount(payload))
 
-  const { job, nodeIds } = await withActor(db, actorId, async (tx) => {
+  const written = await withActor(db, actorId, async (tx) => {
     const job = await createJob(tx, {
       ownerId: actorId,
       endpointId: model.endpointId,
@@ -84,7 +84,19 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
     }
     await touchCanvas(tx, request.canvasId)
     return { job, nodeIds }
+  }).catch(async () => {
+    /*
+     * The rows could not be written, so nothing will ever settle this hold. The
+     * sweep that catches an abandoned hold works from the `jobs` table, and the
+     * reason we are here is that there is no job row: a catalog entry whose
+     * endpoint was never seeded violates the foreign key, and the money stayed
+     * held with nothing pointing at it.
+     */
+    await billing.release(actorId, held.held)
+    return null
   })
+  if (!written) return refuse('The generation could not be started.', true)
+  const { job, nodeIds } = written
 
   try {
     const { requestId } = await submitJob(

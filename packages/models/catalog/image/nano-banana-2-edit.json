@@ -16,6 +16,7 @@
     "scale": {
       "field": "resolution",
       "factors": {
+        "0.5K": 0.75,
         "2K": 1.5,
         "4K": 2
       }

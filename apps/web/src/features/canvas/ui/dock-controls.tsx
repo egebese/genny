@@ -12,6 +12,7 @@ type DockControlsProps = {
   family: PickableFamily
   model: PickableModel
   settings: Record<string, unknown>
+  prompt: string
   credits: { enabled: boolean; perUsd: number } | null
   pending: boolean
   blocked: boolean
@@ -80,6 +81,7 @@ export function DockControls(props: DockControlsProps) {
         <GenerateButton
           model={props.model}
           settings={props.settings}
+          prompt={props.prompt}
           credits={props.credits}
           pending={props.pending}
           disabled={props.empty || props.blocked}

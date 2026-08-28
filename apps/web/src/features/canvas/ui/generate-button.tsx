@@ -1,6 +1,6 @@
 'use client'
 
-import { creditsFor, estimateUnits } from '@genny/models/credits.ts'
+import { creditsFor, effectiveInput, estimateUnits } from '@genny/models/credits.ts'
 import { Button } from '@genny/ui/button.tsx'
 import { useMemo } from 'react'
 import type { PickableModel } from '../model-list.ts'
@@ -23,6 +23,8 @@ function formatCost(usd: number): string {
 export function GenerateButton(props: {
   model: PickableModel
   settings: Record<string, unknown>
+  /** Priced too: a model billed per character is priced by what was typed. */
+  prompt: string
   /** Credits when saas mode is on, dollars otherwise: the same number, priced. */
   credits: { enabled: boolean; perUsd: number } | null
   pending: boolean
@@ -30,8 +32,8 @@ export function GenerateButton(props: {
   onClick: () => void
 }) {
   const units = useMemo(
-    () => estimateUnits(props.model, props.settings),
-    [props.model, props.settings],
+    () => estimateUnits(props.model, effectiveInput(props.model, props.settings, props.prompt)),
+    [props.model, props.settings, props.prompt],
   )
   /*
    * Credits through the same function the server holds with, rather than the
