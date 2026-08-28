@@ -1,0 +1,105 @@
+{
+  "endpointId": "minimax/h3/image-to-video",
+  "family": {
+    "id": "h3",
+    "name": "MiniMax H3"
+  },
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "MiniMax H3 Image to Video",
+  "description": "H3 at the standard tier, up to fifteen seconds a shot. Here, from a still.",
+  "sortOrder": 3310,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.13,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.05 per second of output at 480P, $0.06 at 768P, $0.13 at 2K and $0.16 at 4K. Priced from the 2K default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+    "scale": [
+      {
+        "field": "resolution",
+        "factors": {
+          "480P": 0.3846,
+          "768P": 0.4615,
+          "4K": 1.2308
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "enable_safety_checker",
+      "label": "Enable safety checker",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": 5,
+      "type": "integer",
+      "min": 5,
+      "max": 15
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "resolution",
+      "label": "Resolution",
+      "default": "2K",
+      "type": "enum",
+      "enum": ["480P", "768P", "2K", "4K"]
+    },
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "prompt_expansion_mode",
+      "label": "Prompt expansion mode",
+      "default": "balanced",
+      "type": "enum",
+      "enum": ["disabled", "fast", "balanced", "quality"]
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "start-frame",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Use as start frame"
+    },
+    {
+      "field": "end_image_url",
+      "role": "end-frame",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Use as end frame"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/minimax.svg"
+}

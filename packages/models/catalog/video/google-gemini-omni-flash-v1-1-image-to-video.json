@@ -1,0 +1,92 @@
+{
+  "endpointId": "google/gemini-omni-flash/v1.1/image-to-video",
+  "family": {
+    "id": "omni-11",
+    "name": "Google Omni 1.1"
+  },
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "Google Omni 1.1 Image to Video",
+  "description": "Google's fast video model, three to ten seconds a shot. Here, from a still.",
+  "sortOrder": 3210,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.1,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.03 per second of output at 360p, $0.10 at 720p, $0.15 at 1080p and $0.30 at 4K. Priced from the 720p default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+    "scale": [
+      {
+        "field": "resolution",
+        "factors": {
+          "360p": 0.3,
+          "1080p": 1.5,
+          "4k": 3
+        }
+      }
+    ],
+    "duration": {
+      "assume": 10,
+      "unit": "seconds"
+    }
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "resolution",
+      "label": "Resolution",
+      "default": "720p",
+      "type": "enum",
+      "enum": ["360p", "720p", "1080p", "4k"]
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "16:9",
+      "type": "enum",
+      "enum": ["16:9", "9:16"]
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": 8,
+      "type": "integer",
+      "min": 3,
+      "max": 10
+    }
+  ],
+  "references": [
+    {
+      "field": "image_url",
+      "role": "start-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Use as start frame"
+    },
+    {
+      "field": "end_image_url",
+      "role": "end-frame",
+      "accepts": ["image"],
+      "required": false,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Use as end frame"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/gemini.svg"
+}

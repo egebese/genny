@@ -1,0 +1,78 @@
+{
+  "endpointId": "blackforestlabs/flux-3/extend-video/draft",
+  "family": {
+    "id": "flux-3-video",
+    "name": "FLUX 3 Video"
+  },
+  "modality": "video",
+  "group": "Video Editing",
+  "displayName": "FLUX 3 Extend Video Draft",
+  "description": "A rough continuation, for checking the join before paying for the real one.",
+  "sortOrder": 2855,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.12,
+    "waiveDriftCheck": true,
+    "duration": {
+      "assume": 20,
+      "unit": "seconds"
+    },
+    "note": "fal publishes a flat $0.12 per second of 720p draft output. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "generate_audio",
+      "label": "Generate audio",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "safety_tolerance",
+      "label": "Safety tolerance",
+      "default": 2,
+      "type": "integer",
+      "min": 0,
+      "max": 4
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "21:9", "2:1", "16:9", "4:3", "1:1", "3:4", "9:16"]
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    }
+  ],
+  "references": [
+    {
+      "field": "video_url",
+      "role": "continue-from",
+      "accepts": ["video"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Continue from this clip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/flux.svg"
+}

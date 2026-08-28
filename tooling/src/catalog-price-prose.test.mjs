@@ -35,6 +35,14 @@ test('reads a figure written with the sign after it, as gemini-tts does', () => 
   assert.deepEqual(figuresIn('will cost **0.5$** per 1 M input tokens'), [0.5])
 })
 
+test('reads a figure with the emphasis between it and the sign', () => {
+  // FLUX 3's own wording, which read as having no price on it at all.
+  assert.deepEqual(
+    figuresIn('charged at **0.17** $ per second at 720p, and **0.29** $ at 1080p'),
+    [0.17, 0.29],
+  )
+})
+
 test('reads a figure with thousands separators', () => {
   assert.deepEqual(figuresIn('$1,250.00 per run'), [1250])
 })

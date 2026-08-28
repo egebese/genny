@@ -1,0 +1,101 @@
+{
+  "endpointId": "blackforestlabs/flux-3/first-last-frame-to-video",
+  "family": {
+    "id": "flux-3-video",
+    "name": "FLUX 3 Video"
+  },
+  "modality": "video",
+  "group": "Image to Video",
+  "displayName": "FLUX 3 First Last Frame to Video",
+  "description": "Black Forest Labs' video model at full quality: a move from a first frame to a last one.",
+  "sortOrder": 2820,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.17,
+    "waiveDriftCheck": true,
+    "duration": {
+      "assume": 20,
+      "unit": "seconds"
+    },
+    "note": "fal publishes $0.17 per second of output at 720p and $0.29 at 1080p. Priced from the 720p default. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact.",
+    "scale": [
+      {
+        "field": "resolution",
+        "factors": {
+          "1080p": 1.7059
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "resolution",
+      "label": "Resolution",
+      "default": "720p",
+      "type": "enum",
+      "enum": ["720p", "1080p"]
+    },
+    {
+      "name": "safety_tolerance",
+      "label": "Safety tolerance",
+      "default": 2,
+      "type": "integer",
+      "min": 0,
+      "max": 4
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": 5,
+      "type": "enum",
+      "enum": [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "generate_audio",
+      "label": "Generate audio",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "21:9", "2:1", "16:9", "4:3", "1:1", "3:4", "9:16"]
+    }
+  ],
+  "references": [
+    {
+      "field": "end_image_url",
+      "role": "end-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    },
+    {
+      "field": "start_image_url",
+      "role": "start-frame",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/flux.svg"
+}

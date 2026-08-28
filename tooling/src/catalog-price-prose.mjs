@@ -79,7 +79,11 @@ export function proseMentions(endpointId, unitPriceUsd) {
 
 /** Every dollar amount in a piece of fal's prose, in the order it says them. */
 export function figuresIn(prose) {
-  const found = [...prose.matchAll(/\$\s*([0-9][0-9.,]*)|([0-9][0-9.,]*)\s*\$/g)]
+  // Emphasis first. FLUX 3 writes `**0.17** $`, with the bold markers standing
+  // between the number and the sign, and a reader that leaves them in finds no
+  // price on a page that plainly states one.
+  const plain = prose.replace(/\*\*/g, '')
+  const found = [...plain.matchAll(/\$\s*([0-9][0-9.,]*)|([0-9][0-9.,]*)\s*\$/g)]
   return found.map((match) => Number((match[1] ?? match[2]).replace(/,/g, '').replace(/\.$/, '')))
 }
 

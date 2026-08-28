@@ -1,0 +1,204 @@
+{
+  "family": {
+    "id": "wan-3",
+    "name": "Wan 3.0"
+  },
+  "markUrl": "/models/marks/alibaba.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "end_image_url": {
+      "role": "end-frame",
+      "label": "Use as end frame"
+    },
+    "start_image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "reference_image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Edit this clip"
+    },
+    "reference_video_urls": {
+      "role": "reference",
+      "accepts": ["video"],
+      "label": "Use as reference clip"
+    },
+    "audio_url": {
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "label": "Use as driving audio"
+    },
+    "reference_audio_urls": {
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "label": "Use as driving audio"
+    }
+  },
+  "endpoints": {
+    "alibaba/wan-3.0/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Wan 3.0 Text to Video",
+      "description": "Alibaba's open video model, at its own hosted rate. Here, from a sentence.",
+      "sortOrder": 2900,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.2,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 480p, $0.10 at 720p and $0.20 at 1080p. Priced from the 1080p default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.25,
+              "720p": 0.5
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "alibaba/wan-3.0/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Wan 3.0 Image to Video",
+      "description": "Alibaba's open video model, at its own hosted rate. Here, from a still.",
+      "sortOrder": 2910,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.2,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 480p, $0.10 at 720p and $0.20 at 1080p. Priced from the 1080p default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.25,
+              "720p": 0.5
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "alibaba/wan-3.0/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Wan 3.0 Reference to Video",
+      "description": "Alibaba's open video model, at its own hosted rate. Here, holding reference images consistent.",
+      "sortOrder": 2920,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.2,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 480p, $0.10 at 720p and $0.20 at 1080p. Priced from the 1080p default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.25,
+              "720p": 0.5
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "alibaba/wan-3.0-prime/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Wan 3.0 Prime Text to Video",
+      "description": "The tuned Wan, steadier and about forty percent dearer. Here, from a sentence.",
+      "sortOrder": 2930,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.28,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.068 per second of output at 480p, $0.14 at 720p and $0.28 at 1080p. Priced from the 1080p default.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.2429,
+              "720p": 0.5
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "alibaba/wan-3.0-prime/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Wan 3.0 Prime Image to Video",
+      "description": "The tuned Wan, steadier and about forty percent dearer. Here, from a still.",
+      "sortOrder": 2940,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.28,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.068 per second of output at 480p, $0.14 at 720p and $0.28 at 1080p. Priced from the 1080p default.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.2429,
+              "720p": 0.5
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "alibaba/wan-3.0-prime/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Wan 3.0 Prime Reference to Video",
+      "description": "The tuned Wan, steadier and about forty percent dearer. Here, holding reference images consistent.",
+      "sortOrder": 2950,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.28,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.068 per second of output at 480p, $0.14 at 720p and $0.28 at 1080p. Priced from the 1080p default.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.2429,
+              "720p": 0.5
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    }
+  },
+  "_": "Wan 3.0. genmedia reports $0.00017 per compute second for the base routes, which is not what a request is charged; fal publishes a per-second rate by resolution.",
+  "require": ["prompt"]
+}

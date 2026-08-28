@@ -9,7 +9,7 @@
   "displayName": "ElevenLabs Multilingual v2",
   "description": "Reads what you write, in twenty-nine languages, in a voice you pick.",
   "featured": true,
-  "sortOrder": 3000,
+  "sortOrder": 5000,
   "pricing": {
     "unit": "characters",
     "unitPriceUsd": 0.0001

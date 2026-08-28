@@ -1,0 +1,89 @@
+{
+  "endpointId": "bytedance/seedance-2.0/text-to-video",
+  "family": {
+    "id": "seedance-2",
+    "name": "Seedance 2"
+  },
+  "modality": "video",
+  "group": "Text to Video",
+  "displayName": "Seedance 2.0 Text to Video",
+  "description": "The previous generation, a third cheaper and still very good. Here, from a sentence.",
+  "sortOrder": 3030,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.3034,
+    "waiveDriftCheck": true,
+    "note": "fal publishes $0.3034 per second of 720p output and $0.682 at 1080p. 480p and 4K are quoted only as token rates, $0.014 and $0.008 per thousand, so their factors are those ratios times the pixel count. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+    "scale": [
+      {
+        "field": "resolution",
+        "factors": {
+          "480p": 0.4448,
+          "1080p": 2.2478,
+          "4k": 5.1429
+        }
+      }
+    ],
+    "duration": {
+      "assume": 30,
+      "unit": "seconds"
+    }
+  },
+  "creditMultiplier": 1.25,
+  "promptField": "prompt",
+  "inputs": [
+    {
+      "name": "end_user_id",
+      "label": "End user id",
+      "type": "string",
+      "hidden": true
+    },
+    {
+      "name": "generate_audio",
+      "label": "Generate audio",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "aspect_ratio",
+      "label": "Aspect ratio",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "21:9", "16:9", "4:3", "1:1", "3:4", "9:16"]
+    },
+    {
+      "name": "prompt",
+      "label": "Prompt",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "duration",
+      "label": "Duration",
+      "default": "auto",
+      "type": "enum",
+      "enum": ["auto", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"]
+    },
+    {
+      "name": "resolution",
+      "label": "Resolution",
+      "default": "720p",
+      "type": "enum",
+      "enum": ["480p", "720p", "1080p", "4k"]
+    },
+    {
+      "name": "bitrate_mode",
+      "label": "Bitrate mode",
+      "default": "standard",
+      "type": "enum",
+      "enum": ["standard", "high"]
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/bytedance.svg"
+}

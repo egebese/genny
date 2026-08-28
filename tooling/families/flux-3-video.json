@@ -1,0 +1,250 @@
+{
+  "_": "FLUX 3 video. Four routes at full quality, the same four as drafts, an extend pair, and an enhancer that turns a draft into a finished render. Priced per second of output from fal's own page; the drafts are one flat 720p rate.",
+  "family": {
+    "id": "flux-3-video",
+    "name": "FLUX 3 Video"
+  },
+  "markUrl": "/models/marks/flux.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "first_frame_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "last_frame_url": {
+      "role": "end-frame",
+      "label": "Use as end frame"
+    },
+    "video_url": {
+      "role": "continue-from",
+      "accepts": ["video"],
+      "label": "Continue from this clip"
+    },
+    "image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    }
+  },
+  "endpoints": {
+    "blackforestlabs/flux-3/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "FLUX 3 Text to Video",
+      "sortOrder": 2800,
+      "description": "Black Forest Labs' video model at full quality: a clip from a sentence.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.17,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes $0.17 per second of output at 720p and $0.29 at 1080p. Priced from the 720p default. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "1080p": 1.7059
+            }
+          }
+        ]
+      }
+    },
+    "blackforestlabs/flux-3/text-to-video/draft": {
+      "group": "Text to Video",
+      "displayName": "FLUX 3 Text to Video Draft",
+      "sortOrder": 2805,
+      "description": "The same shot at a third of the price and a fraction of the wait: a clip from a sentence, rough. Find the shot here, then run the enhancer on it.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.06,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes a flat $0.06 per second of 720p draft output. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact."
+      }
+    },
+    "blackforestlabs/flux-3/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "FLUX 3 Image to Video",
+      "sortOrder": 2810,
+      "description": "Black Forest Labs' video model at full quality: a still brought to life.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.17,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes $0.17 per second of output at 720p and $0.29 at 1080p. Priced from the 720p default. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "1080p": 1.7059
+            }
+          }
+        ]
+      }
+    },
+    "blackforestlabs/flux-3/image-to-video/draft": {
+      "group": "Image to Video",
+      "displayName": "FLUX 3 Image to Video Draft",
+      "sortOrder": 2815,
+      "description": "The same shot at a third of the price and a fraction of the wait: a still brought to life, rough. Find the shot here, then run the enhancer on it.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.06,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes a flat $0.06 per second of 720p draft output. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact."
+      }
+    },
+    "blackforestlabs/flux-3/first-last-frame-to-video": {
+      "group": "Image to Video",
+      "displayName": "FLUX 3 First Last Frame to Video",
+      "sortOrder": 2820,
+      "description": "Black Forest Labs' video model at full quality: a move from a first frame to a last one.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.17,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes $0.17 per second of output at 720p and $0.29 at 1080p. Priced from the 720p default. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "1080p": 1.7059
+            }
+          }
+        ]
+      }
+    },
+    "blackforestlabs/flux-3/first-last-frame-to-video/draft": {
+      "group": "Image to Video",
+      "displayName": "FLUX 3 First Last Frame to Video Draft",
+      "sortOrder": 2825,
+      "description": "The same shot at a third of the price and a fraction of the wait: a move from a first frame to a last one, rough. Find the shot here, then run the enhancer on it.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.06,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes a flat $0.06 per second of 720p draft output. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact."
+      }
+    },
+    "blackforestlabs/flux-3/keyframes-to-video": {
+      "group": "Image to Video",
+      "displayName": "FLUX 3 Keyframes to Video",
+      "sortOrder": 2830,
+      "description": "Black Forest Labs' video model at full quality: a clip that passes through frames you place along it.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.17,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes $0.17 per second of output at 720p and $0.29 at 1080p. Priced from the 720p default. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "1080p": 1.7059
+            }
+          }
+        ]
+      }
+    },
+    "blackforestlabs/flux-3/keyframes-to-video/draft": {
+      "group": "Image to Video",
+      "displayName": "FLUX 3 Keyframes to Video Draft",
+      "sortOrder": 2835,
+      "description": "The same shot at a third of the price and a fraction of the wait: a clip that passes through frames you place along it, rough. Find the shot here, then run the enhancer on it.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.06,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes a flat $0.06 per second of 720p draft output. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact."
+      }
+    },
+    "blackforestlabs/flux-3/extend-video": {
+      "group": "Video Editing",
+      "displayName": "FLUX 3 Extend Video",
+      "sortOrder": 2850,
+      "description": "Carries on from the end of a clip you already have. Costs more than making one from scratch, because it has to match what came before.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.41,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes $0.41 per second of output at 720p and $0.53 at 1080p. Priced from the 720p default. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "1080p": 1.2927
+            }
+          }
+        ]
+      }
+    },
+    "blackforestlabs/flux-3/extend-video/draft": {
+      "group": "Video Editing",
+      "displayName": "FLUX 3 Extend Video Draft",
+      "sortOrder": 2855,
+      "description": "A rough continuation, for checking the join before paying for the real one.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.12,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes a flat $0.12 per second of 720p draft output. Its length defaults to auto, which is not a number, so the hold assumes FLUX 3's twenty second ceiling and settle returns whatever was not used. Pick a length and the quote is exact."
+      }
+    },
+    "blackforestlabs/flux-3/draft-enhance": {
+      "group": "Video Editing",
+      "displayName": "FLUX 3 Draft Enhance",
+      "sortOrder": 2860,
+      "description": "Turns a draft into the finished 1080p render, sound included. Nothing to type: it is given the draft and told to finish it.",
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.29,
+        "waiveDriftCheck": true,
+        "duration": {
+          "assume": 20,
+          "unit": "seconds"
+        },
+        "note": "fal publishes $0.29 per second of the enhanced 1080p render, audio included. It has no length control of its own: the render is as long as the draft it is given, so the hold assumes FLUX 3's twenty second ceiling and settle returns the rest."
+      }
+    }
+  }
+}

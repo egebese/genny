@@ -43,7 +43,7 @@ describe('buildInputSchema', () => {
               Object.fromEntries(
                 (input.fields ?? [])
                   .filter((field) => field.required)
-                  .map((field) => [field.name, 'x']),
+                  .map((field) => [field.name, sample(field)]),
               ),
             ],
           ]),
@@ -100,6 +100,14 @@ describe('buildInputSchema', () => {
     expect(() => schema.parse({ prompt: 'x', image_urls: ['not-a-url'] })).toThrow()
   })
 })
+
+/** Something a column would accept, so the row it is in can be built. */
+function sample(field: ModelInput): unknown {
+  if (field.enum?.[0] !== undefined) return field.enum[0]
+  if (field.type === 'integer' || field.type === 'number') return field.min ?? 1
+  if (field.type === 'boolean') return false
+  return 'x'
+}
 
 describe('a control that repeats a row', () => {
   const withLoras = (over: Partial<ModelInput> = {}): ModelDefinition =>

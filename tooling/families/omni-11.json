@@ -1,0 +1,157 @@
+{
+  "family": {
+    "id": "omni-11",
+    "name": "Google Omni 1.1"
+  },
+  "markUrl": "/models/marks/gemini.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "end_image_url": {
+      "role": "end-frame",
+      "label": "Use as end frame"
+    },
+    "start_image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "reference_image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Edit this clip"
+    },
+    "reference_video_urls": {
+      "role": "reference",
+      "accepts": ["video"],
+      "label": "Use as reference clip"
+    },
+    "audio_url": {
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "label": "Use as driving audio"
+    },
+    "reference_audio_urls": {
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "label": "Use as driving audio"
+    }
+  },
+  "endpoints": {
+    "google/gemini-omni-flash/v1.1/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Google Omni 1.1 Text to Video",
+      "description": "Google's fast video model, three to ten seconds a shot. Here, from a sentence.",
+      "sortOrder": 3200,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.1,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.03 per second of output at 360p, $0.10 at 720p, $0.15 at 1080p and $0.30 at 4K. Priced from the 720p default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "360p": 0.3,
+              "1080p": 1.5,
+              "4k": 3.0
+            }
+          }
+        ],
+        "duration": {
+          "assume": 10,
+          "unit": "seconds"
+        }
+      }
+    },
+    "google/gemini-omni-flash/v1.1/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Omni 1.1 Image to Video",
+      "description": "Google's fast video model, three to ten seconds a shot. Here, from a still.",
+      "sortOrder": 3210,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.1,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.03 per second of output at 360p, $0.10 at 720p, $0.15 at 1080p and $0.30 at 4K. Priced from the 720p default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "360p": 0.3,
+              "1080p": 1.5,
+              "4k": 3.0
+            }
+          }
+        ],
+        "duration": {
+          "assume": 10,
+          "unit": "seconds"
+        }
+      }
+    },
+    "google/gemini-omni-flash/v1.1/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Google Omni 1.1 Reference to Video",
+      "description": "Google's fast video model, three to ten seconds a shot. Here, holding reference images consistent.",
+      "sortOrder": 3220,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.1,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.03 per second of output at 360p, $0.10 at 720p, $0.15 at 1080p and $0.30 at 4K. Priced from the 720p default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "360p": 0.3,
+              "1080p": 1.5,
+              "4k": 3.0
+            }
+          }
+        ],
+        "duration": {
+          "assume": 10,
+          "unit": "seconds"
+        }
+      }
+    },
+    "google/gemini-omni-flash/v1.1/edit": {
+      "group": "Video Editing",
+      "displayName": "Google Omni 1.1 Edit",
+      "description": "Google's fast video model, three to ten seconds a shot. Here, rewriting a clip you already have.",
+      "sortOrder": 3230,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.1,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.03 per second of output at 360p, $0.10 at 720p, $0.15 at 1080p and $0.30 at 4K. Priced from the 720p default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "360p": 0.3,
+              "1080p": 1.5,
+              "4k": 3.0
+            }
+          }
+        ],
+        "duration": {
+          "assume": 10,
+          "unit": "seconds"
+        }
+      }
+    }
+  },
+  "_": "Gemini Omni Flash 1.1. genmedia reports $0.00017 per compute second; fal publishes a per-second rate by resolution. Its three to ten second range is the shortest in the catalog."
+}

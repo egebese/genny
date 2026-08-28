@@ -1,0 +1,351 @@
+{
+  "family": {
+    "id": "seedance-2",
+    "name": "Seedance 2"
+  },
+  "markUrl": "/models/marks/bytedance.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "end_image_url": {
+      "role": "end-frame",
+      "label": "Use as end frame"
+    },
+    "start_image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "reference_image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Edit this clip"
+    },
+    "reference_video_urls": {
+      "role": "reference",
+      "accepts": ["video"],
+      "label": "Use as reference clip"
+    },
+    "audio_url": {
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "label": "Use as driving audio"
+    },
+    "reference_audio_urls": {
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "label": "Use as driving audio"
+    }
+  },
+  "endpoints": {
+    "bytedance/seedance-2.5/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Seedance 2.5 Text to Video",
+      "description": "ByteDance's best, and the most expensive clip in the catalog. Here, from a sentence.",
+      "sortOrder": 3000,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.473,
+        "waiveDriftCheck": true,
+        "note": "fal publishes roughly $0.4730 per second of 720p output and $0.2205 at 480p. 1080p is quoted only as a token rate, $0.0234 per thousand against $0.0214, so its factor is that ratio times the 2.25x pixel count. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4662,
+              "1080p": 2.4603
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.5/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Seedance 2.5 Image to Video",
+      "description": "ByteDance's best, and the most expensive clip in the catalog. Here, from a still.",
+      "sortOrder": 3010,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.473,
+        "waiveDriftCheck": true,
+        "note": "fal publishes roughly $0.4730 per second of 720p output and $0.2205 at 480p. 1080p is quoted only as a token rate, $0.0234 per thousand against $0.0214, so its factor is that ratio times the 2.25x pixel count. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4662,
+              "1080p": 2.4603
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.5/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Seedance 2.5 Reference to Video",
+      "description": "ByteDance's best, and the most expensive clip in the catalog. Here, holding reference images consistent.",
+      "sortOrder": 3020,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.473,
+        "waiveDriftCheck": true,
+        "note": "fal publishes roughly $0.4730 per second of 720p output and $0.2205 at 480p. 1080p is quoted only as a token rate, $0.0234 per thousand against $0.0214, so its factor is that ratio times the 2.25x pixel count. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4662,
+              "1080p": 2.4603
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Seedance 2.0 Text to Video",
+      "description": "The previous generation, a third cheaper and still very good. Here, from a sentence.",
+      "sortOrder": 3030,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.3034,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.3034 per second of 720p output and $0.682 at 1080p. 480p and 4K are quoted only as token rates, $0.014 and $0.008 per thousand, so their factors are those ratios times the pixel count. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4448,
+              "1080p": 2.2478,
+              "4k": 5.1429
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Seedance 2.0 Image to Video",
+      "description": "The previous generation, a third cheaper and still very good. Here, from a still.",
+      "sortOrder": 3040,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.3034,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.3034 per second of 720p output and $0.682 at 1080p. 480p and 4K are quoted only as token rates, $0.014 and $0.008 per thousand, so their factors are those ratios times the pixel count. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4448,
+              "1080p": 2.2478,
+              "4k": 5.1429
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Seedance 2.0 Reference to Video",
+      "description": "The previous generation, a third cheaper and still very good. Here, holding reference images consistent.",
+      "sortOrder": 3050,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.3034,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.3034 per second of 720p output and $0.682 at 1080p. 480p and 4K are quoted only as token rates, $0.014 and $0.008 per thousand, so their factors are those ratios times the pixel count. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4448,
+              "1080p": 2.2478,
+              "4k": 5.1429
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/fast/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Seedance 2.0 Fast Text to Video",
+      "description": "Seedance 2.0 in a hurry, at four fifths of the price. Here, from a sentence.",
+      "sortOrder": 3060,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.2419,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.2419 per second of 720p output at one token rate for every resolution, so 480p is the pixel ratio of it. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4448
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/fast/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Seedance 2.0 Fast Image to Video",
+      "description": "Seedance 2.0 in a hurry, at four fifths of the price. Here, from a still.",
+      "sortOrder": 3070,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.2419,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.2419 per second of 720p output at one token rate for every resolution, so 480p is the pixel ratio of it. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4448
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/fast/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Seedance 2.0 Fast Reference to Video",
+      "description": "Seedance 2.0 in a hurry, at four fifths of the price. Here, holding reference images consistent.",
+      "sortOrder": 3080,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.2419,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.2419 per second of 720p output at one token rate for every resolution, so 480p is the pixel ratio of it. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4448
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/mini/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "Seedance 2.0 Mini Text to Video",
+      "description": "The cheap one, for finding a shot before paying for it. Here, from a sentence.",
+      "sortOrder": 3090,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.1547,
+        "waiveDriftCheck": true,
+        "note": "fal publishes roughly $0.1547 per second of 720p output and $0.0721 at 480p. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4661
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/mini/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "Seedance 2.0 Mini Image to Video",
+      "description": "The cheap one, for finding a shot before paying for it. Here, from a still.",
+      "sortOrder": 3100,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.1547,
+        "waiveDriftCheck": true,
+        "note": "fal publishes roughly $0.1547 per second of 720p output and $0.0721 at 480p. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4661
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    },
+    "bytedance/seedance-2.0/mini/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "Seedance 2.0 Mini Reference to Video",
+      "description": "The cheap one, for finding a shot before paying for it. Here, holding reference images consistent.",
+      "sortOrder": 3110,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.1547,
+        "waiveDriftCheck": true,
+        "note": "fal publishes roughly $0.1547 per second of 720p output and $0.0721 at 480p. Its length defaults to auto, which is not a number, so the hold assumes the thirty second ceiling and settle returns what was not used.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480p": 0.4661
+            }
+          }
+        ],
+        "duration": {
+          "assume": 30,
+          "unit": "seconds"
+        }
+      }
+    }
+  },
+  "hidden": ["end_user_id"],
+  "_": "Seedance 2.0 and 2.5. fal bills these by token and publishes the equivalent per-second rate; the factors for resolutions it does not name are the pixel ratio times the token rate, which the notes say."
+}

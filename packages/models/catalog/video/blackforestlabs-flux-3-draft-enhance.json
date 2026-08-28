@@ -1,0 +1,51 @@
+{
+  "endpointId": "blackforestlabs/flux-3/draft-enhance",
+  "family": {
+    "id": "flux-3-video",
+    "name": "FLUX 3 Video"
+  },
+  "modality": "video",
+  "group": "Video Editing",
+  "displayName": "FLUX 3 Draft Enhance",
+  "description": "Turns a draft into the finished 1080p render, sound included. Nothing to type: it is given the draft and told to finish it.",
+  "sortOrder": 2860,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.29,
+    "waiveDriftCheck": true,
+    "duration": {
+      "assume": 20,
+      "unit": "seconds"
+    },
+    "note": "fal publishes $0.29 per second of the enhanced 1080p render, audio included. It has no length control of its own: the render is as long as the draft it is given, so the hold assumes FLUX 3's twenty second ceiling and settle returns the rest."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "inputs": [
+    {
+      "name": "safety_tolerance",
+      "label": "Safety tolerance",
+      "default": 2,
+      "type": "integer",
+      "min": 0,
+      "max": 4
+    }
+  ],
+  "references": [
+    {
+      "field": "draft_cache_url",
+      "role": "source",
+      "accepts": ["image"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/flux.svg"
+}

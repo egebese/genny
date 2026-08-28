@@ -1,0 +1,119 @@
+{
+  "family": {
+    "id": "h3",
+    "name": "MiniMax H3"
+  },
+  "markUrl": "/models/marks/minimax.svg",
+  "creditMultiplier": 1.25,
+  "roles": {
+    "image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "end_image_url": {
+      "role": "end-frame",
+      "label": "Use as end frame"
+    },
+    "start_image_url": {
+      "role": "start-frame",
+      "label": "Use as start frame"
+    },
+    "image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "reference_image_urls": {
+      "role": "reference",
+      "label": "Use as reference"
+    },
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Edit this clip"
+    },
+    "reference_video_urls": {
+      "role": "reference",
+      "accepts": ["video"],
+      "label": "Use as reference clip"
+    },
+    "audio_url": {
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "label": "Use as driving audio"
+    },
+    "reference_audio_urls": {
+      "role": "driving-audio",
+      "accepts": ["audio"],
+      "label": "Use as driving audio"
+    }
+  },
+  "endpoints": {
+    "minimax/h3/text-to-video": {
+      "group": "Text to Video",
+      "displayName": "MiniMax H3 Text to Video",
+      "description": "H3 at the standard tier, up to fifteen seconds a shot. Here, from a sentence.",
+      "sortOrder": 3300,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.13,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 480P, $0.06 at 768P, $0.13 at 2K and $0.16 at 4K. Priced from the 2K default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480P": 0.3846,
+              "768P": 0.4615,
+              "4K": 1.2308
+            }
+          }
+        ]
+      }
+    },
+    "minimax/h3/image-to-video": {
+      "group": "Image to Video",
+      "displayName": "MiniMax H3 Image to Video",
+      "description": "H3 at the standard tier, up to fifteen seconds a shot. Here, from a still.",
+      "sortOrder": 3310,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.13,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 480P, $0.06 at 768P, $0.13 at 2K and $0.16 at 4K. Priced from the 2K default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480P": 0.3846,
+              "768P": 0.4615,
+              "4K": 1.2308
+            }
+          }
+        ]
+      }
+    },
+    "minimax/h3/reference-to-video": {
+      "group": "Image to Video",
+      "displayName": "MiniMax H3 Reference to Video",
+      "description": "H3 at the standard tier, up to fifteen seconds a shot. Here, holding reference images consistent.",
+      "sortOrder": 3320,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.13,
+        "waiveDriftCheck": true,
+        "note": "fal publishes $0.05 per second of output at 480P, $0.06 at 768P, $0.13 at 2K and $0.16 at 4K. Priced from the 2K default. genmedia reports $0.00017 per compute second, which is not what a request is charged.",
+        "scale": [
+          {
+            "field": "resolution",
+            "factors": {
+              "480P": 0.3846,
+              "768P": 0.4615,
+              "4K": 1.2308
+            }
+          }
+        ]
+      }
+    }
+  },
+  "_": "MiniMax H3, the tier below H3 Max. Same trap: genmedia reports compute seconds, fal publishes per output second by resolution."
+}
