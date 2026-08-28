@@ -116,6 +116,21 @@ export async function moveNode(
   await tx.update(canvasNodes).set(position).where(eq(canvasNodes.id, nodeId))
 }
 
+/**
+ * Its size, kept apart from its position.
+ *
+ * The same row and almost the same statement, but a drag writes a position
+ * thirty times a second and a resize writes a size, and folding both into one
+ * call would mean every drag also asserting a size it never looked at.
+ */
+export async function resizeNode(
+  tx: Database,
+  nodeId: string,
+  size: { width: number; height: number },
+): Promise<void> {
+  await tx.update(canvasNodes).set(size).where(eq(canvasNodes.id, nodeId))
+}
+
 export async function deleteNode(tx: Database, nodeId: string): Promise<boolean> {
   const rows = await tx
     .delete(canvasNodes)

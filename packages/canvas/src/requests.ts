@@ -38,6 +38,14 @@ export const moveNodeRequest = z.object({
 
 export const nodeRef = z.object({ canvasId: z.uuid(), nodeId: z.uuid() })
 
+/** Bounded by the same rail as a node rect: past this it is a bug, not a resize. */
+export const resizeNodeRequest = z.object({
+  canvasId: z.uuid(),
+  nodeId: z.uuid(),
+  width: z.int().positive().max(4000),
+  height: z.int().positive().max(4000),
+})
+
 export const materializeRequest = z.object({ canvasId: z.uuid(), jobId: z.uuid() })
 
 /**

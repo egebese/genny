@@ -11,6 +11,8 @@ type Options = {
   variants: ReturnType<typeof useVariants>
   /** Puts rectangles on the board. Called before the request, not after it. */
   onPlaced: (nodes: CanvasNodeView[]) => void
+  /** Moves the board to them, since reading order puts them below the fold. */
+  onReveal: (rect: { x: number; y: number; width: number; height: number }) => void
   /** Swaps them for the rows the server wrote, or takes them back off. */
   onReplace: (reserved: readonly string[], real: CanvasNodeView[]) => void
 }
@@ -27,7 +29,7 @@ type Options = {
  * is this one with a word changed, and clearing them made people redo the setup
  * every time.
  */
-export function useSubmit({ generate, variants, onPlaced, onReplace }: Options) {
+export function useSubmit({ generate, variants, onPlaced, onReveal, onReplace }: Options) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,6 +46,7 @@ export function useSubmit({ generate, variants, onPlaced, onReplace }: Options) 
 
       const held = generate.reserve(model, settings)
       onPlaced(held.nodes)
+      onReveal(spanOf(held.nodes) ?? held.anchor)
       setPending(true)
       setError(null)
 
@@ -61,7 +64,7 @@ export function useSubmit({ generate, variants, onPlaced, onReplace }: Options) 
       setError(outcome.warning)
       onReplace(ids, outcome.nodes)
     },
-    [generate, onPlaced, onReplace],
+    [generate, onPlaced, onReveal, onReplace],
   )
 
   /*
@@ -73,6 +76,7 @@ export function useSubmit({ generate, variants, onPlaced, onReplace }: Options) 
     async (source: CanvasNodeView) => {
       const held = variants.reserve(source)
       onPlaced(held.nodes)
+      onReveal(spanOf(held.nodes) ?? source)
       setPending(true)
       setError(null)
 
@@ -87,8 +91,17 @@ export function useSubmit({ generate, variants, onPlaced, onReplace }: Options) 
       }
       onReplace(ids, made.nodes)
     },
-    [variants, onPlaced, onReplace],
+    [variants, onPlaced, onReveal, onReplace],
   )
 
   return { pending, error, setError, submit, runVariants }
+}
+
+/** The whole row of them, so a request for four is revealed as four. */
+function spanOf(nodes: readonly CanvasNodeView[]) {
+  const first = nodes[0]
+  if (!first) return null
+  const right = Math.max(...nodes.map((node) => node.x + node.width))
+  const low = Math.max(...nodes.map((node) => node.y + node.height))
+  return { x: first.x, y: first.y, width: right - first.x, height: low - first.y }
 }

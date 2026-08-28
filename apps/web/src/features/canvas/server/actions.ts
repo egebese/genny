@@ -7,6 +7,7 @@ import {
   moveNodeRequest,
   nodeRef,
   renameCanvasRequest,
+  resizeNodeRequest,
   saveViewportRequest,
 } from '@genny/canvas/requests.ts'
 import { withActor } from '@genny/db/actor.ts'
@@ -16,6 +17,7 @@ import {
   listNodes,
   moveNode,
   type NodeRecord,
+  resizeNode,
 } from '@genny/db/repositories/canvas-nodes.ts'
 import {
   createCanvas,
@@ -104,6 +106,16 @@ export async function repositionNode(raw: unknown): Promise<void> {
     await moveNode(tx, nodeId, position)
     await touchCanvas(tx, canvasId)
   })
+}
+
+export async function resizeNodeOnCanvas(raw: unknown): Promise<boolean> {
+  const parsed = resizeNodeRequest.safeParse(raw)
+  if (!parsed.success) return false
+  const actorId = await ensureActorId()
+  await withActor(db(), actorId, (tx) =>
+    resizeNode(tx, parsed.data.nodeId, { width: parsed.data.width, height: parsed.data.height }),
+  )
+  return true
 }
 
 export async function removeNode(raw: unknown): Promise<boolean> {

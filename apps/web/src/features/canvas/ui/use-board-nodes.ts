@@ -2,7 +2,13 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { type CanvasNodeView, toNodeView } from '../node-view.ts'
-import { removeNode, repositionNode, settleJobOnCanvas } from '../server/actions.ts'
+import { isReserved } from '../reserved.ts'
+import {
+  removeNode,
+  repositionNode,
+  resizeNodeOnCanvas,
+  settleJobOnCanvas,
+} from '../server/actions.ts'
 
 type Position = { x: number; y: number }
 
@@ -83,6 +89,19 @@ export function useBoardNodes(
     [move, canvasId],
   )
 
+  /** Live while the corner is dragged; `sized` is what gets written. */
+  const size = useCallback((id: string, next: { width: number; height: number }) => {
+    setNodes((current) => current.map((node) => (node.id === id ? { ...node, ...next } : node)))
+  }, [])
+
+  const sized = useCallback(
+    (id: string, next: { width: number; height: number }) => {
+      size(id, next)
+      void resizeNodeOnCanvas({ canvasId, nodeId: id, ...next })
+    },
+    [size, canvasId],
+  )
+
   const remove = useCallback(
     (id: string) => {
       setNodes((current) => current.filter((node) => node.id !== id))
@@ -113,7 +132,14 @@ export function useBoardNodes(
       // either way the local state is the better of the two.
       if (fresh.length === 0) return
       const views = fresh.map(toNodeView)
-      setNodes(views)
+      /*
+       * The server hands back every row it knows about, and it does not know
+       * about a rectangle another generation is still holding: those exist only
+       * here until their own request returns. Replacing the list outright wiped
+       * them, so firing a second generation while the first was running made
+       * its boxes vanish and come back.
+       */
+      setNodes((current) => [...current.filter(isReserved), ...views])
       // What just landed is mentionable now. Nothing else tells the dock that.
       onSettled(views)
     },
@@ -132,5 +158,5 @@ export function useBoardNodes(
     [nodes],
   )
 
-  return { nodes, running, beginDrag, move, commit, remove, add, replace, settle }
+  return { nodes, running, beginDrag, move, commit, size, sized, remove, add, replace, settle }
 }

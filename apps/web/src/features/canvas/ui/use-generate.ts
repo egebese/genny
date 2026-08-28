@@ -1,20 +1,22 @@
 'use client'
 
-import type { Point, Rect } from '@genny/canvas/geometry.ts'
-import { nodeSize, placeFree, rowFootprint, siblingRects } from '@genny/canvas/placement.ts'
+import { placeInFlow } from '@genny/canvas/flow.ts'
+import type { Rect } from '@genny/canvas/geometry.ts'
+import { nodeSize, rowFootprint, siblingRects } from '@genny/canvas/placement.ts'
 import { outputAspect, outputCount } from '@genny/models/aspect.ts'
 import { mentionedLabels } from '@genny/models/mention.ts'
 import { useCallback } from 'react'
 import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableModel } from '../model-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
+import { reservedNode } from '../reserved.ts'
 import { createGeneration } from '../server/create-generation.ts'
 
 type Options = {
   canvasId: string
   nodes: CanvasNodeView[]
   mentionables: MentionableView[]
-  centreOfView: () => Point
+  visibleRect: () => Rect
 }
 
 export type SubmitOutcome =
@@ -38,7 +40,7 @@ export type Reservation = { anchor: Rect; nodes: CanvasNodeView[] }
  * knows where the person is looking and what is already placed. The server
  * takes the coordinates as given and only checks they are sane.
  */
-export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Options) {
+export function useGenerate({ canvasId, nodes, mentionables, visibleRect }: Options) {
   /*
    * Room for every output, found before the first one exists. A request for
    * four that reserves one rectangle drops the other three wherever the layout
@@ -49,22 +51,14 @@ export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Opt
       const size = nodeSize(outputAspect(model.modality, settings))
       const count = outputCount(settings)
       const footprint = rowFootprint(size, count)
-      const centre = centreOfView()
       const anchor = {
-        ...placeFree(
-          nodes,
-          {
-            x: Math.round(centre.x - footprint.width / 2),
-            y: Math.round(centre.y - footprint.height / 2),
-          },
-          footprint,
-        ),
+        ...placeInFlow({ taken: nodes, view: visibleRect(), size: footprint }),
         ...size,
       }
 
-      return { anchor, nodes: siblingRects(anchor, count).map(reserved) }
+      return { anchor, nodes: siblingRects(anchor, count).map(reservedNode) }
     },
-    [nodes, centreOfView],
+    [nodes, visibleRect],
   )
 
   const send = useCallback(
@@ -112,7 +106,7 @@ export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Opt
       return {
         ok: true,
         nodes: rects.map((rect, index) => ({
-          ...reserved(rect),
+          ...reservedNode(rect),
           id: result.nodeIds[index] ?? `${result.jobId}:${index}`,
           jobId: result.jobId,
         })),
@@ -127,28 +121,4 @@ export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Opt
   )
 
   return { reserve, send }
-}
-
-/**
- * An empty rectangle in the generating state.
- *
- * Its id is deliberately not uuid-shaped. Nothing with this id exists in the
- * database yet, and a temporary id that looks like a real one is a temporary id
- * somebody will eventually send to the server.
- */
-let held = 0
-function reserved(rect: Rect): CanvasNodeView {
-  held += 1
-  return {
-    id: `reserved-${held}`,
-    assetId: null,
-    ...rect,
-    jobId: null,
-    status: 'pending',
-    kind: null,
-    label: null,
-    url: null,
-    durationMs: null,
-    error: null,
-  }
 }

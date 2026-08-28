@@ -29,6 +29,9 @@ type BoardProps = {
   onMove: (id: string, position: { x: number; y: number }) => void
   onGuides: (guides: Guide[]) => void
   onCommit: (id: string, position: { x: number; y: number }) => void
+  /** Live while the corner is dragged, and again on release, which is written. */
+  onResize: (id: string, size: { width: number; height: number }) => void
+  onResizeCommit: (id: string, size: { width: number; height: number }) => void
   onDelete: (id: string) => void
   onZoom: (factor: number) => void
   onFit: () => void
@@ -132,6 +135,8 @@ export function Board(props: BoardProps) {
             onMove={(position) => props.onMove(node.id, position)}
             onGuides={props.onGuides}
             onCommit={(position) => props.onCommit(node.id, position)}
+            onResize={(size) => props.onResize(node.id, size)}
+            onResizeCommit={(size) => props.onResizeCommit(node.id, size)}
             onDelete={() => props.onDelete(node.id)}
           />
         ))}

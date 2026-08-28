@@ -242,6 +242,162 @@ test.describe('@live against real fal', () => {
     await expect(page.locator('[data-dock] article button')).toHaveCount(0)
   })
 
+  test('a node can be resized, by pointer and by keyboard, and it stays @live', async ({
+    page,
+  }) => {
+    /*
+     * Only provable here. Without a real fal the submit fails, the reserved
+     * rectangle is taken back, and there is nothing left to pick up a handle on.
+     */
+    await generate(page, 'schnell', 'a smooth river stone, macro')
+    const node = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first()
+    await expect(node.locator('img')).toBeVisible({ timeout: 300_000 })
+
+    // A handle on every node is forty handles on a board of forty, all of them
+    // one pixel from something you meant to drag.
+    const handle = page.getByRole('button', { name: /^Resize/ })
+    await expect(handle).toHaveCount(0)
+    await node.click()
+    await expect(handle).toBeVisible()
+
+    const before = await node.boundingBox()
+    const grip = await handle.boundingBox()
+    if (!before || !grip) throw new Error('nothing to resize')
+
+    await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(grip.x + 200, grip.y + 140, { steps: 10 })
+    await page.mouse.up()
+
+    // Retrying: a bounding box read the instant the pointer lifts is read
+    // before React has re-rendered, and `toBeGreaterThan` on a plain number
+    // does not wait.
+    await expect(async () => {
+      expect((await node.boundingBox())?.width ?? 0).toBeGreaterThan(before.width)
+    }).toPass()
+
+    const bigger = await node.boundingBox()
+    // The aspect is kept: the media is drawn with object-cover, so a free
+    // resize would not stretch the picture, it would crop it.
+    expect((bigger?.width ?? 1) / (bigger?.height ?? 1)).toBeCloseTo(
+      before.width / before.height,
+      1,
+    )
+
+    // And a handle only a pointer can reach is a feature that does not exist
+    // for anyone using a keyboard.
+    await handle.focus()
+    await page.keyboard.press('ArrowLeft')
+    await expect(async () => {
+      expect((await node.boundingBox())?.width ?? 0).toBeLessThan(bigger?.width ?? 0)
+    }).toPass()
+
+    const settled = await node.boundingBox()
+    await page.reload()
+    await expect(node.locator('img')).toBeVisible({ timeout: 30_000 })
+    expect(Math.round((await node.boundingBox())?.width ?? 0)).toBe(Math.round(settled?.width ?? 0))
+  })
+
+  test('generations lay out in reading order and the board follows @live', async ({ page }) => {
+    await withKey(page)
+    await page.goto('/c')
+    await page.getByRole('button', { name: 'New canvas' }).click()
+    await page.waitForURL(/\/c\/[0-9a-f-]{36}/)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page
+      .getByRole('option', { name: /schnell/ })
+      .first()
+      .click()
+
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    for (let made = 0; made < 5; made++) {
+      await page.getByLabel('Prompt', { exact: true }).fill(`a smooth river stone ${made}`)
+      await page.getByRole('button', { name: /^Generate/ }).click()
+      await expect(nodes).toHaveCount(made + 1)
+      await page.waitForTimeout(400)
+    }
+
+    /*
+     * Reading order, on the grid, nothing twice. It used to sweep right from
+     * the centre of the view for the first gap that fit, and start from the
+     * centre again every time the board was panned, so two generations made
+     * half an hour apart could land on each other's neighbours.
+     */
+    const placed = await page.evaluate(() =>
+      [...document.querySelectorAll('[role=option]')].map(
+        (node) => `${(node as HTMLElement).style.left},${(node as HTMLElement).style.top}`,
+      ),
+    )
+    expect(new Set(placed).size).toBe(placed.length)
+    for (const spot of placed) {
+      const [x, y] = spot.split(',').map((value) => Number.parseInt(value, 10))
+      expect((x ?? 0) % 32).toBe(0)
+      expect((y ?? 0) % 32).toBe(0)
+    }
+
+    // And the newest is on screen, because a tidy layout nobody can see is not
+    // a tidy layout.
+    const last = await nodes.last().boundingBox()
+    expect(last?.y ?? -1).toBeGreaterThan(0)
+  })
+
+  test('a second generation does not take the first one rectangles away @live', async ({
+    page,
+  }) => {
+    /*
+     * A job settling handed back every row the server knew about, and it does
+     * not know about rectangles another generation is still holding, because
+     * those exist only in the browser until their own request returns.
+     */
+    await withKey(page)
+    await page.goto('/c')
+    await page.getByRole('button', { name: 'New canvas' }).click()
+    await page.waitForURL(/\/c\/[0-9a-f-]{36}/)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page
+      .getByRole('option', { name: /schnell/ })
+      .first()
+      .click()
+
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await page.getByLabel('Prompt', { exact: true }).fill('the first one')
+    await page.getByRole('button', { name: /^Generate/ }).click()
+    await page.getByLabel('Prompt', { exact: true }).fill('the second one')
+    await page.getByRole('button', { name: /^Generate/ }).click()
+
+    await expect(nodes).toHaveCount(2)
+    await expect(nodes.nth(1).locator('img')).toBeVisible({ timeout: 300_000 })
+    await expect(nodes).toHaveCount(2)
+  })
+
+  test('a clip plays with our own controls, not the browser chrome @live', async ({ page }) => {
+    await generate(page, 'MiniMax H3 Max', 'a paper boat drifting down a rain gutter')
+    const node = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first()
+    await expect(node.locator('video')).toBeVisible({ timeout: 540_000 })
+
+    /*
+     * The native bar is a fixed height in screen pixels, so on a node scaled to
+     * 40% it covers a third of the picture, and it draws in the browser's own
+     * idiom, so the board looks like three different products depending on who
+     * is using it.
+     */
+    await expect(node.locator('video')).not.toHaveAttribute('controls', /.*/)
+    await expect(node.getByRole('button', { name: 'Play', exact: true })).toBeVisible()
+    await expect(node.getByRole('slider', { name: 'Seek' })).toBeVisible()
+
+    await node.getByRole('button', { name: 'Play', exact: true }).click()
+    await expect(node.getByRole('button', { name: 'Pause' })).toBeVisible()
+    await expect(async () => {
+      const at = await page.evaluate(() => document.querySelector('video')?.currentTime ?? 0)
+      expect(at).toBeGreaterThan(0)
+    }).toPass({ timeout: 15_000 })
+
+    // Muted by default, because twenty clips on a board should not all talk.
+    expect(await page.evaluate(() => document.querySelector('video')?.muted)).toBe(true)
+    await node.getByRole('button', { name: 'Unmute' }).click()
+    expect(await page.evaluate(() => document.querySelector('video')?.muted)).toBe(false)
+  })
+
   /*
    * The three below are the only place these can be proved. The mocked suite
    * never completes a job, so a placeholder never fills, an info button never

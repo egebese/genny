@@ -6,6 +6,7 @@ import { cn } from '@genny/ui/cn.ts'
 import { Icon } from '@genny/ui/icon.tsx'
 import type { CanvasNodeView } from '../node-view.ts'
 import { NodeMedia } from './node-media.tsx'
+import { ResizeHandle } from './resize-handle.tsx'
 import { useNodeDrag } from './use-node-drag.ts'
 
 type CanvasNodeProps = {
@@ -24,6 +25,8 @@ type CanvasNodeProps = {
   onMove: (position: { x: number; y: number }) => void
   onCommit: (position: { x: number; y: number }) => void
   onGuides: (guides: Guide[]) => void
+  onResize: (size: { width: number; height: number }) => void
+  onResizeCommit: (size: { width: number; height: number }) => void
   onDelete: () => void
 }
 
@@ -99,6 +102,14 @@ export function CanvasNode(props: CanvasNodeProps) {
     >
       <NodeMedia node={node} />
       <InspectButton node={node} selected={selected} onInspect={props.onInspect} />
+      {selected ? (
+        <ResizeHandle
+          node={node}
+          viewport={viewport}
+          onResize={props.onResize}
+          onCommit={props.onResizeCommit}
+        />
+      ) : null}
     </div>
   )
 }

@@ -1,9 +1,11 @@
 'use client'
 
-import type { Rect } from '@genny/canvas/geometry.ts'
-import { nodeSize, placeFree, rowFootprint, siblingRects } from '@genny/canvas/placement.ts'
+import { placeInFlow, snap } from '@genny/canvas/flow.ts'
+import { overlaps, type Rect } from '@genny/canvas/geometry.ts'
+import { NODE_GAP, nodeSize, rowFootprint, siblingRects } from '@genny/canvas/placement.ts'
 import { useCallback } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
+import { reservedNode } from '../reserved.ts'
 import { makeVariants } from '../server/make-variants.ts'
 
 /** Four. Enough to see a direction, few enough to read at once and to pay for. */
@@ -23,19 +25,30 @@ export type VariantOutcome = { ok: true; nodes: CanvasNodeView[] } | { ok: false
  * image starts, and that is two seconds during which the count and the
  * positions are already known and no reason for the board to look empty.
  */
-export function useVariants(canvasId: string, nodes: CanvasNodeView[]) {
+export function useVariants(canvasId: string, nodes: CanvasNodeView[], visibleRect: () => Rect) {
   const reserve = useCallback(
     (source: CanvasNodeView): { rects: Rect[]; nodes: CanvasNodeView[] } => {
       const size = nodeSize(source)
       const footprint = rowFootprint(size, VARIANT_COUNT)
-      const anchor = {
-        ...placeFree(nodes, { x: source.x, y: source.y + source.height + 24 }, footprint),
-        ...size,
+      /*
+       * Directly under the node they came from when that row is free, because
+       * variants of a thing belong with the thing. Otherwise wherever the board
+       * is flowing, which is at least somewhere they are looking.
+       */
+      const under = {
+        x: snap(source.x),
+        y: snap(source.y + source.height + NODE_GAP),
+        ...footprint,
       }
+      const clear = !nodes.some((other) => overlaps(under, other))
+      const anchor = clear
+        ? { x: under.x, y: under.y, ...size }
+        : { ...placeInFlow({ taken: nodes, view: visibleRect(), size: footprint }), ...size }
+
       const rects = siblingRects(anchor, VARIANT_COUNT)
       return { rects, nodes: rects.map(reservedNode) }
     },
-    [nodes],
+    [nodes, visibleRect],
   )
 
   const send = useCallback(
@@ -62,31 +75,4 @@ export function useVariants(canvasId: string, nodes: CanvasNodeView[]) {
   )
 
   return { reserve, send }
-}
-
-/**
- * An empty rectangle in the generating state.
- *
- * Its id is deliberately not uuid-shaped. Nothing with this id exists in the
- * database yet, and a temporary id that looks like a real one is a temporary id
- * somebody will eventually send to the server.
- */
-let held = 0
-function reservedNode(rect: Rect): CanvasNodeView {
-  held += 1
-  return {
-    id: `reserved-v${held}`,
-    assetId: null,
-    x: rect.x,
-    y: rect.y,
-    width: rect.width,
-    height: rect.height,
-    jobId: null,
-    status: 'pending',
-    kind: null,
-    label: null,
-    url: null,
-    durationMs: null,
-    error: null,
-  }
 }

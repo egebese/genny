@@ -38,13 +38,10 @@ export function Canvas(props: CanvasPage) {
     },
     [canvasId],
   )
-  const view = useViewport({ initial: props.viewport, surface, onPersist: savePan })
+  const view = useViewport({ initial: props.viewport, surface, dock, onPersist: savePan })
   const handles = useMentionables(props.mentionables)
-  const { nodes, running, beginDrag, move, commit, remove, add, replace, settle } = useBoardNodes(
-    canvasId,
-    props.nodes,
-    handles.learn,
-  )
+  const { nodes, running, beginDrag, move, commit, size, sized, remove, add, replace, settle } =
+    useBoardNodes(canvasId, props.nodes, handles.learn)
   const pinned = useAttachments()
   const composer = useComposer(props.models, pinned.moveTo)
   const { families, family, settings, prompt } = composer
@@ -66,15 +63,16 @@ export function Canvas(props: CanvasPage) {
     canvasId,
     nodes,
     mentionables: handles.mentionables,
-    centreOfView: view.centreOfView,
+    visibleRect: view.visibleRect,
   })
-  const variants = useVariants(canvasId, nodes)
+  const variants = useVariants(canvasId, nodes, view.visibleRect)
   const director = useDirector(canvasId)
   const [directing, setDirecting] = useState(false)
   const { pending, error, submit, runVariants } = useSubmit({
     generate,
     variants,
     onPlaced: add,
+    onReveal: view.reveal,
     onReplace: replace,
   })
 
@@ -119,6 +117,8 @@ export function Canvas(props: CanvasPage) {
         onMove={move}
         onGuides={setGuides}
         onCommit={commit}
+        onResize={size}
+        onResizeCommit={sized}
         onDelete={(id) => act.removeNodes([id])}
         onZoom={view.zoomBy}
         onFit={() => view.fit(nodes)}

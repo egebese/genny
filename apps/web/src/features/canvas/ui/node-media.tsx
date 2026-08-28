@@ -3,6 +3,7 @@
 import { Skeleton } from '@genny/ui/skeleton.tsx'
 import { Spinner } from '@genny/ui/spinner.tsx'
 import type { CanvasNodeView } from '../node-view.ts'
+import { VideoPlayer } from './video-player.tsx'
 
 /** What fills a node's rectangle, which is a different thing per kind and per state. */
 export function NodeMedia({ node }: { node: CanvasNodeView }) {
@@ -26,21 +27,7 @@ export function NodeMedia({ node }: { node: CanvasNodeView }) {
     )
   }
 
-  if (node.kind === 'video') {
-    return (
-      // Controls rather than a custom scrubber: the native one is keyboard
-      // reachable and already translated into every language we are not.
-      //
-      // biome-ignore lint/a11y/useMediaCaption: freshly generated media has no caption track and an empty one claims otherwise
-      <video
-        src={node.url}
-        controls
-        playsInline
-        preload="metadata"
-        className="h-full w-full bg-black object-cover"
-      />
-    )
-  }
+  if (node.kind === 'video') return <VideoPlayer src={node.url} />
 
   if (node.kind === 'audio') {
     return (
