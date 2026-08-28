@@ -1042,6 +1042,39 @@ test.describe('models that require a reference', () => {
     await expect(page.getByText(/Mention one with/)).toHaveCount(0)
   })
 
+  test('a list the model insists on is asked for, and filled in place', async ({ page }) => {
+    test.skip(mode !== 'saas', 'the dock needs credentials to render')
+    /*
+     * H3's LoRA endpoints take `[{path, scale}]` and refuse to run without at
+     * least one. The catalog had no way to say that, so those endpoints could
+     * not be called at all; a required list also has no useful default, since
+     * an empty one fails fal's own minimum, so the dock has to ask.
+     */
+    await openCanvas(page)
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page.getByPlaceholder('Search models').fill('LoRA')
+    await page.getByRole('option', { name: /LoRA/ }).first().click()
+
+    await fillPrompt(page, 'a kite over a car park')
+    const generate = page.getByRole('button', { name: /^Generate/ })
+    await expect(page.getByText(/needs at least one lora/i)).toBeVisible()
+    await expect(generate).toBeDisabled()
+
+    const chip = page.getByRole('button', { name: 'LoRAs' })
+    await expect(chip).toContainText('none')
+    await chip.click()
+    await page.getByRole('button', { name: /^Add loras$/i }).click()
+
+    await page.getByRole('textbox', { name: 'Weights URL' }).fill('owner/repo/lora.safetensors')
+    // The strength column carries the catalog's own default, untouched.
+    await expect(page.getByRole('spinbutton', { name: 'Strength' })).toHaveValue('1')
+
+    await page.keyboard.press('Escape')
+    await expect(chip).toContainText('1')
+    await expect(page.getByText(/needs at least one lora/i)).toHaveCount(0)
+    await expect(generate).toBeEnabled()
+  })
+
   test('a model with nothing to type still runs, on what it is given', async ({ page }) => {
     test.skip(mode !== 'saas', 'the dock needs credentials to render')
     /*

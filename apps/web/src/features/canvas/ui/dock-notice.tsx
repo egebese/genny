@@ -3,7 +3,11 @@
 import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 
-export type DockBlock = { kind: 'needs-reference' } | { kind: 'cannot-take' } | null
+export type DockBlock =
+  | { kind: 'needs-reference' }
+  | { kind: 'cannot-take' }
+  | { kind: 'needs-rows'; label: string }
+  | null
 
 /**
  * Why generate is disabled.
@@ -23,6 +27,8 @@ export function whyBlocked(context: {
   mentionCount: number
   attachmentCount: number
   carrying: boolean
+  /** What the dock is holding, so a list the model insists on can be checked. */
+  settings: Record<string, unknown>
 }): DockBlock {
   /*
    * Two ways nothing resolves, and they are opposite problems. Nothing was
@@ -46,11 +52,34 @@ export function whyBlocked(context: {
   ) {
     return { kind: 'needs-reference' }
   }
-  return null
+  /*
+   * A list the endpoint refuses to run without, still empty.
+   *
+   * `required-inputs-can-arrive` lets a required list ship without a default,
+   * because fal asks for at least one row and an empty list fails its own
+   * minimum, so there is no default that would work. This is the other half of
+   * that exemption: without it the generation is refused by the model's own
+   * schema after the money, which is the failure the rule exists to prevent.
+   */
+  const empty = context.model.inputs.find((input) => {
+    if (input.type !== 'object-array' || !input.required) return false
+    const rows = context.settings[input.name]
+    return !Array.isArray(rows) || rows.length === 0
+  })
+  return empty ? { kind: 'needs-rows', label: empty.label } : null
 }
 
 export function DockNotice(props: { block: DockBlock; family: PickableFamily }) {
   if (!props.block) return null
+
+  if (props.block.kind === 'needs-rows') {
+    return (
+      <p className="border-line border-t px-4 py-2 text-ink-muted text-sm">
+        {props.family.name} needs at least one {props.block.label.toLowerCase().replace(/s$/, '')}.
+        Open <span className="text-ink">{props.block.label}</span> below and add one.
+      </p>
+    )
+  }
 
   if (props.block.kind === 'needs-reference') {
     return (

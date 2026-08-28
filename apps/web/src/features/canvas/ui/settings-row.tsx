@@ -36,8 +36,8 @@ type SettingsRowProps = {
 export function SettingsRow(props: SettingsRowProps) {
   const [showAll, setShowAll] = useState(false)
   const scroller = useRef<HTMLDivElement>(null)
-  const primary = props.model.inputs.filter((input) => isPrimary(input.name))
-  const secondary = props.model.inputs.filter((input) => !isPrimary(input.name))
+  const primary = props.model.inputs.filter(isPrimary)
+  const secondary = props.model.inputs.filter((input) => !isPrimary(input))
   const edges = useOverflow(scroller, `${props.model.endpointId}:${showAll}`)
 
   const nudge = (by: number) => scroller.current?.scrollBy({ left: by, behavior: 'smooth' })

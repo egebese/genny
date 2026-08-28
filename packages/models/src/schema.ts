@@ -71,10 +71,10 @@ export const referenceMapping = z.object({
   token: z.enum(['strip', 'keep-label']).default('strip'),
 })
 
-/** A single control we expose in the studio for this model. */
-export const modelInput = z.object({
+/** The part of a control that is the same whether it stands alone or is one
+ * column of a repeated row. */
+const control = z.object({
   name: z.string().min(1),
-  type: z.enum(['string', 'integer', 'number', 'boolean', 'enum']),
   label: z.string().min(1),
   required: z.boolean().default(false),
   default: z.unknown().optional(),
@@ -88,6 +88,30 @@ export const modelInput = z.object({
   max: z.number().optional(),
   /** Hidden inputs are sent but never rendered, for things like safety flags. */
   hidden: z.boolean().default(false),
+})
+
+const scalarType = z.enum(['string', 'integer', 'number', 'boolean', 'enum'])
+
+/** One column of a repeated row. Rows do not nest: a LoRA has a path and a
+ * weight, and a model that wanted a list of lists would be a different problem. */
+export const objectField = control.extend({ type: scalarType })
+
+/** A single control we expose in the studio for this model. */
+export const modelInput = control.extend({
+  /**
+   * `object-array` is a list of rows, each row a small set of scalars.
+   *
+   * fal spells several things this way and one of them is not optional: the
+   * `loras` on MiniMax H3's LoRA endpoints is `[{path, scale}]` and it is
+   * required, so those endpoints could not be called at all while the catalog
+   * had no way to say it. FLUX 3's keyframes and Kling's elements are the same
+   * shape.
+   */
+  type: z.enum([...scalarType.options, 'object-array']),
+  /** The columns of one row. Required for `object-array`, absent otherwise;
+   * `rows-are-described` checks both directions. `min` and `max` bound how many
+   * rows there may be. */
+  fields: z.array(objectField).optional(),
 })
 
 export const modelDefinition = z.object({
@@ -155,5 +179,6 @@ export const modelDefinition = z.object({
 
 export type ModelDefinition = z.infer<typeof modelDefinition>
 export type ModelInput = z.infer<typeof modelInput>
+export type ObjectField = z.infer<typeof objectField>
 export type ReferenceMapping = z.infer<typeof referenceMapping>
 export type ReferenceRole = z.infer<typeof referenceRole>

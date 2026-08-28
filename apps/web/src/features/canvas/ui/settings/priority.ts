@@ -23,6 +23,17 @@ const PRIMARY = new Set([
   'voice',
 ])
 
-export function isPrimary(name: string): boolean {
-  return PRIMARY.has(name)
+export function isPrimary(input: { name: string; type: string; required: boolean }): boolean {
+  /*
+   * A control the generation cannot run without is always in front, whatever
+   * the list says. H3's LoRA endpoints refuse to run with an empty `loras`, and
+   * the dock says so and points at the control; putting that control behind the
+   * adjust button makes the instruction a small puzzle.
+   *
+   * Only lists, because only a list can be required and still absent: every
+   * other required control carries a default, which `required-inputs-can-arrive`
+   * insists on.
+   */
+  if (input.type === 'object-array' && input.required) return true
+  return PRIMARY.has(input.name)
 }

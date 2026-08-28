@@ -17,6 +17,7 @@ describe('the catalog contract', () => {
       'has-something-to-work-from',
       'count-is-bounded',
       'required-inputs-can-arrive',
+      'rows-are-described',
       'enum-options-exist',
       'default-is-an-option',
       'slots-are-describable',

@@ -1,5 +1,5 @@
 import { type ZodType, z } from 'zod'
-import type { ModelDefinition, ModelInput } from './schema.ts'
+import type { ModelDefinition, ModelInput, ObjectField } from './schema.ts'
 
 /**
  * Builds a validator from the model's own declared inputs, so a payload is
@@ -20,7 +20,7 @@ export function buildInputSchema(model: ModelDefinition): ZodType<Record<string,
   return z.object(shape).strict()
 }
 
-function fieldSchema(input: ModelInput): ZodType {
+function fieldSchema(input: ModelInput | ObjectField): ZodType {
   switch (input.type) {
     case 'string':
       return z.string().min(1).max(8000)
@@ -34,10 +34,31 @@ function fieldSchema(input: ModelInput): ZodType {
       return bounded(z.int(), input)
     case 'number':
       return bounded(z.number(), input)
+    case 'object-array':
+      return rowsSchema(input)
   }
 }
 
-function bounded(base: z.ZodNumber, input: ModelInput): ZodType {
+/**
+ * A list of rows, each row validated column by column.
+ *
+ * Strict like the payload itself: an extra key in a row is a field fal has
+ * never heard of, and finding that out from a 422 costs a round trip and tells
+ * nobody which row it was. `min` and `max` bound the list rather than a number,
+ * which is what they mean on a repeated control.
+ */
+function rowsSchema(input: ModelInput): ZodType {
+  const shape: Record<string, ZodType> = {}
+  for (const field of input.fields ?? []) {
+    shape[field.name] = applyOptionality(field, fieldSchema(field))
+  }
+  let rows = z.array(z.object(shape).strict())
+  if (input.min !== undefined) rows = rows.min(input.min)
+  if (input.max !== undefined) rows = rows.max(input.max)
+  return rows
+}
+
+function bounded(base: z.ZodNumber, input: ModelInput | ObjectField): ZodType {
   let schema = base
   if (input.min !== undefined) schema = schema.min(input.min)
   if (input.max !== undefined) schema = schema.max(input.max)
@@ -53,7 +74,7 @@ function bounded(base: z.ZodNumber, input: ModelInput): ZodType {
  * only sends what someone changed. Every untouched generation on such a model
  * was refused before it left us, with a sentence that blamed the settings.
  */
-function applyOptionality(input: ModelInput, schema: ZodType): ZodType {
+function applyOptionality(input: ModelInput | ObjectField, schema: ZodType): ZodType {
   if (input.default !== undefined) return schema.default(input.default)
   return input.required ? schema : schema.optional()
 }

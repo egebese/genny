@@ -1,9 +1,11 @@
 import type { CatalogEntry } from './catalog.ts'
+import { PRICING_RULES } from './contract-pricing.ts'
 import { familyViolations, orderViolations } from './contract-set.ts'
-import { DURATION_FIELDS } from './duration.ts'
 import { allSlots } from './slots.ts'
 
 export type Violation = { endpointId: string; rule: string; detail: string }
+
+export type Rule = { rule: string; check: (entry: CatalogEntry) => string | null }
 
 /**
  * What every catalog entry has to be true of.
@@ -17,10 +19,7 @@ export type Violation = { endpointId: string; rule: string; detail: string }
  * in `catalog:sync`, and one day in an admin panel that adds a model without a
  * deploy.
  */
-const RULES: {
-  rule: string
-  check: (entry: CatalogEntry) => string | null
-}[] = [
+const RULES: Rule[] = [
   {
     rule: 'prompt-field-exists',
     check: ({ definition }) => {
@@ -61,13 +60,22 @@ const RULES: {
   {
     rule: 'required-inputs-can-arrive',
     check: ({ definition }) => {
-      // The dock starts with no settings and sends what was changed, so a
-      // required control nobody touched is simply absent. The prompt is exempt:
-      // it is injected by name rather than carried in settings.
+      /*
+       * The dock starts with no settings and sends what was changed, so a
+       * required control nobody touched is simply absent.
+       *
+       * Two exemptions, and both are things the dock can ask for out loud. The
+       * prompt is injected by name rather than carried in settings. A required
+       * list of rows cannot have a useful default either, because fal asks for
+       * at least one and an empty list fails its own minimum; the dock holds
+       * Generate back and says which list is empty, the way it already does for
+       * a missing reference.
+       */
       const stuck = definition.inputs.find(
         (input) =>
           input.required &&
           input.default === undefined &&
+          input.type !== 'object-array' &&
           input.name !== definition.promptField &&
           !input.hidden,
       )
@@ -77,11 +85,28 @@ const RULES: {
     },
   },
   {
+    rule: 'rows-are-described',
+    check: ({ definition }) => {
+      for (const input of definition.inputs) {
+        const rows = input.type === 'object-array'
+        // Both directions. A list with no columns renders as nothing and sends
+        // whatever it is given; columns on a control that is not a list are a
+        // catalog author expecting a shape the dock will never draw.
+        if (rows && (input.fields?.length ?? 0) === 0) {
+          return `${input.name} is a list of rows and names no columns`
+        }
+        if (!rows && input.fields !== undefined) {
+          return `${input.name} names columns but is a ${input.type}, not a list of rows`
+        }
+      }
+      return null
+    },
+  },
+  {
     rule: 'enum-options-exist',
     check: ({ definition }) => {
-      const empty = definition.inputs.find(
-        (input) => input.type === 'enum' && (input.enum?.length ?? 0) === 0,
-      )
+      const every = [...definition.inputs, ...definition.inputs.flatMap((i) => i.fields ?? [])]
+      const empty = every.find((input) => input.type === 'enum' && (input.enum?.length ?? 0) === 0)
       return empty ? `${empty.name} is an enum with no options` : null
     },
   },
@@ -116,44 +141,7 @@ const RULES: {
       return null
     },
   },
-  {
-    rule: 'priced-in-a-unit-we-can-estimate',
-    check: ({ definition }) => {
-      const { pricing } = definition
-      if (pricing.unitPriceUsd <= 0) return 'unitPriceUsd is zero or negative'
-      if (pricing.unit !== 'seconds' && pricing.unit !== 'minutes') return null
-      // Either the length is a control, or the entry says what to assume. The
-      // second case is real: some endpoints choose their own length, and one
-      // that bills by the second and picks its own has to declare a ceiling.
-      if (pricing.duration?.assume !== undefined) return null
-      const named = pricing.duration?.field
-      const found = definition.inputs.some((input) =>
-        named ? input.name === named : DURATION_FIELDS.includes(input.name),
-      )
-      if (found) return null
-      return named
-        ? `pricing names ${named} as its duration, which is not an input`
-        : `billed per ${pricing.unit.replace(/s$/, '')} with no duration input and no assumed length`
-    },
-  },
-  {
-    rule: 'conditional-rates-are-decided',
-    check: ({ definition }) => {
-      for (const rate of definition.pricing.scale ?? []) {
-        const field = definition.inputs.find((input) => input.name === rate.field)
-        if (!field) return `pricing scales on ${rate.field}, which is not an input`
-        const unknown = Object.keys(rate.factors).find(
-          (value) => !field.enum?.some((option) => String(option) === value),
-        )
-        if (unknown) return `pricing scales on ${rate.field}="${unknown}", not an option`
-      }
-      for (const fee of definition.pricing.surcharges ?? []) {
-        const field = definition.inputs.find((input) => input.name === fee.field)
-        if (!field) return `pricing surcharges on ${fee.field}, which is not an input`
-      }
-      return null
-    },
-  },
+  ...PRICING_RULES,
   {
     rule: 'family-agrees-on-its-name',
     check: () => null,

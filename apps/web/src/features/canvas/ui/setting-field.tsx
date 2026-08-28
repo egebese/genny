@@ -6,6 +6,7 @@ import { settingIcon } from './setting-icon.ts'
 import { AspectChip } from './settings/aspect-chip.tsx'
 import { CHIP, CHIP_GLYPH, CHIP_LABEL } from './settings/chip.ts'
 import { CountChip } from './settings/count-chip.tsx'
+import { type Row, RowsChip } from './settings/rows-chip.tsx'
 import { ScaleChip } from './settings/scale-chip.tsx'
 import { SelectChip } from './settings/select-chip.tsx'
 
@@ -29,6 +30,10 @@ const ASPECTS = new Set(['aspect_ratio', 'image_size', 'ratio'])
  */
 export function SettingField({ input, value, onChange }: SettingFieldProps) {
   const current = value ?? input.default
+
+  if (input.type === 'object-array') {
+    return <RowsChip input={input} rows={rowsOf(current)} onChange={onChange} />
+  }
 
   if (input.type === 'enum' && input.enum) {
     /*
@@ -118,4 +123,12 @@ function clamp(value: number, input: ModelInput): number {
   const low = input.min ?? Number.NEGATIVE_INFINITY
   const high = input.max ?? Number.POSITIVE_INFINITY
   return Math.min(high, Math.max(low, value))
+}
+
+/** Whatever is in settings, read as rows. Narrowed rather than asserted: this
+ * value has been through a round trip and a hand-edited clipboard is not the
+ * only way it could arrive as something else. */
+function rowsOf(value: unknown): Row[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((row): row is Row => typeof row === 'object' && row !== null)
 }

@@ -1,0 +1,101 @@
+{
+  "endpointId": "minimax/h3/text-to-video/lora",
+  "family": {
+    "id": "h3-lora",
+    "name": "MiniMax H3 LoRA"
+  },
+  "modality": "video",
+  "group": "Text to Video",
+  "displayName": "MiniMax H3 Text to Video LoRA",
+  "description": "H3 driven by one to three LoRA weights of your own. Point it at a .safetensors on Hugging Face and set how hard each one pulls.",
+  "sortOrder": 2110,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.1625,
+    "note": "fal publishes this per second of output: $0.0625 at 480P, $0.075 at 768P, $0.1625 at 2K and $0.20 at 4K. Priced from the 2K default and scaled from there. genmedia reports $0.00017 per compute second, which is not what a request is charged; reading that row is how H3 Max shipped at a two hundredth of its cost.",
+    "waiveDriftCheck": true,
+    "scale": [
+      {
+        "field": "resolution",
+        "factors": {
+          "480P": 0.3846,
+          "768P": 0.4615,
+          "4K": 1.2308
+        }
+      }
+    ]
+  },
+  "creditMultiplier": 1.25,
+  "inputs": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "label": "Prompt",
+      "required": true
+    },
+    {
+      "name": "loras",
+      "type": "object-array",
+      "label": "LoRAs",
+      "required": true,
+      "min": 1,
+      "max": 3,
+      "fields": [
+        {
+          "name": "path",
+          "type": "string",
+          "label": "Weights URL",
+          "required": true
+        },
+        {
+          "name": "scale",
+          "type": "number",
+          "label": "Strength",
+          "default": 1,
+          "min": 0,
+          "max": 4
+        }
+      ]
+    },
+    {
+      "name": "duration",
+      "type": "integer",
+      "label": "Length",
+      "default": 5,
+      "min": 5,
+      "max": 15
+    },
+    {
+      "name": "resolution",
+      "type": "enum",
+      "label": "Resolution",
+      "default": "2K",
+      "enum": ["480P", "768P", "2K", "4K"]
+    },
+    {
+      "name": "aspect_ratio",
+      "type": "enum",
+      "label": "Aspect",
+      "default": "16:9",
+      "enum": ["21:9", "16:9", "4:3", "1:1", "3:4", "9:16"]
+    },
+    {
+      "name": "prompt_expansion_mode",
+      "type": "enum",
+      "label": "Prompt expansion",
+      "default": "balanced",
+      "enum": ["disabled", "fast", "balanced", "quality"]
+    },
+    {
+      "name": "seed",
+      "type": "integer",
+      "label": "Seed"
+    }
+  ],
+  "references": [],
+  "capabilities": {
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/minimax.svg"
+}

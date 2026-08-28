@@ -111,6 +111,7 @@ export function PromptDock(props: PromptDockProps) {
     mentionCount: mentionedLabels(prompt).length,
     attachmentCount: props.attachments.length,
     carrying: props.mentions.length > 0 || props.attachments.length > 0,
+    settings,
   })
 
   return (
