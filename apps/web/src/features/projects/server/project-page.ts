@@ -2,6 +2,7 @@ import { assetUrl } from '@genny/assets/urls.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { type BrandRole, listBrandKit } from '@genny/db/repositories/brand-kit.ts'
+import { latestMemory, type MemoryFacts } from '@genny/db/repositories/canvas-memory.ts'
 import { listCanvases } from '@genny/db/repositories/canvases.ts'
 import { findProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
@@ -24,6 +25,14 @@ export type ProjectView = {
   /** The project's own material: the logo, the products, the shots to work from. */
   pinned: PinnedAsset[]
   canvases: CanvasCard[]
+  /**
+   * What each board turned out to be about, read back from the work on it.
+   *
+   * Shown rather than merged into the brief. The brief is the owner's sentence
+   * and this is an observation, and a system that quietly rewrites the first
+   * with the second is one nobody can correct.
+   */
+  observed: { canvasId: string; title: string; facts: MemoryFacts }[]
 }
 
 export async function projectView(projectId: string): Promise<ProjectView | null> {
@@ -41,6 +50,12 @@ export async function projectView(projectId: string): Promise<ProjectView | null
     withActor(db, actorId, (tx) => listBrandKit(tx, projectId)),
   ])
 
+  const readings = await withActor(db, actorId, async (tx) =>
+    Promise.all(
+      canvases.map(async (canvas) => [canvas, await latestMemory(tx, canvas.id)] as const),
+    ),
+  )
+
   return {
     id: project.id,
     title: project.title,
@@ -53,6 +68,13 @@ export async function projectView(projectId: string): Promise<ProjectView | null
       url: assetUrl({ id: item.assetId, label: item.label, storageKey: item.storageKey }),
       kind: item.kind,
     })),
+    observed: readings
+      .filter(([, memory]) => memory !== null)
+      .map(([canvas, memory]) => ({
+        canvasId: canvas.id,
+        title: canvas.title,
+        facts: (memory as NonNullable<typeof memory>).facts,
+      })),
     canvases: canvases.map((row) => ({
       id: row.id,
       title: row.title,

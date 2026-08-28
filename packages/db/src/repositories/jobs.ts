@@ -7,6 +7,17 @@ export type JobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancele
 export type StoredPrompt = {
   text: string
   references: { token: string; label: string; kind: 'asset' | 'group'; id: string }[]
+  /**
+   * Assets pinned to a named input, by id.
+   *
+   * The payload records the fal url an attachment was uploaded to, which is a
+   * fact about one request and expires within the week. The id is the only
+   * durable record that this generation was made from something already in the
+   * library, which is what reading a board back later depends on.
+   *
+   * Optional because rows written before this existed do not have it.
+   */
+  attachments?: { field: string; assetId: string }[]
 }
 
 export type JobRecord = {

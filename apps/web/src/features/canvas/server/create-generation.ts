@@ -20,6 +20,7 @@ import { catalogueAsset } from '@/features/assets/server/catalogue.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 import type { GenerationResult } from '../schema.ts'
 import { prepareGeneration } from './prepare.ts'
+import { rememberIfDue } from './remember.ts'
 
 /**
  * Submits a generation and reserves its space on the board in the same call.
@@ -62,7 +63,11 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
     const job = await createJob(tx, {
       ownerId: actorId,
       endpointId: model.endpointId,
-      prompt: { text: request.prompt, references: request.references },
+      prompt: {
+        text: request.prompt,
+        references: request.references,
+        attachments: request.attachments,
+      },
       input: payload,
       creditsHeld: billing.tracksCredits ? held.held : undefined,
     })
@@ -99,6 +104,10 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
     for (const attachment of request.attachments) {
       after(() => catalogueAsset({ actorId, assetId: attachment.assetId }))
     }
+
+    // And every tenth node, the board is read back to itself. Also after the
+    // response: it is about what has already happened, so nothing waits on it.
+    after(() => rememberIfDue({ actorId, canvasId: request.canvasId }))
 
     return {
       ok: true,

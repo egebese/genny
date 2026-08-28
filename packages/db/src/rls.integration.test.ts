@@ -7,6 +7,7 @@ import { users } from './schema/auth.ts'
 import { projectAssets } from './schema/brand.ts'
 import { canvases, canvasNodes, projects } from './schema/canvas.ts'
 import { assetFacts } from './schema/facts.ts'
+import { canvasMemory } from './schema/memory.ts'
 import { startTestDatabase, type TestDatabase } from './testing/container.ts'
 
 let database: TestDatabase
@@ -269,6 +270,40 @@ describe('row level security', () => {
         }),
       ),
       /asset_facts_asset_owner_fk/,
+    )
+  })
+
+  it('refuses to file a reading against somebody else board', async () => {
+    const alicesCanvas = await withActor(database.app, alice, async (tx) => {
+      const [project] = await tx
+        .insert(projects)
+        .values({ ownerId: alice, title: 'Alice' })
+        .returning({ id: projects.id })
+      if (!project) throw new Error('project insert returned no row')
+      const [canvas] = await tx
+        .insert(canvases)
+        .values({ ownerId: alice, projectId: project.id, title: 'Board' })
+        .returning({ id: canvases.id })
+      if (!canvas) throw new Error('canvas insert returned no row')
+      return canvas.id
+    })
+
+    /*
+     * A reading carries the summary of everything somebody has been working on,
+     * which makes it the most descriptive row in the database about them. The
+     * composite key is what stops one being filed against a board that is not
+     * yours; RLS alone would allow it, because the row bob writes is bob's.
+     */
+    await expectPgError(
+      withActor(database.app, bob, (tx) =>
+        tx.insert(canvasMemory).values({
+          canvasId: alicesCanvas,
+          ownerId: bob,
+          nodeCountAt: 10,
+          facts: { summary: 'mine now' },
+        }),
+      ),
+      /canvas_memory_canvas_owner_fk/,
     )
   })
 

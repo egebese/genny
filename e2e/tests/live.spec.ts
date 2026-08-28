@@ -135,6 +135,65 @@ test.describe('@live against real fal', () => {
     await expect(page.getByText('Nothing matches that.')).toBeVisible()
   })
 
+  test('ten results in, the board says what it has turned out to be @live', async ({ page }) => {
+    /*
+     * Ten schnell images, a tenth of a cent each, then one text agent call. The
+     * only place this can be proved: whether the reading is any good is a
+     * question about a real model reading real prompts, and a mocked suite
+     * would assert that a row exists and learn nothing.
+     */
+    test.setTimeout(15 * 60 * 1000)
+    await withKey(page)
+    await page.goto('/c')
+    await page.getByRole('button', { name: 'New canvas' }).click()
+    await page.waitForURL(/\/c\/[0-9a-f-]{36}/)
+
+    await page.getByRole('button', { name: /^Model:/ }).click()
+    await page
+      .getByRole('option', { name: /schnell/ })
+      .first()
+      .click()
+
+    // One coherent brief, said ten different ways, which is what a real board
+    // looks like and what the reading has to find the shape of.
+    const shots = [
+      'an off-white oversize hoodie on a concrete plinth, overcast light',
+      'the same hoodie folded on raw concrete, overcast light',
+      'a charcoal hoodie on a concrete plinth, overcast light, no warm tones',
+      'an off-white hoodie hanging against a bare wall, flat grey light',
+      'a close crop of off-white knit texture, overcast',
+      'an off-white hoodie on a plinth, three quarter angle, flat light',
+      'a stack of folded off-white knitwear, concrete floor, no warm tones',
+      'an off-white hoodie, back view, overcast light',
+      'off-white knit sleeve detail on concrete, flat grey light',
+      'an off-white hoodie on a plinth, wide shot, overcast, no warm tones',
+    ]
+    for (const shot of shots) {
+      await page.getByLabel('Prompt', { exact: true }).fill(shot)
+      await page.getByRole('button', { name: /^Generate/ }).click()
+      await page.waitForTimeout(1200)
+    }
+
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await expect(nodes).toHaveCount(shots.length)
+    await expect(nodes.last().locator('img')).toBeVisible({ timeout: 300_000 })
+
+    // Read after the tenth, in the background, so the page has to be revisited.
+    await page.goto('/c')
+    await page.locator('main section').first().getByRole('link').first().click()
+    await page.waitForURL(/\/p\//)
+
+    const said = page.getByRole('heading', { name: 'What the work says' })
+    await expect(async () => {
+      await page.reload()
+      await expect(said).toBeVisible()
+    }).toPass({ timeout: 180_000 })
+
+    // It found the subject. Not asserting on the whole sentence: it is a model's
+    // words, and pinning those would be a test of its phrasing.
+    await expect(page.getByText(/hoodie|knitwear|knit/i).first()).toBeVisible()
+  })
+
   /*
    * The three below are the only place these can be proved. The mocked suite
    * never completes a job, so a placeholder never fills, an info button never

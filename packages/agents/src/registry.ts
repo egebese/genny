@@ -66,3 +66,25 @@ export const HOUSE_STYLE = [
   'Never invent facts about their project. If the context does not say, leave the field out',
   'rather than filling it with something plausible.',
 ].join(' ')
+
+/**
+ * The exact shape, appended to every system prompt, generated from the schema
+ * the answer is validated against.
+ *
+ * Written out rather than described, and generated rather than typed. Told in
+ * prose what to say and not what to call it, the model answers in its own
+ * vocabulary: asked for a summary of a board it returned `{"theme": ...}`,
+ * which is a correct answer to the question and unusable. Deriving it from the
+ * schema means the prompt cannot drift from what will be accepted, which is
+ * the failure this replaces.
+ */
+export function shapeOf(schema: ZodType): string {
+  const json = z.toJSONSchema(schema, { io: 'input' })
+  const { $schema: _dropped, ...rest } = json as Record<string, unknown>
+  return `Answer with exactly this shape, using exactly these field names:\n${JSON.stringify(rest)}`
+}
+
+/** The whole system prompt for one agent: what to do, then what to answer with. */
+export function systemPromptFor<T>(agent: AgentDefinition<T>): string {
+  return `${agent.systemPrompt}\n\n${shapeOf(agent.schema)}`
+}

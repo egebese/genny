@@ -1,5 +1,5 @@
 import { parseAgentOutput } from '@genny/agents/parse.ts'
-import type { AgentDefinition } from '@genny/agents/registry.ts'
+import { type AgentDefinition, systemPromptFor } from '@genny/agents/registry.ts'
 import { createBilling } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb, ownerDb } from '@genny/db/connection.ts'
@@ -87,7 +87,7 @@ export async function runAgent<T>(input: {
   try {
     answered = await runText(credentials, {
       model: agent.model,
-      systemPrompt: agent.systemPrompt,
+      systemPrompt: systemPromptFor(agent),
       prompt: input.prompt,
       temperature: agent.temperature,
       ...(input.imageUrls ? { imageUrls: input.imageUrls } : {}),

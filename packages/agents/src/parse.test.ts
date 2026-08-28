@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { catalogueOutput } from './catalogue.ts'
+import { memoryOutput } from './memory.ts'
 import { parseAgentOutput } from './parse.ts'
-import { variantOutput } from './variants.ts'
+import { shapeOf, systemPromptFor } from './registry.ts'
+import { variantAgent, variantOutput } from './variants.ts'
 
 const schema = z.object({ name: z.string(), count: z.number() })
 
@@ -86,5 +88,30 @@ describe('catalogueOutput', () => {
     const answer = `{"shortName":"Red Leaf","kind":"scene","subject":"A leaf.",
       "palette":[],"tags":[],"groupKey":"Red Leaf 2026-08-28"}`
     expect(parseAgentOutput(answer, catalogueOutput).ok).toBe(false)
+  })
+})
+
+describe('shapeOf', () => {
+  it('names every field the schema will accept', () => {
+    /*
+     * The bug this replaces: told in prose to summarise a board and never told
+     * what to call it, gemini-3.1-flash-lite answered `{"theme": ...}`. A
+     * correct answer to the question and unusable, and no amount of describing
+     * the meaning fixes it. Generated, so a schema change updates the prompt.
+     */
+    const shape = shapeOf(memoryOutput)
+    for (const field of ['summary', 'subjects', 'preferences', 'avoid']) {
+      expect(shape).toContain(field)
+    }
+    expect(shape).not.toContain('$schema')
+  })
+
+  it('is appended to what the agent was told, not instead of it', () => {
+    const whole = systemPromptFor(variantAgent)
+    // The instructions survive...
+    expect(whole).toContain('imperative')
+    // ...and the shape is there too, naming the fields it will be judged on.
+    expect(whole).toContain('"variants"')
+    expect(whole).toContain('"change"')
   })
 })

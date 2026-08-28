@@ -3,6 +3,7 @@ import { listAssetsFor } from '@/features/assets/server/list.ts'
 import { CanvasCard } from '@/features/canvas/ui/canvas-card.tsx'
 import { projectView } from '@/features/projects/server/project-page.ts'
 import { BrandKitEditor } from '@/features/projects/ui/brand-kit-editor.tsx'
+import { Observed } from '@/features/projects/ui/observed.tsx'
 import { ProjectSettings } from '@/features/projects/ui/project-settings.tsx'
 import { readActorId } from '@/features/session/actor.ts'
 
@@ -23,6 +24,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
       <h1 className="mb-6 truncate font-semibold text-2xl tracking-tight">{project.title}</h1>
 
       <ProjectSettings project={project} />
+
+      <Observed observed={project.observed} />
 
       <BrandKitEditor project={project} library={library} />
 
