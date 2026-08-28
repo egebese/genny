@@ -9,34 +9,51 @@ import { z } from 'zod'
  */
 const coordinate = z.int().min(-1_000_000).max(1_000_000)
 
-export const projectRef = z.object({ projectId: z.uuid() })
+export const canvasRef = z.object({ canvasId: z.uuid() })
 
-export const createProjectRequest = z.object({
+export const createCanvasRequest = z.object({
   title: z.string().trim().min(1).max(120).default('Untitled'),
+  /** Absent means the project they were last in. Naming one is the exception. */
+  projectId: z.uuid().optional(),
 })
 
-export const renameProjectRequest = z.object({
-  projectId: z.uuid(),
+export const renameCanvasRequest = z.object({
+  canvasId: z.uuid(),
   title: z.string().trim().min(1).max(120),
 })
 
 export const saveViewportRequest = z.object({
-  projectId: z.uuid(),
+  canvasId: z.uuid(),
   x: z.number().finite(),
   y: z.number().finite(),
   zoom: z.number().min(0.1).max(4),
 })
 
 export const moveNodeRequest = z.object({
-  projectId: z.uuid(),
+  canvasId: z.uuid(),
   nodeId: z.uuid(),
   x: coordinate,
   y: coordinate,
 })
 
-export const nodeRef = z.object({ projectId: z.uuid(), nodeId: z.uuid() })
+export const nodeRef = z.object({ canvasId: z.uuid(), nodeId: z.uuid() })
 
-export const materializeRequest = z.object({ projectId: z.uuid(), jobId: z.uuid() })
+export const materializeRequest = z.object({ canvasId: z.uuid(), jobId: z.uuid() })
+
+/**
+ * The project's own details.
+ *
+ * A hex list rather than free text for the palette: it is drawn as swatches and
+ * handed to agents as colours, and "warm terracotta" is neither.
+ */
+export const saveProjectRequest = z.object({
+  projectId: z.uuid(),
+  title: z.string().trim().min(1).max(120),
+  brief: z.string().trim().max(4000),
+  palette: z.array(z.string().regex(/^#[0-9a-fA-F]{6}$/)).max(12),
+})
+
+export type SaveProjectRequest = z.infer<typeof saveProjectRequest>
 
 /**
  * Variants of one node.
@@ -47,7 +64,7 @@ export const materializeRequest = z.object({ projectId: z.uuid(), jobId: z.uuid(
  * are one number and a bug.
  */
 export const variantRequest = z.object({
-  projectId: z.uuid(),
+  canvasId: z.uuid(),
   nodeId: z.uuid(),
   rects: z
     .array(
@@ -64,6 +81,6 @@ export const variantRequest = z.object({
 
 export type VariantRequest = z.infer<typeof variantRequest>
 
-export type CreateProjectRequest = z.infer<typeof createProjectRequest>
+export type CreateCanvasRequest = z.infer<typeof createCanvasRequest>
 export type SaveViewportRequest = z.infer<typeof saveViewportRequest>
 export type MoveNodeRequest = z.infer<typeof moveNodeRequest>

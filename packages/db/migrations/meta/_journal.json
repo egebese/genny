@@ -57,6 +57,13 @@
       "when": 1787905962670,
       "tag": "0007_green_captain_flint",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787907125547,
+      "tag": "0008_canvases_under_projects",
+      "breakpoints": true
     }
   ]
 }

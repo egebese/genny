@@ -15,6 +15,12 @@ const SECTIONS = [
   { href: '/assets', label: 'Assets' },
 ] as const
 
+/*
+ * Projects have no top-level entry on purpose. `/c` already lists them, each
+ * one heading its own boards and linking to itself, so a second way in would
+ * be two names for one place.
+ */
+
 export function CanvasNav() {
   const pathname = usePathname()
   return (

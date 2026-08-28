@@ -5,8 +5,8 @@ import { variantRequest } from '@genny/canvas/requests.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { listNodes } from '@genny/db/repositories/canvas-nodes.ts'
+import { findCanvas } from '@genny/db/repositories/canvases.ts'
 import { findJob } from '@genny/db/repositories/jobs.ts'
-import { findProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
 import { ensureActorId } from '@/features/session/actor.ts'
 import { readCredentials } from '@/features/session/fal-key.ts'
@@ -36,11 +36,11 @@ export async function makeVariants(raw: unknown): Promise<VariantsResult> {
   const actorId = await ensureActorId()
   const db = appDb(env().DATABASE_URL)
 
-  const project = await withActor(db, actorId, (tx) => findProject(tx, request.projectId))
+  const project = await withActor(db, actorId, (tx) => findCanvas(tx, request.canvasId))
   if (!project) return { ok: false, reason: 'That canvas is gone.' }
 
   // RLS scopes the read, so a node on somebody else's board is simply absent.
-  const nodes = await withActor(db, actorId, (tx) => listNodes(tx, request.projectId))
+  const nodes = await withActor(db, actorId, (tx) => listNodes(tx, request.canvasId))
   const source = nodes.find((node) => node.id === request.nodeId)
   if (!source?.assetId || source.kind !== 'image') {
     return { ok: false, reason: 'Variants start from a finished image.' }
@@ -74,7 +74,7 @@ export async function makeVariants(raw: unknown): Promise<VariantsResult> {
   const answered = await runAgent({
     agent: variantAgent,
     actorId,
-    canvasId: request.projectId,
+    canvasId: request.canvasId,
     prompt: variantPrompt({
       // Its own prompt when we have it, its label when we do not: an uploaded
       // image has no job behind it and is still worth varying.
@@ -94,7 +94,7 @@ export async function makeVariants(raw: unknown): Promise<VariantsResult> {
     const rect = request.rects[at]
     if (!rect) break
     const made = await createGeneration({
-      projectId: request.projectId,
+      canvasId: request.canvasId,
       modelId: target.model.endpointId,
       prompt: variant.prompt,
       references: [],

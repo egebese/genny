@@ -4,7 +4,7 @@ import { withActor, withoutActor } from './actor.ts'
 import { agentRuns } from './schema/agents.ts'
 import { assets } from './schema/assets.ts'
 import { users } from './schema/auth.ts'
-import { canvasNodes, projects } from './schema/canvas.ts'
+import { canvases, canvasNodes, projects } from './schema/canvas.ts'
 import { startTestDatabase, type TestDatabase } from './testing/container.ts'
 
 let database: TestDatabase
@@ -145,46 +145,57 @@ describe('row level security', () => {
     )
   })
 
-  it('hides one actor canvas from another', async () => {
-    const projectId = await withActor(database.app, alice, async (tx) => {
+  it('hides one actor project, canvas and node from another', async () => {
+    const made = await withActor(database.app, alice, async (tx) => {
       const [project] = await tx
         .insert(projects)
-        .values({ ownerId: alice, title: 'Alice board' })
+        .values({ ownerId: alice, title: 'Alice project' })
         .returning({ id: projects.id })
       if (!project) throw new Error('project insert returned no row')
+
+      const [canvas] = await tx
+        .insert(canvases)
+        .values({ ownerId: alice, projectId: project.id, title: 'Alice board' })
+        .returning({ id: canvases.id })
+      if (!canvas) throw new Error('canvas insert returned no row')
+
       await tx.insert(canvasNodes).values({
-        projectId: project.id,
+        canvasId: canvas.id,
         ownerId: alice,
         x: 0,
         y: 0,
         width: 512,
         height: 512,
       })
-      return project.id
+      return { projectId: project.id, canvasId: canvas.id }
     })
 
-    const seen = await withActor(database.app, bob, (tx) =>
-      tx.select({ id: projects.id }).from(projects),
-    )
-    expect(seen).toHaveLength(0)
-
-    const nodes = await withActor(database.app, bob, (tx) =>
-      tx.select({ id: canvasNodes.id }).from(canvasNodes),
-    )
-    expect(nodes).toHaveLength(0)
+    for (const rows of await Promise.all([
+      withActor(database.app, bob, (tx) => tx.select({ id: projects.id }).from(projects)),
+      withActor(database.app, bob, (tx) => tx.select({ id: canvases.id }).from(canvases)),
+      withActor(database.app, bob, (tx) => tx.select({ id: canvasNodes.id }).from(canvasNodes)),
+    ])) {
+      expect(rows).toHaveLength(0)
+    }
 
     /*
-     * The composite foreign key, not a policy. RLS would let this insert through
-     * because the row bob is writing is owned by bob; only the key ties the node
-     * to a project with the same owner.
+     * The composite foreign key, not a policy. RLS would let these inserts
+     * through because the rows bob is writing are owned by bob; only the key
+     * ties a node to a canvas, and a canvas to a project, with the same owner.
      */
     await expectPgError(
       withActor(database.app, bob, (tx) =>
         tx
           .insert(canvasNodes)
-          .values({ projectId, ownerId: bob, x: 0, y: 0, width: 512, height: 512 }),
+          .values({ canvasId: made.canvasId, ownerId: bob, x: 0, y: 0, width: 512, height: 512 }),
       ),
-      /canvas_nodes_project_owner_fk/,
+      /canvas_nodes_canvas_owner_fk/,
+    )
+    await expectPgError(
+      withActor(database.app, bob, (tx) =>
+        tx.insert(canvases).values({ projectId: made.projectId, ownerId: bob, title: 'stolen' }),
+      ),
+      /canvases_project_owner_fk/,
     )
   })
 

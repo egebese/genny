@@ -13,7 +13,7 @@ type Position = { x: number; y: number }
  * drag is thirty updates, twenty-nine of which nobody will ever read.
  */
 export function useBoardNodes(
-  projectId: string,
+  canvasId: string,
   initial: CanvasNodeView[],
   onSettled: (nodes: CanvasNodeView[]) => void,
 ) {
@@ -67,11 +67,11 @@ export function useBoardNodes(
       const delta = from ? { x: position.x - from.x, y: position.y - from.y } : null
 
       if (!delta || anchored.current.size < 2) {
-        void repositionNode({ projectId, nodeId: id, ...position })
+        void repositionNode({ canvasId, nodeId: id, ...position })
       } else {
         for (const [nodeId, start] of anchored.current) {
           void repositionNode({
-            projectId,
+            canvasId,
             nodeId,
             x: start.x + delta.x,
             y: start.y + delta.y,
@@ -80,15 +80,15 @@ export function useBoardNodes(
       }
       anchored.current = new Map()
     },
-    [move, projectId],
+    [move, canvasId],
   )
 
   const remove = useCallback(
     (id: string) => {
       setNodes((current) => current.filter((node) => node.id !== id))
-      void removeNode({ projectId, nodeId: id })
+      void removeNode({ canvasId, nodeId: id })
     },
-    [projectId],
+    [canvasId],
   )
 
   const add = useCallback((added: CanvasNodeView[]) => {
@@ -97,7 +97,7 @@ export function useBoardNodes(
 
   const settle = useCallback(
     async (jobId: string) => {
-      const fresh = await settleJobOnCanvas({ projectId, jobId })
+      const fresh = await settleJobOnCanvas({ canvasId, jobId })
       // An empty answer means the board is gone or the job produced nothing;
       // either way the local state is the better of the two.
       if (fresh.length === 0) return
@@ -106,7 +106,7 @@ export function useBoardNodes(
       // What just landed is mentionable now. Nothing else tells the dock that.
       onSettled(views)
     },
-    [projectId, onSettled],
+    [canvasId, onSettled],
   )
 
   /** One open stream per unfinished generation, and no duplicates. */

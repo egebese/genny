@@ -11,7 +11,7 @@ import type { CanvasNodeView } from '../node-view.ts'
 import { createGeneration } from '../server/create-generation.ts'
 
 type Options = {
-  projectId: string
+  canvasId: string
   nodes: CanvasNodeView[]
   mentionables: MentionableView[]
   centreOfView: () => Point
@@ -28,7 +28,7 @@ export type SubmitOutcome =
  * knows where the person is looking and what is already on the board. The server
  * takes the coordinates as given and only checks they are sane.
  */
-export function useGenerate({ projectId, nodes, mentionables, centreOfView }: Options) {
+export function useGenerate({ canvasId, nodes, mentionables, centreOfView }: Options) {
   return useCallback(
     async (
       model: PickableModel,
@@ -75,7 +75,7 @@ export function useGenerate({ projectId, nodes, mentionables, centreOfView }: Op
         }))
 
       const result = await createGeneration({
-        projectId,
+        canvasId,
         modelId: model.endpointId,
         prompt,
         settings,
@@ -113,6 +113,6 @@ export function useGenerate({ projectId, nodes, mentionables, centreOfView }: Op
           : null,
       } satisfies SubmitOutcome
     },
-    [projectId, nodes, mentionables, centreOfView],
+    [canvasId, nodes, mentionables, centreOfView],
   )
 }

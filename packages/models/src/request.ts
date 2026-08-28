@@ -54,7 +54,7 @@ export const nodeRect = z.object({
 })
 
 export const canvasGenerationRequest = generationRequest.extend({
-  projectId: z.uuid(),
+  canvasId: z.uuid(),
   node: nodeRect,
 })
 

@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation'
-import { projectPage } from '@/features/canvas/server/project-page.ts'
+import { canvasPage } from '@/features/canvas/server/canvas-page.ts'
 import { Canvas } from '@/features/canvas/ui/canvas.tsx'
 
 export const dynamic = 'force-dynamic'
 
-export default async function CanvasPage({ params }: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = await params
-  const page = await projectPage(projectId)
+export default async function CanvasPage({ params }: { params: Promise<{ canvasId: string }> }) {
+  const { canvasId } = await params
+  const page = await canvasPage(canvasId)
   // RLS already scoped the read, so a miss means "not yours or not real". Both
   // answer 404: telling them apart tells a stranger what exists.
   if (!page) notFound()

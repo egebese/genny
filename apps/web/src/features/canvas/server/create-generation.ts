@@ -5,8 +5,8 @@ import { siblingRects } from '@genny/canvas/placement.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { deleteNode, insertNode } from '@genny/db/repositories/canvas-nodes.ts'
+import { findCanvas, touchCanvas } from '@genny/db/repositories/canvases.ts'
 import { attachFalRequest, createJob, failJob } from '@genny/db/repositories/jobs.ts'
-import { findProject, touchProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
 import { submitJob } from '@genny/fal/queue.ts'
@@ -37,7 +37,7 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
 
   // RLS scopes the read, so a project belonging to somebody else is simply not
   // found and needs no separate ownership check.
-  const project = await withActor(db, actorId, (tx) => findProject(tx, request.projectId))
+  const project = await withActor(db, actorId, (tx) => findCanvas(tx, request.canvasId))
   if (!project) return refuse('That canvas is gone.', false)
 
   const prepared = await prepareGeneration({ request, actorId, db })
@@ -67,7 +67,7 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
     const nodeIds: string[] = []
     for (const [index, rect] of rects.entries()) {
       const node = await insertNode(tx, {
-        projectId: request.projectId,
+        canvasId: request.canvasId,
         ownerId: actorId,
         ...rect,
         jobId: job.id,
@@ -75,7 +75,7 @@ export async function createGeneration(raw: unknown): Promise<GenerationResult> 
       })
       if (node) nodeIds.push(node.id)
     }
-    await touchProject(tx, request.projectId)
+    await touchCanvas(tx, request.canvasId)
     return { job, nodeIds }
   })
 

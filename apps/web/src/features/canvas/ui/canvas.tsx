@@ -3,7 +3,7 @@
 import type { Guide } from '@genny/canvas/snap.ts'
 import { useCallback, useRef, useState } from 'react'
 import { persistViewport } from '../server/actions.ts'
-import type { ProjectPage } from '../server/project-page.ts'
+import type { CanvasPage } from '../server/canvas-page.ts'
 import { Board } from './board.tsx'
 import { BoardOverlays } from './board-overlays.tsx'
 import { CanvasDock } from './canvas-dock.tsx'
@@ -23,23 +23,23 @@ import { useSurfaces } from './use-surfaces.ts'
 import { useVariants } from './use-variants.ts'
 import { useViewport } from './use-viewport.ts'
 
-export function Canvas(props: ProjectPage) {
+export function Canvas(props: CanvasPage) {
   const surface = useRef<HTMLDivElement>(null)
   const dock = useRef<HTMLDivElement>(null)
   const [ready, setReady] = useState(props.hasCredentials)
   const [guides, setGuides] = useState<Guide[]>([])
 
-  const projectId = props.projectId
+  const canvasId = props.canvasId
   const savePan = useCallback(
     (viewport: { x: number; y: number; zoom: number }) => {
-      void persistViewport({ projectId, ...viewport })
+      void persistViewport({ canvasId, ...viewport })
     },
-    [projectId],
+    [canvasId],
   )
   const view = useViewport({ initial: props.viewport, surface, onPersist: savePan })
   const handles = useMentionables(props.mentionables)
   const { nodes, running, beginDrag, move, commit, remove, add, settle } = useBoardNodes(
-    projectId,
+    canvasId,
     props.nodes,
     handles.learn,
   )
@@ -61,12 +61,12 @@ export function Canvas(props: ProjectPage) {
   const model = composer.resolve(carrying)
 
   const generate = useGenerate({
-    projectId,
+    canvasId,
     nodes,
     mentionables: handles.mentionables,
     centreOfView: view.centreOfView,
   })
-  const variants = useVariants(projectId, nodes)
+  const variants = useVariants(canvasId, nodes)
   const { pending, error, submit, runVariants } = useSubmit({ generate, variants, onPlaced: add })
 
   const act = useBoardActions({

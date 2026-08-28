@@ -699,6 +699,67 @@ test.describe('one dock over every modality', () => {
   })
 })
 
+test.describe('projects hold canvases', () => {
+  test('a new canvas lands in a project, and the project says so', async ({ page }) => {
+    await openCanvas(page)
+    const board = page.url()
+
+    await page.goto('/c')
+    // Every board sits under a heading that links to its project, rather than
+    // in one flat row with no indication which of them belong together.
+    const project = page.locator('main section').first().getByRole('link').first()
+    await expect(project).toBeVisible()
+    await project.click()
+    await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}/)
+
+    await expect(
+      page.getByRole('list', { name: 'Canvases' }).getByRole('link').first(),
+    ).toHaveAttribute('href', new URL(board).pathname)
+  })
+
+  test('a project remembers what it is about', async ({ page }) => {
+    await openCanvas(page)
+    await page.goto('/c')
+    await page.locator('main section').first().getByRole('link').first().click()
+
+    const brief = page.getByLabel('What this project is')
+    await brief.fill('Off-white knitwear for a Berlin label. Never warm light.')
+    await page.getByRole('button', { name: 'Save' }).click()
+    await expect(page.getByText('Saved.')).toBeVisible()
+
+    // Written down, not just echoed back into the field it came from.
+    await page.reload()
+    await expect(brief).toHaveValue('Off-white knitwear for a Berlin label. Never warm light.')
+  })
+
+  test('a colour added to the palette survives a reload', async ({ page }) => {
+    await openCanvas(page)
+    await page.goto('/c')
+    await page.locator('main section').first().getByRole('link').first().click()
+
+    await page.getByLabel('Colour as hex').fill('#c8b6a6')
+    await page.getByRole('button', { name: 'Add' }).click()
+    await page.getByRole('button', { name: 'Save' }).click()
+    await expect(page.getByText('Saved.')).toBeVisible()
+
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Remove #c8b6a6' })).toBeVisible()
+  })
+
+  test('somebody else project is not found', async ({ page }) => {
+    // The status code, not the copy: RLS scopes the read, so a stranger's
+    // project and one that never existed are the same answer, and asserting on
+    // the sentence would just track the wording of the 404 page.
+    const response = await page.goto('/p/00000000-0000-4000-8000-000000000000')
+    expect(response?.status()).toBe(404)
+  })
+
+  test('a non-uuid project id is refused before any lookup', async ({ page }) => {
+    const response = await page.goto('/p/not-a-uuid')
+    expect(response?.status()).toBe(404)
+  })
+})
+
 test.describe('the board', () => {
   test('a new canvas is empty and says what to do with it', async ({ page }) => {
     await openCanvas(page)

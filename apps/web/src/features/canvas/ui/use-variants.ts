@@ -18,7 +18,7 @@ export type VariantOutcome = { ok: true; nodes: CanvasNodeView[] } | { ok: false
  * rectangles are found here for the same reason a generation's are, which is
  * that only the browser knows what is already on the board.
  */
-export function useVariants(projectId: string, nodes: CanvasNodeView[]) {
+export function useVariants(canvasId: string, nodes: CanvasNodeView[]) {
   return useCallback(
     async (source: CanvasNodeView): Promise<VariantOutcome> => {
       const size = nodeSize(source)
@@ -29,7 +29,7 @@ export function useVariants(projectId: string, nodes: CanvasNodeView[]) {
       }
       const rects = siblingRects(anchor, VARIANT_COUNT)
 
-      const made = await makeVariants({ projectId, nodeId: source.id, rects })
+      const made = await makeVariants({ canvasId, nodeId: source.id, rects })
       if (!made.ok) return { ok: false, reason: made.reason }
 
       /*
@@ -53,6 +53,6 @@ export function useVariants(projectId: string, nodes: CanvasNodeView[]) {
         })),
       }
     },
-    [projectId, nodes],
+    [canvasId, nodes],
   )
 }

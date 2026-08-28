@@ -46,19 +46,19 @@ const columns = {
 }
 
 /** Ordered oldest first, so paint order matches the order things were made. */
-export async function listNodes(tx: Database, projectId: string): Promise<NodeRecord[]> {
+export async function listNodes(tx: Database, canvasId: string): Promise<NodeRecord[]> {
   const rows = await tx
     .select(columns)
     .from(canvasNodes)
     .leftJoin(assets, eq(assets.id, canvasNodes.assetId))
     .leftJoin(jobs, eq(jobs.id, canvasNodes.jobId))
-    .where(eq(canvasNodes.projectId, projectId))
+    .where(eq(canvasNodes.canvasId, canvasId))
     .orderBy(asc(canvasNodes.createdAt))
   return rows as NodeRecord[]
 }
 
 export type NewNode = {
-  projectId: string
+  canvasId: string
   ownerId: string
   x: number
   y: number
@@ -80,7 +80,7 @@ export async function insertNode(tx: Database, input: NewNode): Promise<{ id: st
   const [row] = await tx
     .insert(canvasNodes)
     .values({
-      projectId: input.projectId,
+      canvasId: input.canvasId,
       ownerId: input.ownerId,
       x: input.x,
       y: input.y,
@@ -127,7 +127,7 @@ export async function deleteNode(tx: Database, nodeId: string): Promise<boolean>
 /** Nodes still waiting on their generation. What the load-time sync works from. */
 export async function unfilledNodes(
   tx: Database,
-  projectId: string,
+  canvasId: string,
 ): Promise<{ id: string; jobId: string; x: number; y: number; width: number; height: number }[]> {
   const rows = await tx
     .select({
@@ -139,6 +139,6 @@ export async function unfilledNodes(
       height: canvasNodes.height,
     })
     .from(canvasNodes)
-    .where(and(eq(canvasNodes.projectId, projectId), isNull(canvasNodes.assetId)))
+    .where(and(eq(canvasNodes.canvasId, canvasId), isNull(canvasNodes.assetId)))
   return rows.filter((row): row is (typeof rows)[number] & { jobId: string } => row.jobId !== null)
 }

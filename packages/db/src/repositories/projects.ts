@@ -1,30 +1,25 @@
 import { desc, eq, sql } from 'drizzle-orm'
 import type { Database } from '../client.ts'
-import { assets } from '../schema/assets.ts'
-import { canvasNodes, projects } from '../schema/canvas.ts'
-
-export type Viewport = { x: number; y: number; zoom: number }
+import { canvases, projects } from '../schema/canvas.ts'
 
 export type ProjectRecord = {
   id: string
   title: string
-  viewport: Viewport
+  /** What this project is, in the owner's own words. Null until they say. */
+  brief: string | null
+  /** Brand colours as `['#rrggbb']`. */
+  palette: string[]
   createdAt: Date
   updatedAt: Date
 }
 
-export type ProjectSummary = ProjectRecord & {
-  nodeCount: number
-  /** Newest image on the board, used as the card's thumbnail. Null on an empty one. */
-  coverAssetId: string | null
-  coverLabel: string | null
-  coverStorageKey: string | null
-}
+export type ProjectSummary = ProjectRecord & { canvasCount: number }
 
 const columns = {
   id: projects.id,
   title: projects.title,
-  viewport: projects.viewport,
+  brief: projects.brief,
+  palette: projects.palette,
   createdAt: projects.createdAt,
   updatedAt: projects.updatedAt,
 }
@@ -46,60 +41,53 @@ export async function findProject(tx: Database, id: string): Promise<ProjectReco
   return (row as ProjectRecord | undefined) ?? null
 }
 
-/**
- * The project list. The cover comes from a lateral subquery rather than a join
- * plus a group by: one board can hold hundreds of nodes and we want exactly one
- * row back per project regardless.
- */
 export async function listProjects(tx: Database, limit = 60): Promise<ProjectSummary[]> {
-  const cover = tx
-    .select({
-      projectId: canvasNodes.projectId,
-      assetId: assets.id,
-      label: assets.label,
-      storageKey: assets.storageKey,
-      rank: sql<number>`row_number() over (
-        partition by ${canvasNodes.projectId} order by ${canvasNodes.createdAt} desc
-      )`.as('rank'),
-    })
-    .from(canvasNodes)
-    .innerJoin(assets, eq(assets.id, canvasNodes.assetId))
-    .where(eq(assets.kind, 'image'))
-    .as('cover')
-
   const rows = await tx
     .select({
       ...columns,
-      nodeCount: sql<number>`(
-        select count(*)::int from ${canvasNodes} where ${canvasNodes.projectId} = ${projects.id}
+      canvasCount: sql<number>`(
+        select count(*)::int from ${canvases} where ${canvases.projectId} = ${projects.id}
       )`,
-      coverAssetId: cover.assetId,
-      coverLabel: cover.label,
-      coverStorageKey: cover.storageKey,
     })
     .from(projects)
-    .leftJoin(cover, sql`${cover.projectId} = ${projects.id} and ${cover.rank} = 1`)
     .orderBy(desc(projects.updatedAt))
     .limit(Math.min(limit, 100))
-
   return rows as ProjectSummary[]
 }
 
-export async function renameProject(tx: Database, id: string, title: string): Promise<void> {
-  await tx.update(projects).set({ title, updatedAt: new Date() }).where(eq(projects.id, id))
-}
-
 /**
- * Viewport writes are frequent and worthless if lost, so they deliberately do
- * not bump `updatedAt`: panning around an old board should not push it to the
- * top of the list ahead of one you actually changed.
+ * The project a new canvas belongs to when nobody has said which.
+ *
+ * Most work starts as one board and only later turns out to be a project, so
+ * asking which project first would be a question about a structure that does
+ * not exist yet. The newest one is almost always the one being worked on.
  */
-export async function saveViewport(tx: Database, id: string, viewport: Viewport): Promise<void> {
-  await tx.update(projects).set({ viewport }).where(eq(projects.id, id))
+export async function defaultProject(tx: Database, ownerId: string): Promise<ProjectRecord> {
+  const [existing] = await tx
+    .select(columns)
+    .from(projects)
+    .orderBy(desc(projects.updatedAt))
+    .limit(1)
+  return (
+    (existing as ProjectRecord | undefined) ??
+    (await createProject(tx, { ownerId, title: 'Untitled project' }))
+  )
 }
 
-export async function touchProject(tx: Database, id: string): Promise<void> {
-  await tx.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, id))
+export async function updateProject(
+  tx: Database,
+  id: string,
+  fields: { title?: string; brief?: string | null; palette?: string[] },
+): Promise<void> {
+  await tx
+    .update(projects)
+    .set({
+      ...(fields.title === undefined ? {} : { title: fields.title }),
+      ...(fields.brief === undefined ? {} : { brief: fields.brief }),
+      ...(fields.palette === undefined ? {} : { palette: fields.palette }),
+      updatedAt: new Date(),
+    })
+    .where(eq(projects.id, id))
 }
 
 export async function deleteProject(tx: Database, id: string): Promise<boolean> {

@@ -1,12 +1,12 @@
 'use server'
 
 import {
-  createProjectRequest,
+  canvasRef,
+  createCanvasRequest,
   materializeRequest,
   moveNodeRequest,
   nodeRef,
-  projectRef,
-  renameProjectRequest,
+  renameCanvasRequest,
   saveViewportRequest,
 } from '@genny/canvas/requests.ts'
 import { withActor } from '@genny/db/actor.ts'
@@ -18,13 +18,14 @@ import {
   type NodeRecord,
 } from '@genny/db/repositories/canvas-nodes.ts'
 import {
-  createProject,
-  deleteProject,
-  findProject,
-  renameProject,
+  createCanvas,
+  deleteCanvas,
+  findCanvas,
+  renameCanvas,
   saveViewport,
-  touchProject,
-} from '@genny/db/repositories/projects.ts'
+  touchCanvas,
+} from '@genny/db/repositories/canvases.ts'
+import { defaultProject } from '@genny/db/repositories/projects.ts'
 import { env } from '@genny/env/env.ts'
 import { revalidatePath } from 'next/cache'
 import { ensureActorId } from '@/features/session/actor.ts'
@@ -34,37 +35,50 @@ const db = () => appDb(env().DATABASE_URL)
 
 /**
  * Every action below is scoped by RLS rather than by an ownership check: a
- * project belonging to somebody else is not found, and a node update matches no
+ * canvas belonging to somebody else is not found, and a node update matches no
  * row. The failure direction is the correct one, which is why the ids arriving
  * from the browser are validated for shape only.
  */
-export async function newProject(raw: unknown): Promise<{ id: string } | null> {
-  const parsed = createProjectRequest.safeParse(raw)
+export async function newCanvas(raw: unknown): Promise<{ id: string } | null> {
+  const parsed = createCanvasRequest.safeParse(raw)
   if (!parsed.success) return null
   const actorId = await ensureActorId()
-  const project = await withActor(db(), actorId, (tx) =>
-    createProject(tx, { ownerId: actorId, title: parsed.data.title }),
-  )
+
+  const canvas = await withActor(db(), actorId, async (tx) => {
+    /*
+     * Into the project they were last working in, unless they named one. Work
+     * starts as a board and only later turns out to be a project, so asking
+     * which project first is a question about a structure that does not exist
+     * yet.
+     */
+    const project = parsed.data.projectId
+      ? { id: parsed.data.projectId }
+      : await defaultProject(tx, actorId)
+    return await createCanvas(tx, {
+      ownerId: actorId,
+      projectId: project.id,
+      title: parsed.data.title,
+    })
+  })
+
   revalidatePath('/c')
-  return { id: project.id }
+  return { id: canvas.id }
 }
 
-export async function retitleProject(raw: unknown): Promise<boolean> {
-  const parsed = renameProjectRequest.safeParse(raw)
+export async function retitleCanvas(raw: unknown): Promise<boolean> {
+  const parsed = renameCanvasRequest.safeParse(raw)
   if (!parsed.success) return false
   const actorId = await ensureActorId()
-  await withActor(db(), actorId, (tx) =>
-    renameProject(tx, parsed.data.projectId, parsed.data.title),
-  )
+  await withActor(db(), actorId, (tx) => renameCanvas(tx, parsed.data.canvasId, parsed.data.title))
   revalidatePath('/c')
   return true
 }
 
-export async function discardProject(raw: unknown): Promise<boolean> {
-  const parsed = projectRef.safeParse(raw)
+export async function discardCanvas(raw: unknown): Promise<boolean> {
+  const parsed = canvasRef.safeParse(raw)
   if (!parsed.success) return false
   const actorId = await ensureActorId()
-  const gone = await withActor(db(), actorId, (tx) => deleteProject(tx, parsed.data.projectId))
+  const gone = await withActor(db(), actorId, (tx) => deleteCanvas(tx, parsed.data.canvasId))
   revalidatePath('/c')
   return gone
 }
@@ -76,19 +90,19 @@ export async function discardProject(raw: unknown): Promise<boolean> {
 export async function persistViewport(raw: unknown): Promise<void> {
   const parsed = saveViewportRequest.safeParse(raw)
   if (!parsed.success) return
-  const { projectId, ...viewport } = parsed.data
+  const { canvasId, ...viewport } = parsed.data
   const actorId = await ensureActorId()
-  await withActor(db(), actorId, (tx) => saveViewport(tx, projectId, viewport))
+  await withActor(db(), actorId, (tx) => saveViewport(tx, canvasId, viewport))
 }
 
 export async function repositionNode(raw: unknown): Promise<void> {
   const parsed = moveNodeRequest.safeParse(raw)
   if (!parsed.success) return
-  const { projectId, nodeId, ...position } = parsed.data
+  const { canvasId, nodeId, ...position } = parsed.data
   const actorId = await ensureActorId()
   await withActor(db(), actorId, async (tx) => {
     await moveNode(tx, nodeId, position)
-    await touchProject(tx, projectId)
+    await touchCanvas(tx, canvasId)
   })
 }
 
@@ -98,7 +112,7 @@ export async function removeNode(raw: unknown): Promise<boolean> {
   const actorId = await ensureActorId()
   return withActor(db(), actorId, async (tx) => {
     const gone = await deleteNode(tx, parsed.data.nodeId)
-    if (gone) await touchProject(tx, parsed.data.projectId)
+    if (gone) await touchCanvas(tx, parsed.data.canvasId)
     return gone
   })
 }
@@ -109,12 +123,12 @@ export async function settleJobOnCanvas(raw: unknown): Promise<NodeRecord[]> {
   if (!parsed.success) return []
   const actorId = await ensureActorId()
   return withActor(db(), actorId, async (tx) => {
-    if (!(await findProject(tx, parsed.data.projectId))) return []
+    if (!(await findCanvas(tx, parsed.data.canvasId))) return []
     await materializeJob(tx, {
-      projectId: parsed.data.projectId,
+      canvasId: parsed.data.canvasId,
       ownerId: actorId,
       jobId: parsed.data.jobId,
     })
-    return listNodes(tx, parsed.data.projectId)
+    return listNodes(tx, parsed.data.canvasId)
   })
 }

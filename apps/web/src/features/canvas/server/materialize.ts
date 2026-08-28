@@ -9,7 +9,7 @@ import {
   unfilledNodes,
 } from '@genny/db/repositories/canvas-nodes.ts'
 
-type Context = { projectId: string; ownerId: string }
+type Context = { canvasId: string; ownerId: string }
 
 /**
  * Puts a finished job's outputs on the board.
@@ -27,7 +27,7 @@ export async function materializeJob(
   const outputs = await findAssetsByJob(tx, context.jobId)
   if (outputs.length === 0) return
 
-  const placed = (await listNodes(tx, context.projectId)).filter(
+  const placed = (await listNodes(tx, context.canvasId)).filter(
     (node) => node.jobId === context.jobId,
   )
   const anchor = placed.find((node) => node.outputIndex === 0)
@@ -46,7 +46,7 @@ export async function materializeJob(
      * different shapes.
      */
     await insertNode(tx, {
-      projectId: context.projectId,
+      canvasId: context.canvasId,
       ownerId: context.ownerId,
       ...siblingPosition(anchor, index),
       width: anchor.width,
@@ -71,7 +71,7 @@ export async function materializeJob(
 
 /** Catches up every node whose generation finished while nobody was looking. */
 export async function materializePending(tx: Database, context: Context): Promise<void> {
-  for (const node of await unfilledNodes(tx, context.projectId)) {
+  for (const node of await unfilledNodes(tx, context.canvasId)) {
     await materializeJob(tx, { ...context, jobId: node.jobId })
   }
 }

@@ -3,6 +3,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  text,
   timestamp,
   unique,
   uuid,
@@ -14,15 +15,52 @@ import { users } from './auth.ts'
 import { jobs } from './jobs.ts'
 
 /**
- * One infinite canvas. A project is a reusable workspace rather than a
- * deliverable: the same board gets reopened with a swapped prompt, which is why
- * the viewport is stored with it. Reopening somewhere other than where you left
- * off loses the spatial memory that makes the board readable at all.
+ * A piece of work, which is usually more than one board.
+ *
+ * This used to be the board itself, and one campaign meant either cramming
+ * every shot onto one canvas or keeping a row of unrelated boards with no
+ * indication that three of them belonged together. What actually recurs is a
+ * brief: the same product, the same palette, the same voice, explored across
+ * several boards.
+ *
+ * The brief and the palette live here rather than on a canvas because they are
+ * the thing that does not change when you open a new board.
  */
 export const projects = pgTable(
   'projects',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    ownerId: uuid('owner_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 120 }).notNull(),
+    /** What this project is, in the owner's own words. Feeds every agent prompt. */
+    brief: text('brief'),
+    /** Brand colours as `['#rrggbb']`. Not assets, so not in the asset shelf. */
+    palette: jsonb('palette').notNull().default([]),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('projects_owner_updated').on(t.ownerId, t.updatedAt.desc()),
+    unique('projects_id_owner').on(t.id, t.ownerId),
+    ownerPolicy('projects'),
+  ],
+).enableRLS()
+
+/**
+ * One infinite canvas, inside a project.
+ *
+ * The viewport is stored with it because reopening somewhere other than where
+ * you left off loses the spatial memory that makes a board readable at all.
+ */
+export const canvases = pgTable(
+  'canvases',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
     ownerId: uuid('owner_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
@@ -33,11 +71,12 @@ export const projects = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    index('projects_owner_updated').on(t.ownerId, t.updatedAt.desc()),
+    index('canvases_project_updated').on(t.projectId, t.updatedAt.desc()),
+    index('canvases_owner_updated').on(t.ownerId, t.updatedAt.desc()),
     // Referenced by canvas_nodes as a composite key, so a node cannot land on
     // somebody else's board.
-    unique('projects_id_owner').on(t.id, t.ownerId),
-    ownerPolicy('projects'),
+    unique('canvases_id_owner').on(t.id, t.ownerId),
+    ownerPolicy('canvases'),
   ],
 ).enableRLS()
 
@@ -54,9 +93,9 @@ export const canvasNodes = pgTable(
   'canvas_nodes',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    projectId: uuid('project_id')
+    canvasId: uuid('canvas_id')
       .notNull()
-      .references(() => projects.id, { onDelete: 'cascade' }),
+      .references(() => canvases.id, { onDelete: 'cascade' }),
     ownerId: uuid('owner_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
@@ -68,7 +107,7 @@ export const canvasNodes = pgTable(
     /**
      * Null for a node placed from an existing asset rather than generated.
      *
-     * Not owner-scoped the way `project_id` is: naming a job you do not own puts
+     * Not owner-scoped the way `canvas_id` is: naming a job you do not own puts
      * no row on anyone else's board, and the status join runs under RLS, so the
      * node simply renders as empty. A wasted row, not a leak.
      */
@@ -80,7 +119,7 @@ export const canvasNodes = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    index('canvas_nodes_project').on(t.projectId, t.createdAt),
+    index('canvas_nodes_canvas').on(t.canvasId, t.createdAt),
     unique('canvas_nodes_job_output').on(t.jobId, t.outputIndex),
     ownerPolicy('canvas_nodes'),
   ],

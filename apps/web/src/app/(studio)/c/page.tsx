@@ -1,12 +1,12 @@
-import { projectList } from '@/features/canvas/server/project-list.ts'
-import { ProjectGrid } from '@/features/canvas/ui/project-grid.tsx'
+import { canvasList } from '@/features/canvas/server/canvas-list.ts'
+import { CanvasGrid } from '@/features/canvas/ui/canvas-grid.tsx'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CanvasesPage() {
   return (
     <main>
-      <ProjectGrid projects={await projectList()} />
+      <CanvasGrid projects={await canvasList()} />
     </main>
   )
 }
