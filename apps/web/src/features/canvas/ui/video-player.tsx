@@ -1,7 +1,8 @@
 'use client'
 
 import { Icon } from '@genny/ui/icon.tsx'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
+import { useMediaClock } from './use-media-clock.ts'
 
 /**
  * A clip on the board, with our own controls.
@@ -20,50 +21,19 @@ import { useEffect, useRef, useState } from 'react'
  * board of twenty clips is twenty pictures rather than twenty control bars.
  */
 export function VideoPlayer({ src }: { src: string }) {
-  const video = useRef<HTMLVideoElement>(null)
-  const [playing, setPlaying] = useState(false)
+  const clock = useMediaClock<HTMLVideoElement>()
   const [muted, setMuted] = useState(true)
-  const [at, setAt] = useState(0)
-  const [length, setLength] = useState(0)
-
-  // Not from React: `timeupdate` fires several times a second and the element
-  // is the only thing that knows, so it reports rather than being told.
-  useEffect(() => {
-    const node = video.current
-    if (!node) return
-    const tick = () => setAt(node.currentTime)
-    const loaded = () => setLength(node.duration || 0)
-    const stopped = () => setPlaying(false)
-    node.addEventListener('timeupdate', tick)
-    node.addEventListener('loadedmetadata', loaded)
-    node.addEventListener('ended', stopped)
-    node.addEventListener('pause', stopped)
-    node.addEventListener('play', () => setPlaying(true))
-    return () => {
-      node.removeEventListener('timeupdate', tick)
-      node.removeEventListener('loadedmetadata', loaded)
-      node.removeEventListener('ended', stopped)
-      node.removeEventListener('pause', stopped)
-    }
-  }, [])
-
-  const toggle = () => {
-    const node = video.current
-    if (!node) return
-    if (node.paused) void node.play()
-    else node.pause()
-  }
 
   return (
     <div className="group/player relative h-full w-full bg-black">
       {/* biome-ignore lint/a11y/useMediaCaption: freshly generated media has no caption track and an empty one claims otherwise */}
       <video
-        ref={video}
+        ref={clock.media}
         src={src}
         muted={muted}
         playsInline
         preload="metadata"
-        onClick={toggle}
+        onClick={clock.toggle}
         className="h-full w-full object-cover"
       />
 
@@ -75,7 +45,7 @@ export function VideoPlayer({ src }: { src: string }) {
         className={[
           'pointer-events-none absolute inset-0 flex flex-col justify-end transition-opacity',
           'bg-gradient-to-t from-black/70 via-transparent to-transparent',
-          playing ? 'opacity-0 group-hover/player:opacity-100' : 'opacity-100',
+          clock.playing ? 'opacity-0 group-hover/player:opacity-100' : 'opacity-100',
           'focus-within:opacity-100',
         ].join(' ')}
       >
@@ -86,7 +56,7 @@ export function VideoPlayer({ src }: { src: string }) {
           target: the overlay lets pointer events through to the video, which
           toggles on click, and the bar holds the control anything else uses.
         */}
-        {!playing ? (
+        {!clock.playing ? (
           <span aria-hidden className="absolute inset-0 flex items-center justify-center">
             <span className="flex size-11 items-center justify-center rounded-full bg-canvas/70 backdrop-blur">
               <Icon name="play" className="size-5 text-ink" />
@@ -97,31 +67,26 @@ export function VideoPlayer({ src }: { src: string }) {
         <div className="pointer-events-auto flex items-center gap-2 p-2">
           <button
             type="button"
-            onClick={toggle}
-            aria-label={playing ? 'Pause' : 'Play'}
+            onClick={clock.toggle}
+            aria-label={clock.playing ? 'Pause' : 'Play'}
             className="shrink-0 rounded-[3px] p-1 text-ink outline-none hover:bg-canvas/60 focus-visible:ring-2 focus-visible:ring-accent"
           >
-            <Icon name={playing ? 'pause' : 'play'} className="size-3.5" />
+            <Icon name={clock.playing ? 'pause' : 'play'} className="size-3.5" />
           </button>
 
           <input
             type="range"
             min={0}
-            max={Math.max(length, 0.01)}
+            max={Math.max(clock.length, 0.01)}
             step={0.01}
-            value={at}
+            value={clock.at}
             aria-label="Seek"
-            onChange={(event) => {
-              const node = video.current
-              if (!node) return
-              node.currentTime = Number(event.target.value)
-              setAt(node.currentTime)
-            }}
+            onChange={(event) => clock.seek(Number(event.target.value))}
             className="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-ink/25 outline-none accent-ink focus-visible:ring-2 focus-visible:ring-accent"
           />
 
           <span className="shrink-0 font-mono text-[10px] text-ink tabular-nums">
-            {clock(at)} / {clock(length)}
+            {clock.clock(clock.at)} / {clock.clock(clock.length)}
           </span>
 
           <button
@@ -137,10 +102,4 @@ export function VideoPlayer({ src }: { src: string }) {
       </div>
     </div>
   )
-}
-
-function clock(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
-  const whole = Math.floor(seconds)
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`
 }

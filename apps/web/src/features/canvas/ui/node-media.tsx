@@ -4,6 +4,7 @@ import { sourceFor } from '@genny/assets/thumbnail.ts'
 import { Skeleton } from '@genny/ui/skeleton.tsx'
 import { Spinner } from '@genny/ui/spinner.tsx'
 import type { CanvasNodeView } from '../node-view.ts'
+import { AudioPlayer } from './audio-player.tsx'
 import { VideoPlayer } from './video-player.tsx'
 
 /** What fills a node's rectangle, which is a different thing per kind and per state. */
@@ -30,17 +31,7 @@ export function NodeMedia({ node, zoom }: { node: CanvasNodeView; zoom: number }
 
   if (node.kind === 'video') return <VideoPlayer src={node.url} />
 
-  if (node.kind === 'audio') {
-    return (
-      <div className="flex h-full w-full flex-col justify-center gap-2 bg-surface px-3">
-        <span className="truncate font-mono text-[10px] text-ink-faint uppercase tracking-wider">
-          {node.label}
-        </span>
-        {/* biome-ignore lint/a11y/useMediaCaption: same as video, there is no transcript to point at */}
-        <audio src={node.url} controls className="w-full" />
-      </div>
-    )
-  }
+  if (node.kind === 'audio') return <AudioPlayer src={node.url} label={node.label} />
 
   return (
     <img

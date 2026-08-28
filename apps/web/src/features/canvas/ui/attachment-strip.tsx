@@ -87,9 +87,9 @@ function Chip(props: {
   return (
     <li className="flex items-center gap-2 rounded-(--radius-control) bg-control py-1 pr-1 pl-1">
       {props.preview ? (
-        <img src={props.preview} alt="" className="size-8 rounded-[3px] object-cover" />
+        <img src={props.preview} alt="" className="size-8 rounded-(--radius-media) object-cover" />
       ) : (
-        <span className="flex size-8 items-center justify-center rounded-[3px] bg-canvas font-mono text-[10px] text-ink-faint">
+        <span className="flex size-8 items-center justify-center rounded-(--radius-media) bg-canvas font-mono text-[10px] text-ink-faint">
           {props.fallback}
         </span>
       )}

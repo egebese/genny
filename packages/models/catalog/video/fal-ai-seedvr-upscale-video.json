@@ -13,7 +13,12 @@
     "unit": "megapixels",
     "unitPriceUsd": 0.001,
     "waiveDriftCheck": true,
-    "note": "fal publishes $0.001 per megapixel of video data, which is width times height times frame count. The estimate here counts one frame, because the frame count is not an input and cannot be known before the clip is read; settle captures what was actually produced."
+    "note": "fal publishes $0.001 per megapixel of video data, which is width times height times frame count. The frame count is not an input, so the estimate assumes thirty frames a second at 1080p; it has no length control either, because the output is as long as what it was given, so the hold assumes fifteen seconds. Counted as a single frame, as it was, a five second clip held two megapixels against the two hundred and fifty it costs.",
+    "perSecondFrames": 30,
+    "duration": {
+      "assume": 15,
+      "unit": "seconds"
+    }
   },
   "creditMultiplier": 1.25,
   "promptField": null,

@@ -94,7 +94,10 @@ function baseUnits(model: PricedModel, input: Record<string, unknown>): number {
       return count
     case 'megapixels': {
       const size = resolveImageSize(String(input.image_size ?? 'landscape_4_3'))
-      return megapixelsFor(size.width, size.height, count)
+      const still = megapixelsFor(size.width, size.height, count)
+      // Video data, not one picture: a clip is that many megapixels per frame.
+      const fps = model.pricing.perSecondFrames
+      return fps === undefined ? still : still * fps * secondsOf(model.pricing, input)
     }
     case 'seconds':
       return secondsOf(model.pricing, input) * count

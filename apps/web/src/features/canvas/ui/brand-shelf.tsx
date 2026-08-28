@@ -114,7 +114,11 @@ export function BrandShelf({ projectId, projectTitle, items, palette, onAttach }
                         className="block aspect-square w-full overflow-hidden rounded-[3px] bg-surface outline-none ring-1 ring-line hover:ring-accent focus-visible:ring-2 focus-visible:ring-accent"
                       >
                         {item.kind === 'image' ? (
-                          <img src={item.url} alt="" className="size-full object-cover" />
+                          <img
+                            src={item.url}
+                            alt=""
+                            className="size-full rounded-(--radius-media) object-cover"
+                          />
                         ) : null}
                       </button>
                     </li>

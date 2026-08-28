@@ -1,0 +1,36 @@
+{
+  "_": "Video upscalers. Three of the ones fal offers are absent on purpose: Topaz precision, FLUX Video Upscale and the ByteDance upscaler all price by the resolution they produce, and none of them takes that resolution as an input. Their cost cannot be shown before the button is pressed, which is the same rule that keeps GPT Image 2 out.",
+  "family": {
+    "id": "flashvsr",
+    "name": "FlashVSR"
+  },
+  "markUrl": "/models/marks/fal.svg",
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "roles": {
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Upscale this clip"
+    }
+  },
+  "endpoints": {
+    "fal-ai/flashvsr/upscale/video": {
+      "group": "Upscale",
+      "displayName": "FlashVSR Video Upscale",
+      "description": "The cheapest way to make a clip bigger, at half the price of SeedVR. Keeps what is there rather than inventing detail, and can carry the audio through.",
+      "sortOrder": 3410,
+      "pricing": {
+        "unit": "megapixels",
+        "unitPriceUsd": 0.0005,
+        "waiveDriftCheck": true,
+        "perSecondFrames": 30,
+        "duration": {
+          "assume": 15,
+          "unit": "seconds"
+        },
+        "note": "fal publishes $0.0005 per megapixel of video data, which is width times height times frame count. The frame count is not an input, so the estimate assumes thirty frames a second at 1080p, and the length is assumed at fifteen seconds because the output is as long as what it was given."
+      }
+    }
+  }
+}

@@ -67,7 +67,7 @@ export function MentionList({ candidates, highlighted, query, onChoose }: Mentio
 
 function Thumb({ item }: { item: MentionableView }) {
   if (!item.previewUrl) {
-    return <span className="size-8 shrink-0 rounded-(--radius-control) bg-control" />
+    return <span className="size-8 shrink-0 rounded-(--radius-media) bg-control" />
   }
   return (
     <img
@@ -77,7 +77,7 @@ function Thumb({ item }: { item: MentionableView }) {
       className={cn(
         'size-8 shrink-0 object-cover',
         // Characters read as people, so they get the rounder shape.
-        item.kind === 'group' ? 'rounded-full' : 'rounded-(--radius-control)',
+        item.kind === 'group' ? 'rounded-full' : 'rounded-(--radius-media)',
       )}
     />
   )

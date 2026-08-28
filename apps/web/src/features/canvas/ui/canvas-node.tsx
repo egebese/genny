@@ -106,6 +106,10 @@ export function CanvasNode(props: CanvasNodeProps) {
       style={{ left: node.x, top: node.y, width: node.width, height: node.height }}
       className={cn(
         'group absolute m-0 cursor-grab touch-none select-none outline-none',
+        // Clipped here so everything inside takes the corner: the picture, the
+        // player, the failure box and the skeleton, without each one repeating
+        // the radius and drifting from the others.
+        'overflow-hidden rounded-(--radius-media)',
         'ring-offset-2 ring-offset-surface',
         selected ? 'ring-2 ring-accent' : 'focus-visible:ring-2 focus-visible:ring-accent',
       )}

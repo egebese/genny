@@ -19,7 +19,7 @@ export function AssetCard({ asset, selected, onToggle }: AssetCardProps) {
     <li>
       <label
         className={cn(
-          'block cursor-pointer overflow-hidden rounded-(--radius-panel) border bg-surface transition-colors',
+          'block cursor-pointer overflow-hidden rounded-(--radius-media) border bg-surface transition-colors',
           'focus-within:ring-2 focus-within:ring-accent',
           selected ? 'border-accent' : 'border-line hover:border-ink-faint',
         )}

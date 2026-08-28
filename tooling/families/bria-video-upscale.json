@@ -1,0 +1,34 @@
+{
+  "_": "Bria's video upscaler. One flat rate per second whatever it is asked for, which is rarer than it should be.",
+  "family": {
+    "id": "bria-video-upscale",
+    "name": "Bria Video Upscale"
+  },
+  "markUrl": "/models/marks/briaai.svg",
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "roles": {
+    "video_url": {
+      "role": "source",
+      "accepts": ["video"],
+      "label": "Upscale this clip"
+    }
+  },
+  "endpoints": {
+    "bria/video/increase-resolution": {
+      "group": "Upscale",
+      "displayName": "Bria Video Upscale",
+      "description": "Doubles or quadruples a clip at one flat rate per second. Licensed training data, which is the reason to reach for Bria.",
+      "sortOrder": 3420,
+      "pricing": {
+        "unit": "seconds",
+        "unitPriceUsd": 0.14,
+        "duration": {
+          "assume": 15,
+          "unit": "seconds"
+        },
+        "note": "fal publishes a flat $0.14 per second of output. It has no length control: the output is as long as what it was given, so the hold assumes fifteen seconds."
+      }
+    }
+  }
+}

@@ -85,6 +85,17 @@ export const modelPricing = z.object({
    * so a thirty second Seedance clip was held at a sixth of its price and
    * `settle` never captures more than it held.
    */
+  /**
+   * Set when a megapixel price counts every frame, not the picture once.
+   *
+   * A video upscaler bills per megapixel of video data, which is width times
+   * height times frame count. Estimated as one frame, a five second 1080p clip
+   * holds two megapixels against the two hundred and fifty it costs, and
+   * `settle` never captures more than the hold: a hundredfold undercharge,
+   * permanently. The frame rate is not an input on any of them, so it is
+   * declared here and the note says what was assumed.
+   */
+  perSecondFrames: z.number().positive().optional(),
   duration: z
     .object({
       /** Defaults to `duration` and then `duration_seconds`, as before. */

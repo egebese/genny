@@ -134,3 +134,32 @@ describe('a rate that two controls decide together', () => {
     expect(at({ duration: 1, resolution: '4k' })).toBeCloseTo(0.4, 10)
   })
 })
+
+describe('a megapixel price that counts frames', () => {
+  /*
+   * SeedVR bills per megapixel of video data, which is width times height times
+   * frame count. Counted as one frame it held two megapixels against the two
+   * hundred and fifty a five second clip costs, and settle never captures more
+   * than the hold.
+   */
+  const upscaler: ModelPricing = {
+    unit: 'megapixels',
+    unitPriceUsd: 0.001,
+    perSecondFrames: 30,
+    duration: { unit: 'seconds', assume: 15 },
+  }
+
+  it('counts every frame of the clip, not the first one', () => {
+    const oneFrame = estimateUnits({ pricing: { unit: 'megapixels', unitPriceUsd: 0.001 } }, {})
+    const whole = estimateUnits({ pricing: upscaler }, { duration: 5 })
+    expect(whole).toBeCloseTo(oneFrame * 30 * 5, 6)
+  })
+
+  it('holds for the assumed length when the clip does not say', () => {
+    // No duration control: the output is as long as what it was given.
+    expect(estimateUnits({ pricing: upscaler }, {})).toBeCloseTo(
+      estimateUnits({ pricing: upscaler }, { duration: 15 }),
+      6,
+    )
+  })
+})

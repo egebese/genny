@@ -74,7 +74,12 @@ export function BrandKitEditor({
             <li key={asset.id} className="flex flex-col gap-1">
               <div className="aspect-square overflow-hidden rounded-(--radius-control) bg-surface ring-1 ring-line">
                 {asset.kind === 'image' ? (
-                  <img src={asset.url} alt="" loading="lazy" className="size-full object-cover" />
+                  <img
+                    src={asset.url}
+                    alt=""
+                    loading="lazy"
+                    className="size-full rounded-(--radius-media) object-cover"
+                  />
                 ) : null}
               </div>
               <p className="truncate font-mono text-[10px] text-ink-faint">@{asset.label}</p>
@@ -104,7 +109,11 @@ function Pinned({ item, onRemove }: { item: PinnedAsset; onRemove: () => void })
     <li className="flex flex-col gap-1">
       <div className="relative size-20 overflow-hidden rounded-(--radius-control) bg-surface ring-1 ring-line">
         {item.kind === 'image' ? (
-          <img src={item.url} alt={item.label} className="size-full object-cover" />
+          <img
+            src={item.url}
+            alt={item.label}
+            className="size-full rounded-(--radius-media) object-cover"
+          />
         ) : null}
         <button
           type="button"

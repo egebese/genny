@@ -54,6 +54,11 @@
   --radius-control: 0.25rem;
   --radius-panel: 0.5rem;
   --radius-dock: 0.5rem;
+  /* Pictures and clips, wherever they are drawn: on the board, in the library,
+   * in the attachment strip. The same step as a control, because a result and
+   * the chip that made it sitting side by side at different radii is the sort
+   * of thing nobody names and everybody sees. */
+  --radius-media: 0.25rem;
 
   /*
    * Soft and layered, not a glow. There used to be an iridescent gradient here,

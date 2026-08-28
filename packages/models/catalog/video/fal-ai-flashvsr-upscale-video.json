@@ -1,0 +1,112 @@
+{
+  "endpointId": "fal-ai/flashvsr/upscale/video",
+  "family": {
+    "id": "flashvsr",
+    "name": "FlashVSR"
+  },
+  "modality": "video",
+  "group": "Upscale",
+  "displayName": "FlashVSR Video Upscale",
+  "description": "The cheapest way to make a clip bigger, at half the price of SeedVR. Keeps what is there rather than inventing detail, and can carry the audio through.",
+  "sortOrder": 3410,
+  "pricing": {
+    "unit": "megapixels",
+    "unitPriceUsd": 0.0005,
+    "waiveDriftCheck": true,
+    "perSecondFrames": 30,
+    "duration": {
+      "assume": 15,
+      "unit": "seconds"
+    },
+    "note": "fal publishes $0.0005 per megapixel of video data, which is width times height times frame count. The frame count is not an input, so the estimate assumes thirty frames a second at 1080p, and the length is assumed at fifteen seconds because the output is as long as what it was given."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "inputs": [
+    {
+      "name": "sync_mode",
+      "label": "Sync mode",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "output_quality",
+      "label": "Output quality",
+      "default": "high",
+      "type": "enum",
+      "enum": ["low", "medium", "high", "maximum"]
+    },
+    {
+      "name": "seed",
+      "label": "Seed",
+      "type": "integer"
+    },
+    {
+      "name": "quality",
+      "label": "Quality",
+      "default": 70,
+      "type": "integer",
+      "min": 0,
+      "max": 100
+    },
+    {
+      "name": "output_write_mode",
+      "label": "Output write mode",
+      "default": "balanced",
+      "type": "enum",
+      "enum": ["fast", "balanced", "small"]
+    },
+    {
+      "name": "output_format",
+      "label": "Output format",
+      "default": "X264 (.mp4)",
+      "type": "enum",
+      "enum": ["X264 (.mp4)", "VP9 (.webm)", "PRORES4444 (.mov)", "GIF (.gif)"]
+    },
+    {
+      "name": "preserve_audio",
+      "label": "Preserve audio",
+      "default": false,
+      "type": "boolean"
+    },
+    {
+      "name": "upscale_factor",
+      "label": "Upscale factor",
+      "default": 2,
+      "type": "number",
+      "min": 1,
+      "max": 4
+    },
+    {
+      "name": "color_fix",
+      "label": "Color fix",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "acceleration",
+      "label": "Acceleration",
+      "default": "regular",
+      "type": "enum",
+      "enum": ["regular", "high", "full"]
+    }
+  ],
+  "references": [
+    {
+      "field": "video_url",
+      "role": "source",
+      "accepts": ["video"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Upscale this clip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": true,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/fal.svg"
+}

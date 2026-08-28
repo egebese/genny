@@ -1,0 +1,73 @@
+{
+  "endpointId": "bria/video/increase-resolution",
+  "family": {
+    "id": "bria-video-upscale",
+    "name": "Bria Video Upscale"
+  },
+  "modality": "video",
+  "group": "Upscale",
+  "displayName": "Bria Video Upscale",
+  "description": "Doubles or quadruples a clip at one flat rate per second. Licensed training data, which is the reason to reach for Bria.",
+  "sortOrder": 3420,
+  "pricing": {
+    "unit": "seconds",
+    "unitPriceUsd": 0.14,
+    "duration": {
+      "assume": 15,
+      "unit": "seconds"
+    },
+    "note": "fal publishes a flat $0.14 per second of output. It has no length control: the output is as long as what it was given, so the hold assumes fifteen seconds."
+  },
+  "creditMultiplier": 1.25,
+  "promptField": null,
+  "inputs": [
+    {
+      "name": "preserve_audio",
+      "label": "Preserve audio",
+      "default": true,
+      "type": "boolean"
+    },
+    {
+      "name": "output_container_and_codec",
+      "label": "Output container and codec",
+      "default": "webm_vp9",
+      "type": "enum",
+      "enum": [
+        "mp4_h265",
+        "mp4_h264",
+        "webm_vp9",
+        "mov_h265",
+        "mov_proresks",
+        "mkv_h265",
+        "mkv_h264",
+        "mkv_vp9",
+        "gif"
+      ]
+    },
+    {
+      "name": "desired_increase",
+      "label": "Desired increase",
+      "default": "2",
+      "type": "enum",
+      "enum": ["2", "4"]
+    }
+  ],
+  "references": [
+    {
+      "field": "video_url",
+      "role": "source",
+      "accepts": ["video"],
+      "required": true,
+      "array": false,
+      "maxCount": 1,
+      "token": "strip",
+      "label": "Upscale this clip"
+    }
+  ],
+  "capabilities": {
+    "supportsNegativePrompt": false,
+    "supportsSeed": false,
+    "maxOutputs": 1
+  },
+  "markUrl": "/models/marks/briaai.svg"
+}
