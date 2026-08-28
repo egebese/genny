@@ -6,6 +6,7 @@ import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 import type { Attachment, MentionChip } from './attachment-strip.tsx'
+import type { DirectorProps } from './director-panel.tsx'
 import { KeyGate } from './key-gate.tsx'
 import { PromptDock } from './prompt-dock.tsx'
 
@@ -30,6 +31,7 @@ type CanvasDockProps = {
   onSettingChange: (name: string, value: unknown) => void
   onPromptChange: (next: string) => void
   onSubmit: (prompt: string) => void
+  director: DirectorProps
   onReady: () => void
 }
 
@@ -45,6 +47,7 @@ export function CanvasDock(props: CanvasDockProps) {
       <Dock>
         {props.ready ? (
           <PromptDock
+            director={props.director}
             families={props.families}
             family={props.family}
             model={props.model}

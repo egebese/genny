@@ -194,6 +194,47 @@ test.describe('@live against real fal', () => {
     await expect(page.getByText(/hoodie|knitwear|knit/i).first()).toBeVisible()
   })
 
+  test('the director answers, and its shots load into the prompt @live', async ({ page }) => {
+    await generate(page, 'schnell', 'an off-white oversize hoodie on a concrete plinth, overcast')
+    const nodes = page.getByRole('listbox', { name: 'Canvas' }).getByRole('option')
+    await expect(nodes.first().locator('img')).toBeVisible({ timeout: 300_000 })
+
+    await page.getByRole('button', { name: 'Direct' }).click()
+    await page.getByLabel('Prompt', { exact: true }).fill('three more shots to round out this set')
+    await page.getByRole('button', { name: 'Ask', exact: true }).click()
+
+    // It replies, and because shots were asked for, it proposes some.
+    const shot = page.locator('[data-dock] article button').first()
+    await expect(shot).toBeVisible({ timeout: 120_000 })
+
+    /*
+     * A proposal loads into the prompt and is not run. The agent wrote a
+     * sentence; whether to spend money on it is not its decision, and the
+     * price belongs on the button as it always is.
+     */
+    const before = await nodes.count()
+    await shot.click()
+    await expect(page.getByLabel('Prompt', { exact: true })).not.toHaveValue('')
+    await expect(page.getByRole('button', { name: /^Generate/ })).toBeVisible()
+    await expect(nodes).toHaveCount(before)
+  })
+
+  test('the director answers a question without proposing anything @live', async ({ page }) => {
+    await generate(page, 'schnell', 'an off-white oversize hoodie on a concrete plinth, overcast')
+    await expect(
+      page.getByRole('listbox', { name: 'Canvas' }).getByRole('option').first().locator('img'),
+    ).toBeVisible({ timeout: 300_000 })
+
+    await page.getByRole('button', { name: 'Direct' }).click()
+    await page.getByLabel('Prompt', { exact: true }).fill('what is wrong with this shot?')
+    await page.getByRole('button', { name: 'Ask', exact: true }).click()
+
+    // A reply arrives. Padding a critique with prompts nobody asked for spends
+    // their money, so the shots are expected to be absent.
+    await expect(page.locator('[data-dock] article p').nth(1)).toBeVisible({ timeout: 120_000 })
+    await expect(page.locator('[data-dock] article button')).toHaveCount(0)
+  })
+
   /*
    * The three below are the only place these can be proved. The mocked suite
    * never completes a job, so a placeholder never fills, an info button never

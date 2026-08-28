@@ -6,11 +6,11 @@ import type { MentionableView } from '@/features/assets/server/list.ts'
 import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 import { type Attachment, AttachmentStrip, type MentionChip } from './attachment-strip.tsx'
+import { DirectorPanel, type DirectorProps } from './director-panel.tsx'
+import { DockControls } from './dock-controls.tsx'
 import { DockNotice, whyBlocked } from './dock-notice.tsx'
-import { GenerateButton } from './generate-button.tsx'
 import { MentionList } from './mention-list.tsx'
 import { PromptField } from './prompt-field.tsx'
-import { SettingsRow } from './settings-row.tsx'
 import { useMentions } from './use-mentions.ts'
 
 /** One dock over every modality, so it asks for whatever the chosen model makes. */
@@ -46,7 +46,11 @@ type PromptDockProps = {
   prompt: string
   onPromptChange: (next: string) => void
   onSubmit: (prompt: string) => void
+  /** The other thing the box can do: talk to the director instead of generating. */
+  director: DirectorProps
 }
+
+const DIRECTOR_PLACEHOLDER = 'Ask for what to shoot next, or what is wrong with these'
 
 const MAX_ROWS = 6
 
@@ -76,10 +80,17 @@ export function PromptDock(props: PromptDockProps) {
     },
   })
 
+  const director = props.director
+
   function submit() {
     const trimmed = prompt.trim()
     if (!trimmed || pending) return
-    onSubmit(trimmed)
+    // One box, two things it can do. Which one is a mode rather than a second
+    // input, because a studio with two places to type is a studio where half
+    // of what you write goes to the wrong one.
+    if (director.on) director.onAsk(trimmed)
+    else onSubmit(trimmed)
+    setPrompt('')
     mentions.close()
     resize()
   }
@@ -127,9 +138,22 @@ export function PromptDock(props: PromptDockProps) {
       <label htmlFor="prompt" className="sr-only">
         Prompt
       </label>
+      {director.on ? (
+        <DirectorPanel
+          turns={director.turns}
+          asking={director.asking}
+          error={director.error}
+          onUse={(next) => {
+            director.onToggle()
+            setPrompt(next)
+          }}
+          onClear={director.onClear}
+        />
+      ) : null}
+
       <PromptField
         value={prompt}
-        placeholder={PLACEHOLDERS[shown.modality]}
+        placeholder={director.on ? DIRECTOR_PLACEHOLDER : PLACEHOLDERS[shown.modality]}
         known={props.resolvable}
         mentions={mentions}
         textarea={textarea}
@@ -141,26 +165,24 @@ export function PromptDock(props: PromptDockProps) {
         onSubmit={submit}
       />
 
-      <div className="flex items-end gap-2 px-3 pt-2 pb-3">
-        <SettingsRow
-          families={props.families}
-          family={props.family}
-          model={shown}
-          settings={settings}
-          onModelChange={props.onModelChange}
-          onSettingChange={props.onSettingChange}
-        />
-        <GenerateButton
-          model={shown}
-          settings={settings}
-          credits={props.credits}
-          pending={pending}
-          disabled={prompt.trim().length === 0 || block !== null}
-          onClick={submit}
-        />
-      </div>
+      <DockControls
+        families={props.families}
+        family={props.family}
+        model={shown}
+        settings={settings}
+        credits={props.credits}
+        pending={pending}
+        blocked={block !== null}
+        empty={prompt.trim().length === 0}
+        directing={director.on}
+        asking={director.asking}
+        onDirect={director.onToggle}
+        onModelChange={props.onModelChange}
+        onSettingChange={props.onSettingChange}
+        onSubmit={submit}
+      />
 
-      <DockNotice block={block} family={props.family} />
+      {director.on ? null : <DockNotice block={block} family={props.family} />}
 
       {error ? (
         <p role="alert" className="border-line border-t px-4 py-2 text-danger text-sm">

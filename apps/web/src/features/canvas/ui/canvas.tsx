@@ -14,6 +14,7 @@ import { useAttachments } from './use-attachments.ts'
 import { useBoardActions } from './use-board-actions.ts'
 import { useBoardNodes } from './use-board-nodes.ts'
 import { kindsOf, useComposer } from './use-composer.ts'
+import { useDirector } from './use-director.ts'
 import { useGenerate } from './use-generate.ts'
 import { useMentionables, useResolvedMentions } from './use-mentionables.ts'
 import { overlaySlots } from './use-overlay-slots.ts'
@@ -68,6 +69,8 @@ export function Canvas(props: CanvasPage) {
     centreOfView: view.centreOfView,
   })
   const variants = useVariants(canvasId, nodes)
+  const director = useDirector(canvasId)
+  const [directing, setDirecting] = useState(false)
   const { pending, error, submit, runVariants } = useSubmit({ generate, variants, onPlaced: add })
 
   const act = useBoardActions({
@@ -160,6 +163,17 @@ export function Canvas(props: CanvasPage) {
         onSettingChange={composer.set}
         onPromptChange={composer.setPrompt}
         onSubmit={(text) => void submit(model, text, settings, pinned.forRequest())}
+        director={{
+          on: directing,
+          onToggle: () => setDirecting((was) => !was),
+          turns: director.turns,
+          asking: director.asking,
+          error: director.error,
+          // What is picked is part of the question: three shots selected and
+          // "what is wrong with these" has to mean those three.
+          onAsk: (question) => void director.ask(question, [...pick.selected]),
+          onClear: director.clear,
+        }}
         onReady={() => setReady(true)}
       />
     </>

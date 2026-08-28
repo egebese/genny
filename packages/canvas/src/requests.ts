@@ -65,6 +65,21 @@ export const pinAssetRequest = z.object({
 export const unpinAssetRequest = z.object({ projectId: z.uuid(), assetId: z.uuid() })
 
 /**
+ * One turn with the director.
+ *
+ * The selection travels with the question because it changes what is being
+ * asked: three shots picked and "what is wrong with these" means those three,
+ * and an unasked-for critique of the whole board is the answer nobody wanted.
+ */
+export const directorRequest = z.object({
+  canvasId: z.uuid(),
+  question: z.string().trim().min(1).max(2000),
+  selected: z.array(z.uuid()).max(32).default([]),
+})
+
+export type DirectorRequest = z.infer<typeof directorRequest>
+
+/**
  * Variants of one node.
  *
  * The rectangles come from the browser for the same reason a generation's does:
