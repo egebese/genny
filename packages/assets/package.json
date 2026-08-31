@@ -17,7 +17,7 @@
     "@genny/db": "workspace:*",
     "@genny/env": "workspace:*",
     "drizzle-orm": "catalog:",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@genny/tsconfig": "workspace:*",
