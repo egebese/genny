@@ -1,6 +1,6 @@
 import { cn } from '@genny/ui/cn.ts'
 
-const BARS = 40
+const BARS = 56
 
 /**
  * The shape of a sound, and how far through it you are.
@@ -25,7 +25,9 @@ export function AudioWaveform({ label, played }: { label: string; played: number
      * is a fixed height in the middle, which is the shape a waveform has.
      */
     <div aria-hidden className="flex h-full w-full items-center">
-      <div className="flex h-16 w-full items-center gap-[2px]">
+      {/* Capped, and it shrinks: the node it sits in can be a hundred and
+          sixty pixels tall, and a fixed band overflowed one. */}
+      <div className="flex h-full max-h-14 w-full items-center justify-between gap-px">
         {heights.map((height, at) => (
           <span
             key={`${at}-${height}`}
@@ -52,12 +54,22 @@ function shapeOf(label: string): number[] {
   let seed = 0
   for (const character of label) seed = (seed * 31 + character.charCodeAt(0)) >>> 0
 
-  const heights: number[] = []
+  const raw: number[] = []
   for (let at = 0; at < BARS; at++) {
     seed = (seed * 1664525 + 1013904223) >>> 0
-    // Kept off the floor and well under the ceiling: a bar at zero reads as a
-    // gap in the sound, and bars at full height fill the card with stripes.
-    heights.push(20 + ((seed >>> 16) % 80))
+    // Kept off the floor: a bar at zero reads as a gap in the sound.
+    raw.push(14 + ((seed >>> 16) % 86))
   }
-  return heights
+
+  /*
+   * Nudged towards its neighbours, not averaged with them. Independent random
+   * heights read as a barcode, because loud parts of a sound are loud for more
+   * than one frame; averaging them flattens the whole thing into a row of
+   * identical blobs, which was the first attempt and read as a level meter.
+   */
+  return raw.map((height, at) => {
+    const before = raw[at - 1] ?? height
+    const after = raw[at + 1] ?? height
+    return Math.round((before + height * 6 + after) / 8)
+  })
 }

@@ -25,19 +25,25 @@ export function AudioPlayer({ src, label }: { src: string; label: string | null 
   const played = clockState.length > 0 ? clockState.at / clockState.length : 0
 
   return (
-    <div className="flex h-full w-full flex-col justify-between gap-2 bg-surface p-3">
-      <div className="min-h-0 flex-1 py-1">
+    /*
+     * Label, then waveform, then controls, and the waveform is the only one
+     * that gives ground. A node is whatever size somebody dragged it to: these
+     * arrive wide and short, and a band with a fixed height ran off the top of
+     * one and printed the label straight through the middle of it.
+     */
+    <div className="flex h-full w-full flex-col gap-2 bg-surface p-3">
+      <span className="shrink-0 truncate font-mono text-[10px] text-ink-faint uppercase tracking-wider">
+        {label ?? 'audio'}
+      </span>
+
+      <div className="min-h-0 flex-1">
         <AudioWaveform label={label ?? 'audio'} played={played} />
       </div>
 
       {/* biome-ignore lint/a11y/useMediaCaption: freshly generated audio has no transcript and an empty track claims otherwise */}
       <audio ref={clockState.media} src={src} muted={muted} preload="metadata" className="hidden" />
 
-      <span className="truncate font-mono text-[10px] text-ink-faint uppercase tracking-wider">
-        {label ?? 'audio'}
-      </span>
-
-      <div className="flex items-center gap-2.5">
+      <div className="flex shrink-0 items-center gap-2.5">
         <button
           type="button"
           onClick={clockState.toggle}
