@@ -2,6 +2,7 @@ import { createBilling } from '@genny/billing/provider.ts'
 import { appDb, ownerDb } from '@genny/db/connection.ts'
 import { findJobByFalRequestId } from '@genny/db/repositories/jobs-settlement.ts'
 import { env } from '@genny/env/env.ts'
+import { logger } from '@genny/env/log.ts'
 import { falPublicKeys } from '@genny/fal/jwks.ts'
 import { verifyFalWebhook } from '@genny/fal/webhook.ts'
 import { settleOnce } from '@genny/jobs/track.ts'
@@ -37,7 +38,12 @@ export async function POST(request: Request): Promise<Response> {
     rawBody,
     keys: await falPublicKeys(),
   })
-  if (!verified.ok) return new Response(verified.reason, { status: 401 })
+  if (!verified.ok) {
+    // A rejection here is either a misconfigured deployment or someone trying
+    // to settle a job they do not own, and both used to leave no trace at all.
+    log.warn('webhook signature rejected', { reason: verified.reason })
+    return new Response(verified.reason, { status: 401 })
+  }
 
   const job = await findJobByFalRequestId(
     ownerDb(config.DATABASE_MIGRATION_URL ?? config.DATABASE_URL),
@@ -62,3 +68,5 @@ export async function POST(request: Request): Promise<Response> {
 function ok(): Response {
   return new Response(null, { status: 204 })
 }
+
+const log = logger('webhook')

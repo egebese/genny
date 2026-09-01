@@ -56,12 +56,7 @@ test.describe('shell', () => {
     }
     expect(body.ok).toBe(true)
     expect(body.mode).toMatch(/^(byok|saas)$/)
-    expect(body.checks.map((c) => c.name).sort()).toEqual([
-      'catalog',
-      'database',
-      'env',
-      'sweep',
-    ])
+    expect(body.checks.map((c) => c.name).sort()).toEqual(['catalog', 'database', 'env', 'sweep'])
   })
 
   test('health endpoint leaks no configuration values', async ({ request }) => {
@@ -1367,10 +1362,22 @@ test.describe('usage page', () => {
     await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
   })
 
-  test('byok has no usage page, because there is no ledger', async ({ page }) => {
+  /*
+   * byok has no ledger, but it does have failures, and a generation that fails
+   * before fal accepts it deletes its own placeholder. Without this page the
+   * board is empty and there is nowhere at all to find out why.
+   */
+  test('byok gets the generation history without the ledger', async ({ page }) => {
     test.skip(mode !== 'byok', 'saas is the mode with credits')
-    const response = await page.goto('/usage')
-    expect(response?.status()).toBe(404)
+    await page.goto('/usage')
+    await expect(page.getByRole('heading', { name: 'Usage' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Generations' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Buy credits' })).toHaveCount(0)
+  })
+
+  test('the history lists a generation in both modes', async ({ page }) => {
+    await page.goto('/usage')
+    await expect(page.getByRole('heading', { name: 'Generations' })).toBeVisible()
   })
 })
 

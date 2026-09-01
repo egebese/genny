@@ -1,5 +1,6 @@
 import { withActor } from '@genny/db/actor.ts'
 import type { Database } from '@genny/db/client.ts'
+import { logger } from '@genny/env/log.ts'
 import { buildStorageKey } from './keys.ts'
 import { toLabelSlug, uniqueLabel } from './labels.ts'
 import { isWithinSizeLimit, MAX_BYTES, SNIFF_BYTES, sniffMediaType } from './media.ts'
@@ -73,6 +74,12 @@ export async function ingestOutputs(request: IngestRequest): Promise<IngestOutco
     }
   }
 
+  if (failures.length > 0) {
+    // The job still completes and hands back fal's urls, which expire in about
+    // a week. Nothing else says this happened, so an asset that quietly went
+    // missing seven days later had no explanation anywhere.
+    log.error('outputs not ingested', { jobId, failures })
+  }
   return { assets: created, failures }
 }
 
@@ -97,3 +104,5 @@ async function fetchMedia(
   }
   return { bytes, type }
 }
+
+const log = logger('assets')

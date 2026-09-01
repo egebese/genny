@@ -2,6 +2,7 @@ import type { Billing } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { Database } from '@genny/db/client.ts'
 import { failJob } from '@genny/db/repositories/jobs.ts'
+import { logger, reason } from '@genny/env/log.ts'
 
 /**
  * Give the credits back, then mark the row. A generation that failed costs
@@ -29,9 +30,10 @@ export async function releaseAndFail(input: {
       .release(input.actorId, input.held)
       .then(() => true)
       .catch((error: unknown) => {
-        console.error('[settle] could not release a hold, leaving the job for the sweep', {
+        log.error('hold not released, leaving the job for the sweep', {
           jobId: input.jobId,
-          error: error instanceof Error ? error.message : 'unknown error',
+          held: input.held,
+          reason: reason(error),
         })
         return false
       })
@@ -40,10 +42,9 @@ export async function releaseAndFail(input: {
   return await withActor(input.db, input.actorId, (tx) => failJob(tx, input.jobId, input.message))
     .then(() => true)
     .catch((error: unknown) => {
-      console.error('[settle] could not mark a job failed', {
-        jobId: input.jobId,
-        error: error instanceof Error ? error.message : 'unknown error',
-      })
+      log.error('job not marked failed', { jobId: input.jobId, reason: reason(error) })
       return false
     })
 }
+
+const log = logger('jobs')

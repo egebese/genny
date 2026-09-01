@@ -2,6 +2,7 @@ import type { Storage } from '@genny/assets/storage.ts'
 import type { Billing } from '@genny/billing/provider.ts'
 import type { Database } from '@genny/db/client.ts'
 import { listStrandedJobs, type StrandedJob } from '@genny/db/repositories/jobs-settlement.ts'
+import { logger } from '@genny/env/log.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
 import { releaseAndFail } from './failure.ts'
 import { settleOnce } from './track.ts'
@@ -88,8 +89,14 @@ export async function sweepStrandedJobs(options: SweepOptions): Promise<SweepRep
     else report.stuck += 1
   }
 
+  // Always, not only when it did something: a run that checked nothing is how a
+  // deployment proves its scheduler is alive, and a `stuck` above zero is money
+  // that did not go back.
+  log.info('sweep finished', { ...report })
   return report
 }
+
+const log = logger('jobs')
 
 /**
  * True when fal gave a verdict and the job is now finished either way.
