@@ -145,7 +145,19 @@ CRON_SECRET=$(openssl rand -hex 32)   # leave it unset and the route 404s
 ```
 
 GET works too, since most hosted schedulers only send GET. Every minute is
-plenty; every hour still beats never.
+plenty; every hour still beats never. On Vercel the `vercel.json` in this repo
+already declares the schedule, and Vercel sends the bearer token itself once
+`CRON_SECRET` is set; if your project's root directory is `apps/web` rather than
+the repo root, move the file there.
+
+**Check that it is actually running.** Nothing in the code can see a scheduler,
+so `GET /api/health` asks from the other end: in saas it reports `sweep`
+unhealthy when `CRON_SECRET` is unset, or when a job has sat unsettled for twice
+the abandon window, which can only happen if no sweep has run. Every one of those
+jobs is holding someone's credits, so treat that check as a money alarm rather
+than a tidiness one. In byok it always passes, because a byok job holds nothing:
+the visitor spent their own fal balance. Run the sweep there anyway, or stuck
+generations spin forever.
 
 Where the deployment owns the fal key the sweep settles the job for real,
 ingesting the outputs and capturing what the run actually cost. In byok it can

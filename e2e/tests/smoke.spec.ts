@@ -56,7 +56,12 @@ test.describe('shell', () => {
     }
     expect(body.ok).toBe(true)
     expect(body.mode).toMatch(/^(byok|saas)$/)
-    expect(body.checks.map((c) => c.name).sort()).toEqual(['catalog', 'database', 'env'])
+    expect(body.checks.map((c) => c.name).sort()).toEqual([
+      'catalog',
+      'database',
+      'env',
+      'sweep',
+    ])
   })
 
   test('health endpoint leaks no configuration values', async ({ request }) => {

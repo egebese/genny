@@ -3,7 +3,7 @@ import type { Billing } from '@genny/billing/provider.ts'
 import type { Database } from '@genny/db/client.ts'
 import { listStrandedJobs, type StrandedJob } from '@genny/db/repositories/jobs-settlement.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
-import { releaseAndFail } from './settle.ts'
+import { releaseAndFail } from './failure.ts'
 import { settleOnce } from './track.ts'
 
 /** How long a job may go unwatched before the sweep takes an interest. */
@@ -18,6 +18,9 @@ export type SweepReport = {
   settled: number
   /** Rows given up on, credits returned. */
   expired: number
+  /** Rows that should have expired but whose credits would not go back. Left
+   * queued for the next pass; a number that stays above zero is an alarm. */
+  stuck: number
 }
 
 export type SweepOptions = {
@@ -61,7 +64,7 @@ export async function sweepStrandedJobs(options: SweepOptions): Promise<SweepRep
     limit: options.limit ?? 50,
   })
 
-  const report: SweepReport = { checked: stranded.length, settled: 0, expired: 0 }
+  const report: SweepReport = { checked: stranded.length, settled: 0, expired: 0, stuck: 0 }
 
   for (const job of stranded) {
     const settled = await askFal(options, job)
@@ -71,7 +74,7 @@ export async function sweepStrandedJobs(options: SweepOptions): Promise<SweepRep
     }
     if (now.getTime() - job.createdAt.getTime() < abandonAfter) continue
 
-    await releaseAndFail({
+    const expired = await releaseAndFail({
       db: options.db,
       actorId: job.ownerId,
       jobId: job.id,
@@ -79,7 +82,10 @@ export async function sweepStrandedJobs(options: SweepOptions): Promise<SweepRep
       billing: options.billing,
       message: 'This generation never came back. Any credits held for it were returned.',
     })
-    report.expired += 1
+    // A refusal leaves the row queued on purpose, so the next sweep sees it
+    // again. Counting it as expired would report money returned that is not.
+    if (expired) report.expired += 1
+    else report.stuck += 1
   }
 
   return report

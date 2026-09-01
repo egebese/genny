@@ -4,11 +4,13 @@ import { assetUrl } from '@genny/assets/urls.ts'
 import type { Billing } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import type { Database } from '@genny/db/client.ts'
-import { completeJob, failJob, findJob, type JobRecord } from '@genny/db/repositories/jobs.ts'
+import { completeJob, findJob, type JobRecord } from '@genny/db/repositories/jobs.ts'
 import { claimJobSettlement } from '@genny/db/repositories/jobs-settlement.ts'
 import type { FalCredentials } from '@genny/fal/credentials.ts'
 import { FalFailure } from '@genny/fal/errors.ts'
 import { readJobResult } from '@genny/fal/queue.ts'
+import { outputCount } from '@genny/models/aspect.ts'
+import { releaseAndFail } from './failure.ts'
 
 export type TrackEvent =
   | { status: 'queued' | 'running'; jobId: string; queuePosition: number | null }
@@ -76,8 +78,13 @@ export async function finish(context: TrackContext): Promise<TrackEvent> {
      * Settle at what the run actually produced. A model asked for four images and
      * returning three has cost three, so the hold is captured in proportion and
      * the rest goes back. Without this, the estimate silently becomes the price.
+     *
+     * `outputCount` rather than reading the field here: the board reserves its
+     * rectangles from it and the estimate is quoted from the same number, so a
+     * second copy of "how many outputs is this" is a bill that disagrees with the
+     * board about what was ordered.
      */
-    const expected = Number(job.input.num_images ?? 1) || 1
+    const expected = outputCount(job.input)
     const produced = Math.max(1, Math.min(outputs.urls.length || expected, expected))
     const heldCredits = job.creditsHeld ?? '0'
     const actual = ((Number(heldCredits) * produced) / expected).toFixed(4)
@@ -98,30 +105,6 @@ export async function finish(context: TrackContext): Promise<TrackEvent> {
   } catch (error) {
     return recordFailure(context, describe(error))
   }
-}
-
-/**
- * Give the credits back, then mark the row. A generation that failed costs
- * nothing, and releasing first means a crash between the two leaves the money
- * returned rather than stranded.
- *
- * Shared with the reconcile sweep, which reaches the same conclusion by a
- * different route and must not settle it differently.
- */
-export async function releaseAndFail(input: {
-  db: Database
-  actorId: string
-  jobId: string
-  held: string
-  billing: Billing
-  message: string
-}): Promise<void> {
-  if (Number(input.held) > 0) {
-    await input.billing.release(input.actorId, input.held).catch(() => {})
-  }
-  await withActor(input.db, input.actorId, (tx) => failJob(tx, input.jobId, input.message)).catch(
-    () => {},
-  )
 }
 
 export async function recordFailure(context: TrackContext, message: string): Promise<TrackEvent> {

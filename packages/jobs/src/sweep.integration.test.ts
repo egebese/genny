@@ -1,5 +1,5 @@
 import { recordChange } from '@genny/billing/ledger.ts'
-import { createBilling } from '@genny/billing/provider.ts'
+import { type Billing, createBilling } from '@genny/billing/provider.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { createJob, findJob } from '@genny/db/repositories/jobs.ts'
 import { claimJobSettlement } from '@genny/db/repositories/jobs-settlement.ts'
@@ -71,7 +71,9 @@ async function strandedJob(ageMinutes: number, held: string) {
   return job
 }
 
-function sweep(overrides: { staleAfterMs?: number; abandonAfterMs?: number } = {}) {
+function sweep(
+  overrides: { staleAfterMs?: number; abandonAfterMs?: number; billing?: Billing } = {},
+) {
   return sweepStrandedJobs({
     db: database.app,
     ownerDb: database.owner,
@@ -83,6 +85,15 @@ function sweep(overrides: { staleAfterMs?: number; abandonAfterMs?: number } = {
   })
 }
 
+/** Real billing except that giving the money back does not work. */
+function billingThatCannotRelease(): Billing {
+  const real = createBilling('saas', database.app)
+  return {
+    ...real,
+    release: () => Promise.reject(new Error('ledger unavailable')),
+  }
+}
+
 describe('sweepStrandedJobs', () => {
   it('returns the credits of a job that never came back', async () => {
     const job = await strandedJob(90, '100')
@@ -90,7 +101,7 @@ describe('sweepStrandedJobs', () => {
     expect(before).toEqual({ balance: '900.0000', holdBalance: '100.0000' })
 
     const report = await sweep()
-    expect(report).toEqual({ checked: 1, settled: 0, expired: 1 })
+    expect(report).toEqual({ checked: 1, settled: 0, expired: 1, stuck: 0 })
 
     const after = await createBilling('saas', database.app).balance(owner)
     expect(after).toEqual({ balance: '1000.0000', holdBalance: '0.0000' })
@@ -104,7 +115,7 @@ describe('sweepStrandedJobs', () => {
     const job = await strandedJob(1, '100')
 
     const report = await sweep()
-    expect(report).toEqual({ checked: 0, settled: 0, expired: 0 })
+    expect(report).toEqual({ checked: 0, settled: 0, expired: 0, stuck: 0 })
 
     const row = await withActor(database.app, owner, (tx) => findJob(tx, job.id))
     expect(row?.status).toBe('queued')
@@ -115,10 +126,35 @@ describe('sweepStrandedJobs', () => {
 
     // Old enough to look at, not old enough to write off.
     const report = await sweep()
-    expect(report).toEqual({ checked: 1, settled: 0, expired: 0 })
+    expect(report).toEqual({ checked: 1, settled: 0, expired: 0, stuck: 0 })
 
     const row = await withActor(database.app, owner, (tx) => findJob(tx, job.id))
     expect(row?.status).toBe('queued')
+  })
+
+  /*
+   * The shape that used to lose money. Releasing and failing were both wrapped
+   * in a catch that threw the error away, so a release that did not work still
+   * marked the job failed, and the sweep only ever lists queued and running
+   * jobs. That was the last time anything looked at the row, and the hold stayed
+   * on the balance forever.
+   */
+  it('leaves a job for the next sweep when the credits will not go back', async () => {
+    const job = await strandedJob(90, '100')
+
+    const report = await sweep({ billing: billingThatCannotRelease() })
+    expect(report).toEqual({ checked: 1, settled: 0, expired: 0, stuck: 1 })
+
+    const row = await withActor(database.app, owner, (tx) => findJob(tx, job.id))
+    expect(row?.status).toBe('queued')
+    const held = await createBilling('saas', database.app).balance(owner)
+    expect(held).toEqual({ balance: '900.0000', holdBalance: '100.0000' })
+
+    // And once the ledger is reachable again the money comes back on its own.
+    const second = await sweep()
+    expect(second).toEqual({ checked: 1, settled: 0, expired: 1, stuck: 0 })
+    const after = await createBilling('saas', database.app).balance(owner)
+    expect(after).toEqual({ balance: '1000.0000', holdBalance: '0.0000' })
   })
 
   it('does not double-refund a job it already expired', async () => {
@@ -126,7 +162,7 @@ describe('sweepStrandedJobs', () => {
 
     await sweep()
     const second = await sweep()
-    expect(second).toEqual({ checked: 0, settled: 0, expired: 0 })
+    expect(second).toEqual({ checked: 0, settled: 0, expired: 0, stuck: 0 })
 
     const after = await createBilling('saas', database.app).balance(owner)
     expect(after).toEqual({ balance: '1000.0000', holdBalance: '0.0000' })

@@ -33,6 +33,24 @@ export async function listStrandedJobs(
 }
 
 /**
+ * Age in milliseconds of the oldest job nobody has finished, or null when there
+ * is none.
+ *
+ * This is how the deployment finds out its scheduler is not running. Nothing in
+ * the code can tell whether a cron is wired up, but a job still queued long past
+ * the abandon window proves that nothing swept it, and every such job is holding
+ * credits. Owner-agnostic, so the owner connection has to ask.
+ */
+export async function oldestUnsettledAgeMs(tx: Database): Promise<number | null> {
+  const rows = await tx
+    .select({ age: sql<number>`extract(epoch from (now() - min(created_at))) * 1000` })
+    .from(jobs)
+    .where(sql`status in ('queued', 'running')`)
+  const age = rows[0]?.age
+  return age === null || age === undefined ? null : Number(age)
+}
+
+/**
  * The job a fal webhook is talking about.
  *
  * Owner-agnostic, so the caller has to be the owner connection: a webhook

@@ -1,5 +1,8 @@
+import { ownerDb } from '@genny/db/connection.ts'
 import { pingDatabase } from '@genny/db/health.ts'
+import { oldestUnsettledAgeMs } from '@genny/db/repositories/jobs-settlement.ts'
 import { env } from '@genny/env/env.ts'
+import { ABANDON_AFTER_MS } from '@genny/jobs/sweep.ts'
 import { loadCatalog } from '@genny/models/catalog.ts'
 
 type Check = { name: string; ok: boolean; detail?: string }
@@ -30,6 +33,7 @@ export async function GET(): Promise<Response> {
   }
 
   checks.push(await checkDatabase())
+  checks.push(await checkSweep())
 
   const ok = checks.every((check) => check.ok)
   return Response.json({ ok, mode, checks }, { status: ok ? 200 : 503 })
@@ -43,6 +47,41 @@ async function checkDatabase(): Promise<Check> {
     return { name: 'database', ok: false, detail: firstLine(error) }
   }
 }
+
+/**
+ * Whether anything is finishing the generations the browser walked away from.
+ *
+ * The sweep is the only thing that returns credits held for a job nobody is
+ * watching, and it only runs if a scheduler calls it. Nothing in the code can
+ * see a scheduler, so this asks the question from the other end: a job still
+ * unsettled long past the abandon window means no sweep has run, and every one
+ * of them is sitting on someone's money.
+ *
+ * Only a fault in saas. byok holds nothing, because the visitor is spending
+ * their own fal balance, so an unswept job there is a stale spinner rather than
+ * money going missing, and failing health over it would call every correctly
+ * configured byok deployment broken.
+ */
+async function checkSweep(): Promise<Check> {
+  const name = 'sweep'
+  try {
+    const config = env()
+    if (config.GENNY_MODE !== 'saas') return { name, ok: true, detail: 'byok holds no credits' }
+    if (!config.CRON_SECRET) {
+      return { name, ok: false, detail: 'CRON_SECRET unset, so held credits are never returned' }
+    }
+    const db = ownerDb(config.DATABASE_MIGRATION_URL ?? config.DATABASE_URL)
+    const age = await oldestUnsettledAgeMs(db)
+    if (age === null || age < STALE_SWEEP_AFTER_MS) return { name, ok: true }
+    return { name, ok: false, detail: `a job has been unsettled for ${Math.round(age / 60000)}m` }
+  } catch (error) {
+    return { name, ok: false, detail: firstLine(error) }
+  }
+}
+
+/** Twice the abandon window: one whole window may pass before the sweep is even
+ * allowed to write a job off, so anything under that is not yet evidence. */
+const STALE_SWEEP_AFTER_MS = ABANDON_AFTER_MS * 2
 
 /**
  * The caller gets one short line; the operator gets the whole thing in the server
