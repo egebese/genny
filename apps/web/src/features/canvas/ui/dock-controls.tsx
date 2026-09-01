@@ -35,8 +35,15 @@ type DockControlsProps = {
  * thing you are about to press.
  */
 export function DockControls(props: DockControlsProps) {
+  /*
+   * Wraps below `sm`. At 375px the dock is 343 wide and Direct plus Generate
+   * take about 220 of it, which squeezed the settings row into a sliver nobody
+   * could read, let alone scroll. Wrapped, the settings get a full line of
+   * their own and Generate keeps its fixed width, which is the whole point of
+   * the reserved price slot.
+   */
   return (
-    <div className="flex items-end gap-2 px-3 pt-2 pb-3">
+    <div className="flex flex-wrap items-end gap-2 px-3 pt-2 pb-3">
       <button
         type="button"
         aria-pressed={props.directing}
@@ -56,6 +63,7 @@ export function DockControls(props: DockControlsProps) {
         <span className="flex-1" />
       ) : (
         <SettingsRow
+          className="order-first basis-full sm:order-none sm:basis-0"
           families={props.families}
           family={props.family}
           model={props.model}
@@ -70,7 +78,7 @@ export function DockControls(props: DockControlsProps) {
           type="button"
           tone="primary"
           size="md"
-          className="shrink-0 px-4"
+          className="order-last ml-auto shrink-0 px-4 sm:ml-0"
           pending={props.asking}
           disabled={props.empty}
           onClick={props.onSubmit}
@@ -79,6 +87,7 @@ export function DockControls(props: DockControlsProps) {
         </Button>
       ) : (
         <GenerateButton
+          className="order-last ml-auto sm:ml-0"
           model={props.model}
           settings={props.settings}
           prompt={props.prompt}

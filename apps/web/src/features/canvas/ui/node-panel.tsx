@@ -14,6 +14,20 @@ import { PanelActions } from './panel-actions.tsx'
 
 const PANEL = { width: 320, height: 460 }
 
+/**
+ * The panel, no wider than the board it floats over.
+ *
+ * 320 was a constant, and on a 375px phone that left 43 pixels of board beside
+ * it, which is a panel pretending not to be a takeover. It shrinks now, and
+ * `anchorPanel` stacks it under the node rather than across it.
+ */
+function panelSize(bounds: { width: number; height: number }) {
+  return {
+    width: Math.min(PANEL.width, Math.max(240, bounds.width - 24)),
+    height: Math.min(PANEL.height, Math.max(200, bounds.height - 24)),
+  }
+}
+
 export type ReuseRequest = { modelId: string; prompt: string; settings: Record<string, unknown> }
 
 type NodePanelProps = {
@@ -65,10 +79,11 @@ export function NodePanel(props: NodePanelProps) {
 
   const made = props.models.find((model) => model.endpointId === detail?.endpointId)
 
+  const size = panelSize(props.bounds)
   const screen = toScreen({ x: node.x, y: node.y }, viewport)
   const position = anchorPanel(
     { ...screen, width: node.width * viewport.zoom, height: node.height * viewport.zoom },
-    PANEL,
+    size,
     props.bounds,
   )
 
@@ -84,8 +99,8 @@ export function NodePanel(props: NodePanelProps) {
       style={{
         left: position.x,
         top: position.y,
-        width: PANEL.width,
-        height: Math.min(PANEL.height, props.bounds.height - 24),
+        width: size.width,
+        height: size.height,
       }}
       className="panel absolute z-20 flex flex-col overflow-hidden rounded-(--radius-panel)"
     >

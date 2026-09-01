@@ -54,6 +54,13 @@ export default defineConfig({
     // about autoplay, safe areas and viewport units, and those are exactly the
     // things an app-like layout leans on.
     { name: `ios-${mode}`, use: { ...devices['iPhone 15'] } },
+    /*
+     * 375 is the width the UI rules actually name, and nothing here was that
+     * narrow: the two phone profiles are 412 and 393. The panels and the dock
+     * both fit at 393 and did not at 375, so the profile that would have caught
+     * it did not exist.
+     */
+    { name: `narrow-${mode}`, use: { ...devices['iPhone 13 Mini'] } },
   ],
   /*
    * A production build, not `next dev`.

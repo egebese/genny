@@ -29,6 +29,8 @@ export function GenerateButton(props: {
   credits: { enabled: boolean; perUsd: number } | null
   pending: boolean
   disabled: boolean
+  /** So the dock can put it last in the wrapped row on a narrow screen. */
+  className?: string
   onClick: () => void
 }) {
   const units = useMemo(
@@ -54,7 +56,7 @@ export function GenerateButton(props: {
       type="button"
       tone="primary"
       size="md"
-      className="shrink-0 px-4"
+      className={`shrink-0 px-4 ${props.className ?? ''}`}
       disabled={props.disabled || props.pending}
       onClick={props.onClick}
     >

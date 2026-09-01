@@ -67,6 +67,9 @@ export function CanvasNode(props: CanvasNodeProps) {
   return (
     <div
       role="option"
+      // Read back from the DOM by the long-press handler, which knows only the
+      // element the finger came down on.
+      data-node-id={node.id}
       tabIndex={0}
       aria-label={describe(node)}
       aria-selected={selected}

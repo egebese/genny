@@ -3,12 +3,11 @@
 import { anchorPanel } from '@genny/canvas/anchor.ts'
 import type { Point } from '@genny/canvas/geometry.ts'
 import { type ReferenceSlot, slotsAccepting } from '@genny/models/slots.ts'
-import { cn } from '@genny/ui/cn.ts'
 import { useEffect, useRef } from 'react'
 import type { PickableFamily } from '../family-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
-
-const MENU = { width: 232, height: 260 }
+import { menuSize } from './menu-size.ts'
+import { Item, Shell } from './node-menu-shell.tsx'
 
 export type NodeMenuTarget = { at: Point; nodes: CanvasNodeView[] }
 
@@ -83,7 +82,10 @@ export function NodeMenu(props: NodeMenuProps) {
     props.onClose()
   }
 
-  const position = anchorPanel({ ...target.at, width: 0, height: 0 }, MENU, props.bounds, 8)
+  // Sized from the board it has to fit on and the rows it is about to draw, so
+  // a phone gets a menu that fits rather than one clamped against the edge.
+  const size = menuSize(props.bounds, count === 0 ? 1 : slots.length + 6)
+  const position = anchorPanel({ ...target.at, width: 0, height: 0 }, size, props.bounds, 8)
 
   /*
    * Right-clicking empty board. There is nothing to act on, so the only thing
@@ -92,7 +94,7 @@ export function NodeMenu(props: NodeMenuProps) {
    */
   if (count === 0) {
     return (
-      <Shell menu={menu} position={position} label="Board actions">
+      <Shell menu={menu} position={position} size={size} label="Board actions">
         <Item onClick={act(() => clip.paste(target.at))} disabled={!clip.filled}>
           Paste
         </Item>
@@ -101,7 +103,7 @@ export function NodeMenu(props: NodeMenuProps) {
   }
 
   return (
-    <Shell menu={menu} position={position} label="Result actions">
+    <Shell menu={menu} position={position} size={size} label="Result actions">
       <p className="px-3 py-1 font-mono text-[10px] text-ink-faint uppercase tracking-wider">
         {count === 1 ? (kind ?? 'result') : `${count} selected`}
       </p>
@@ -143,52 +145,5 @@ export function NodeMenu(props: NodeMenuProps) {
         {count === 1 ? 'Remove from board' : `Remove ${count} from board`}
       </Item>
     </Shell>
-  )
-}
-
-function Shell(props: {
-  menu: React.RefObject<HTMLDivElement | null>
-  position: Point
-  label: string
-  children: React.ReactNode
-}) {
-  return (
-    <div
-      ref={props.menu}
-      role="menu"
-      data-overlay
-      tabIndex={-1}
-      aria-label={props.label}
-      style={{ left: props.position.x, top: props.position.y, width: MENU.width }}
-      className="panel absolute z-30 flex flex-col overflow-hidden rounded-(--radius-panel) py-1 outline-none"
-    >
-      {props.children}
-    </div>
-  )
-}
-
-function Item(props: {
-  children: React.ReactNode
-  onClick: () => void
-  disabled?: boolean
-  tone?: 'danger'
-}) {
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      disabled={props.disabled}
-      onClick={props.onClick}
-      className={cn(
-        'px-3 py-2 text-left text-sm outline-none',
-        'disabled:pointer-events-none disabled:opacity-40',
-        'focus-visible:bg-surface-hover focus-visible:ring-2 focus-visible:ring-accent',
-        props.tone === 'danger'
-          ? 'text-danger hover:bg-danger/10'
-          : 'text-ink hover:bg-surface-hover',
-      )}
-    >
-      {props.children}
-    </button>
   )
 }

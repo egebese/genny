@@ -14,6 +14,7 @@ import { useAttachments } from './use-attachments.ts'
 import { useBoardActions } from './use-board-actions.ts'
 import { useBoardHistory } from './use-board-history.ts'
 import { useBoardNodes } from './use-board-nodes.ts'
+import { useBoardTouch } from './use-board-touch.ts'
 import { useCanvasGeneration } from './use-canvas-generation.ts'
 import { kindsOf, useComposer } from './use-composer.ts'
 import { useMentionables, useResolvedMentions } from './use-mentionables.ts'
@@ -86,6 +87,8 @@ export function Canvas(props: CanvasPage) {
     composer,
     board,
   })
+
+  useBoardTouch(surface, view.touch, act)
 
   const inspected = nodes.find((node) => node.id === surfaces.inspectedId) ?? null
   const bounds = { width: boardSize.width, height: boardSize.height - dockSize.height }

@@ -4,6 +4,7 @@ import type { Viewport } from '@genny/canvas/geometry.ts'
 import { type Guide, lockAxis, snapTo } from '@genny/canvas/snap.ts'
 import type { RefObject } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
+import { slopFor } from './slop.ts'
 
 /** How close, on screen, counts as lined up. Figma's is about this. */
 const SNAP_PIXELS = 6
@@ -64,8 +65,19 @@ export function useNodeDrag(options: DragOptions) {
     const start = { x: node.x, y: node.y }
     let last = start
     let moved = false
+    // A finger is not a pointer: touching a node to select it wobbles by a few
+    // pixels, and without a threshold every tap committed a reposition.
+    const slop = slopFor(event.pointerType)
 
     const move = (dragged: PointerEvent) => {
+      /*
+       * Latched, not re-tested. Once this is a drag it stays one, or a slow
+       * drag back through the origin would flicker between moving and tapping.
+       */
+      if (!moved) {
+        const travelled = Math.hypot(dragged.clientX - origin.x, dragged.clientY - origin.y)
+        if (travelled < slop) return
+      }
       const free = {
         x: Math.round(start.x + (dragged.clientX - origin.x) / view.current.zoom),
         y: Math.round(start.y + (dragged.clientY - origin.y) / view.current.zoom),
@@ -89,11 +101,22 @@ export function useNodeDrag(options: DragOptions) {
       options.onMove(last)
       options.onGuides(snapped.guides)
     }
-    const stop = () => {
+    /*
+     * `pointercancel` is not a quiet `pointerup`. It fires when the gesture was
+     * taken away: a second finger arriving to start a pinch, or a long press
+     * opening the menu. Committing there would write down wherever the finger
+     * happened to be when it was interrupted, so the node goes back instead.
+     */
+    const stop = (ending: PointerEvent) => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', stop)
       window.removeEventListener('pointercancel', stop)
       options.onGuides([])
+
+      if (ending.type === 'pointercancel') {
+        if (moved) options.onMove(start)
+        return
+      }
       if (moved) options.onCommit(last)
       else if (selected && !additive) options.onSelect(false)
     }

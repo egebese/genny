@@ -36,3 +36,38 @@ describe('anchorPanel', () => {
     expect(anchorPanel({ x: 100, y: 50, width: 200, height: 200 }, panel, short).y).toBe(12)
   })
 })
+
+/*
+ * A phone. Neither side of the node has room for a 320px panel on a 375px
+ * board, and this used to clamp x into the viewport, which slides the panel
+ * straight over the node it is describing.
+ */
+describe('anchorPanel on a narrow board', () => {
+  const phone = { width: 375, height: 700 }
+  const panel = { width: 320, height: 300 }
+
+  it('stacks the panel under the node rather than over it', () => {
+    const node = { x: 40, y: 100, width: 200, height: 200 }
+    const at = anchorPanel(node, panel, phone)
+
+    expect(at.y).toBeGreaterThanOrEqual(node.y + node.height)
+    expect(at.x).toBeGreaterThanOrEqual(0)
+    expect(at.x + panel.width).toBeLessThanOrEqual(phone.width)
+  })
+
+  it('goes above when there is no room below', () => {
+    const node = { x: 40, y: 380, width: 200, height: 300 }
+    const at = anchorPanel(node, panel, phone)
+
+    expect(at.y + panel.height).toBeLessThanOrEqual(node.y)
+  })
+
+  it('still starts inside the board when the panel is wider than it', () => {
+    const at = anchorPanel(
+      { x: 10, y: 10, width: 100, height: 100 },
+      { width: 600, height: 200 },
+      phone,
+    )
+    expect(at.x).toBeGreaterThanOrEqual(0)
+  })
+})

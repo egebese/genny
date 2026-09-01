@@ -147,7 +147,19 @@ export function useViewport({ initial, surface, dock, layer, readout, onPersist 
     [surface],
   )
 
-  return { viewport, current: latest, panning, spaceHeld, startPan, handleKey, zoomBy, ...geometry }
+  return {
+    viewport,
+    current: latest,
+    panning,
+    spaceHeld,
+    startPan,
+    handleKey,
+    zoomBy,
+    // What the touch layer needs to drive the board the same way the wheel
+    // does: the ref of record and the imperative write, never React state.
+    touch: { latest, glide, setPanning },
+    ...geometry,
+  }
 }
 
 /** The middle of the board in screen pixels, which is what zoom and the arrow

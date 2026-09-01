@@ -19,6 +19,8 @@ type SettingsRowProps = {
   settings: Record<string, unknown>
   onModelChange: (family: PickableFamily) => void
   onSettingChange: (name: string, value: unknown) => void
+  /** So the dock can give it a whole line of its own when it wraps. */
+  className?: string
 }
 
 /**
@@ -52,7 +54,7 @@ export function SettingsRow(props: SettingsRowProps) {
   )
 
   return (
-    <div className="group/row relative min-w-0 flex-1">
+    <div className={cn('group/row relative min-w-0 flex-1', props.className)}>
       <div
         ref={scroller}
         className={cn(
@@ -101,9 +103,17 @@ function Arrow(props: { side: 'left' | 'right'; show: boolean; onClick: () => vo
       aria-label={props.side === 'left' ? 'Scroll settings left' : 'Scroll settings right'}
       onClick={props.onClick}
       className={cn(
-        'absolute top-1/2 flex size-6 -translate-y-1/2 items-center justify-center',
+        'absolute top-1/2 flex size-7 -translate-y-1/2 items-center justify-center',
         'rounded-full bg-surface-hover text-ink shadow-(--shadow-panel)',
         'opacity-0 transition-opacity outline-none',
+        /*
+         * Hover-gated meant invisible and unusable on a phone, which is the one
+         * place the row is always overflowing. The finger swipe is the real
+         * control here (the dock is outside the board's `touch-none`), so these
+         * stay a hint rather than a primary action, but a hint nobody can see
+         * is not one.
+         */
+        'pointer-coarse:opacity-100',
         'group-hover/row:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-accent',
         props.side === 'left' ? '-left-1' : '-right-1',
       )}
