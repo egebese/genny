@@ -10,6 +10,7 @@ import {
   resizeNodeOnCanvas,
   settleJobOnCanvas,
 } from '../server/actions.ts'
+import { reconcile } from './reconcile.ts'
 
 type Position = { x: number; y: number }
 
@@ -150,7 +151,7 @@ export function useBoardNodes(
   )
 
   const settle = useCallback(
-    async (jobId: string) => absorb(await settleJobOnCanvas({ canvasId, jobId })),
+    (jobId: string) => reconcile(async () => absorb(await settleJobOnCanvas({ canvasId, jobId }))),
     [canvasId, absorb],
   )
 

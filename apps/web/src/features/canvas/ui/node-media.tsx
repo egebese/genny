@@ -3,18 +3,33 @@
 import { sourceFor } from '@genny/assets/thumbnail.ts'
 import { Skeleton } from '@genny/ui/skeleton.tsx'
 import { Spinner } from '@genny/ui/spinner.tsx'
+import { useState } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
 import { AudioPlayer } from './audio-player.tsx'
 import { VideoPlayer } from './video-player.tsx'
 
 /** What fills a node's rectangle, which is a different thing per kind and per state. */
 export function NodeMedia({ node, zoom }: { node: CanvasNodeView; zoom: number }) {
+  const [broke, setBroke] = useState(false)
+
   if (node.status === 'failed') {
     return (
-      <div className="flex h-full w-full flex-col justify-center gap-1 border border-danger/40 bg-danger/5 p-3">
-        <span className="font-mono text-[10px] text-danger uppercase tracking-wider">failed</span>
-        <p className="line-clamp-4 text-ink-muted text-xs">{node.error ?? 'No reason given.'}</p>
-      </div>
+      <Notice tone="danger" label="failed">
+        {node.error ?? 'No reason given.'}
+      </Notice>
+    )
+  }
+
+  /*
+   * Nothing is coming. Saying so is the whole point: this used to render as a
+   * spinner, so a node whose picture had been deleted looked exactly like one
+   * that was three seconds from appearing, forever.
+   */
+  if (node.status === 'missing' || broke) {
+    return (
+      <Notice tone="muted" label="no media">
+        This result is no longer available.
+      </Notice>
     )
   }
 
@@ -33,6 +48,9 @@ export function NodeMedia({ node, zoom }: { node: CanvasNodeView; zoom: number }
 
   if (node.kind === 'audio') return <AudioPlayer src={node.url} label={node.label} />
 
+  // Anything that is not one of the three known kinds is drawn as a picture,
+  // because that is what a generated result almost always is; if it turns out
+  // not to be, `onError` below says so rather than leaving a broken frame.
   return (
     <img
       /*
@@ -56,8 +74,32 @@ export function NodeMedia({ node, zoom }: { node: CanvasNodeView; zoom: number }
       // Off the main thread. Thirty synchronous decodes is a visible stall on
       // the first paint of a full board.
       decoding="async"
+      // A url that 404s is the deleted-asset case arriving a second late, and an
+      // unannotated broken image icon is the worst way to find out.
+      onError={() => setBroke(true)}
       className="h-full w-full bg-surface object-cover"
     />
+  )
+}
+
+/** The two states that have nothing to draw, so they say something instead. */
+function Notice(props: { tone: 'danger' | 'muted'; label: string; children: React.ReactNode }) {
+  const danger = props.tone === 'danger'
+  return (
+    <div
+      className={`flex h-full w-full flex-col justify-center gap-1 border p-3 ${
+        danger ? 'border-danger/40 bg-danger/5' : 'border-line bg-surface'
+      }`}
+    >
+      <span
+        className={`font-mono text-[10px] uppercase tracking-wider ${
+          danger ? 'text-danger' : 'text-ink-faint'
+        }`}
+      >
+        {props.label}
+      </span>
+      <p className="line-clamp-4 text-ink-muted text-xs">{props.children}</p>
+    </div>
   )
 }
 
