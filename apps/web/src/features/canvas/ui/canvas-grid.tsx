@@ -4,6 +4,7 @@ import { Button } from '@genny/ui/button.tsx'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { startProject } from '@/features/projects/server/lifecycle.ts'
 import { newCanvas } from '../server/actions.ts'
 import type { ProjectCanvases } from '../server/canvas-list.ts'
 import { CanvasCard } from './canvas-card.tsx'
@@ -35,9 +36,27 @@ export function CanvasGrid({ projects }: { projects: ProjectCanvases[] }) {
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <div className="mb-6 flex items-center justify-between gap-3">
         <h1 className="font-semibold text-2xl tracking-tight">Canvases</h1>
-        <Button type="button" tone="primary" pending={creating} onClick={() => create()}>
-          New canvas
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Projects could only ever come into existence implicitly, through
+              `defaultProject` on the first canvas, so everybody had exactly one
+              and no way to start a second. */}
+          <Button
+            type="button"
+            tone="ghost"
+            pending={creating}
+            onClick={() =>
+              startCreating(async () => {
+                await startProject({ title: 'New project' })
+                router.refresh()
+              })
+            }
+          >
+            New project
+          </Button>
+          <Button type="button" tone="primary" pending={creating} onClick={() => create()}>
+            New canvas
+          </Button>
+        </div>
       </div>
 
       {error ? (

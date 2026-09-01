@@ -999,6 +999,45 @@ test.describe('the board', () => {
     expect(response?.status()).toBe(404)
   })
 
+  /*
+   * `retitleCanvas` was written when boards landed and never called, so every
+   * board anybody made was called Untitled forever.
+   */
+  test('a canvas can be renamed', async ({ page }) => {
+    await openCanvas(page)
+    await page.goto('/c')
+    const card = page.getByRole('list', { name: 'Canvases' }).getByRole('listitem').first()
+
+    await card.getByRole('button', { name: 'Rename' }).click()
+    await card.getByRole('textbox').fill('Autumn campaign')
+    await card.getByRole('button', { name: 'Save' }).click()
+
+    await expect(page.getByText('Autumn campaign')).toBeVisible()
+  })
+
+  test('a canvas can be duplicated, and the copy says so', async ({ page }) => {
+    await openCanvas(page)
+    await page.goto('/c')
+    const cards = page.getByRole('list', { name: 'Canvases' }).getByRole('listitem')
+    const before = await cards.count()
+
+    await cards.first().getByRole('button', { name: 'Duplicate' }).click()
+    await expect(cards).toHaveCount(before + 1)
+    await expect(page.getByText(/ copy$/).first()).toBeVisible()
+  })
+
+  test('a project can be started, rather than only appearing under a canvas', async ({ page }) => {
+    await page.goto('/c')
+    await page.getByRole('button', { name: 'New project' }).click()
+    await expect(page.getByRole('link', { name: 'New project' })).toBeVisible()
+  })
+
+  test('a board offers the way back to its project', async ({ page }) => {
+    await openCanvas(page)
+    await page.getByRole('link', { name: 'Open project' }).click()
+    await expect(page).toHaveURL(/\/p\/[0-9a-f-]{36}/)
+  })
+
   test('deleting a canvas takes it off the list', async ({ page }) => {
     await openCanvas(page)
     await page.goto('/c')

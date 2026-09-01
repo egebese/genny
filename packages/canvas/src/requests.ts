@@ -141,3 +141,8 @@ export type VariantRequest = z.infer<typeof variantRequest>
 export type CreateCanvasRequest = z.infer<typeof createCanvasRequest>
 export type SaveViewportRequest = z.infer<typeof saveViewportRequest>
 export type MoveNodeRequest = z.infer<typeof moveNodeRequest>
+
+/** Starting a project by hand, rather than having one appear under a canvas. */
+export const newProjectRequest = z.object({ title: z.string().trim().min(1).max(120) })
+
+export const projectRef = z.object({ projectId: z.uuid() })

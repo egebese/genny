@@ -63,6 +63,24 @@ export function BrandShelf({ projectId, projectTitle, items, palette, onAttach }
         </span>
       </button>
 
+      {/*
+        The only way off a board and back to the work it belongs to. The board
+        prints its own title `sr-only` and the topbar knows nothing about which
+        project is open, so before this the way back to a project was to guess
+        its URL or go via the full canvas list.
+
+        Beside the toggle rather than inside the panel, so it is reachable
+        while the shelf is collapsed, which is how it is by default.
+      */}
+      {open ? null : (
+        <Link
+          href={`/p/${projectId}`}
+          className="border-line border-t px-3 py-1.5 text-[10px] text-ink-faint outline-none hover:text-accent focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          Open project
+        </Link>
+      )}
+
       {open ? (
         <div className="flex max-h-[min(26rem,55dvh)] flex-col gap-3 overflow-y-auto border-line border-t p-3">
           {empty ? (
