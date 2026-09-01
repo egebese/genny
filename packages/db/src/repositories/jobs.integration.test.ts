@@ -6,6 +6,7 @@ import { models } from '../schema/models.ts'
 import { startTestDatabase, type TestDatabase } from '../testing/container.ts'
 import {
   attachFalRequest,
+  cancelJob,
   completeJob,
   createJob,
   failJob,
@@ -143,6 +144,36 @@ describe('jobs repository', () => {
     expect(secondPage).toHaveLength(2)
     const overlap = secondPage.filter((job) => firstPage.some((seen) => seen.id === job.id))
     expect(overlap).toEqual([])
+  })
+
+  it('cancels a job that is still running', async () => {
+    const created = await newJob(alice)
+    const stopped = await withActor(database.app, alice, (tx) => cancelJob(tx, created.id))
+    expect(stopped).toBe(true)
+
+    const row = await withActor(database.app, alice, (tx) => findJob(tx, created.id))
+    expect(row?.status).toBe('canceled')
+    expect(row?.finishedAt).not.toBeNull()
+  })
+
+  /*
+   * The race the conditional update exists for. A cancel and a settlement can
+   * both be in flight, and writing `canceled` over a completed job would leave
+   * a generation whose outputs are ingested and whose credits are captured
+   * claiming it never ran.
+   */
+  it('loses to a settlement rather than overwriting it', async () => {
+    const created = await newJob(alice)
+    await withActor(database.app, alice, (tx) =>
+      completeJob(tx, created.id, { images: [{ url: 'https://cdn/a.png' }] }, '100'),
+    )
+
+    const stopped = await withActor(database.app, alice, (tx) => cancelJob(tx, created.id))
+    expect(stopped).toBe(false)
+
+    const row = await withActor(database.app, alice, (tx) => findJob(tx, created.id))
+    expect(row?.status).toBe('completed')
+    expect(row?.creditsCharged).toBe('100.0000')
   })
 
   it('caps an absurd page size instead of trusting it', async () => {

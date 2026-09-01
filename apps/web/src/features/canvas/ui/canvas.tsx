@@ -149,6 +149,7 @@ export function Canvas(props: CanvasPage) {
           }}
           onReuse={act.reuse}
           onRemove={act.removeNodes}
+          onCancel={(jobId) => void board.cancel(jobId)}
           clipboard={act.clipboard}
           onCloseMenu={surfaces.closeMenu}
           onCloseInspector={surfaces.closeInspector}

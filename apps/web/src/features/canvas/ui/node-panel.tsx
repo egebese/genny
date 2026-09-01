@@ -27,6 +27,7 @@ type NodePanelProps = {
   onClose: () => void
   onMention: (label: string) => void
   onReuse: (request: ReuseRequest) => void
+  onCancel: () => void
   onDelete: () => void
 }
 
@@ -134,6 +135,7 @@ export function NodePanel(props: NodePanelProps) {
         detail={detail}
         onMention={props.onMention}
         onReuse={props.onReuse}
+        onCancel={props.onCancel}
         onDelete={props.onDelete}
       />
     </aside>

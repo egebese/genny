@@ -26,6 +26,7 @@ type OverlayProps = {
   onVariants: (node: CanvasNodeView) => void
   onReuse: (request: ReuseRequest) => void
   onRemove: (ids: string[]) => void
+  onCancel: (jobId: string) => void
   clipboard: ClipboardActions
   onCloseMenu: () => void
   onCloseInspector: () => void
@@ -69,6 +70,7 @@ export function BoardOverlays(props: OverlayProps) {
           onClose={props.onCloseInspector}
           onMention={props.onMention}
           onReuse={props.onReuse}
+          onCancel={() => inspected.jobId && props.onCancel(inspected.jobId)}
           onDelete={() => props.onRemove([inspected.id])}
         />
       ) : null}

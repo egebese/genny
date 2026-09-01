@@ -121,6 +121,23 @@ export async function failJob(tx: Database, jobId: string, message: string): Pro
     .where(eq(jobs.id, jobId))
 }
 
+/**
+ * Marks a job the user gave up on, and only if nothing has settled it yet.
+ *
+ * Conditional on the status so a cancel that races a completion loses: the
+ * outputs are already ingested and the credits already captured by then, and
+ * writing `canceled` over that would leave a finished generation claiming it
+ * never ran. The caller learns it lost from the false and leaves the board alone.
+ */
+export async function cancelJob(tx: Database, jobId: string): Promise<boolean> {
+  const rows = await tx
+    .update(jobs)
+    .set({ status: 'canceled', error: 'Canceled.', finishedAt: new Date() })
+    .where(and(eq(jobs.id, jobId), sql`status in ('queued', 'running')`))
+    .returning({ id: jobs.id })
+  return rows.length > 0
+}
+
 export async function findJob(tx: Database, jobId: string): Promise<JobRecord | null> {
   const [row] = await tx.select(columns).from(jobs).where(eq(jobs.id, jobId)).limit(1)
   return (row as JobRecord | undefined) ?? null

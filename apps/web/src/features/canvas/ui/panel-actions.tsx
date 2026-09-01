@@ -22,13 +22,26 @@ export function PanelActions(props: {
   detail: JobDetail | null
   onMention: (label: string) => void
   onReuse: (request: ReuseRequest) => void
+  onCancel: () => void
   onDelete: () => void
 }) {
   const { node, detail } = props
   const failed = node.status === 'failed'
+  const running = node.status === 'pending' && node.jobId !== null
 
   return (
     <footer className="flex items-center gap-1 border-line border-t px-2 py-2">
+      {running ? (
+        /*
+         * The only way to stop a generation. A video model can take two
+         * minutes, and somebody who saw the wrong prompt at second three could
+         * previously only watch it finish and take the money with it.
+         */
+        <button type="button" className={ACTION} title="Cancel" onClick={props.onCancel}>
+          <Icon name="close" className="size-4" />
+        </button>
+      ) : null}
+
       {node.url ? (
         <a href={node.url} download title="Download" aria-label="Download" className={ACTION}>
           <Icon name="download" className="size-4" />

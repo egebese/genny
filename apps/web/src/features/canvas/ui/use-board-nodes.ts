@@ -10,6 +10,7 @@ import {
   resizeNodeOnCanvas,
   settleJobOnCanvas,
 } from '../server/actions.ts'
+import { cancelGeneration } from '../server/cancel-generation.ts'
 import { reconcile } from './reconcile.ts'
 
 type Position = { x: number; y: number }
@@ -155,6 +156,13 @@ export function useBoardNodes(
     [canvasId, absorb],
   )
 
+  /** Giving up on a running generation. Same shape as settling one: the server
+   * hands back the board and the local list is replaced by it. */
+  const cancel = useCallback(
+    (jobId: string) => reconcile(async () => absorb(await cancelGeneration({ canvasId, jobId }))),
+    [canvasId, absorb],
+  )
+
   /** One open stream per unfinished generation, and no duplicates. */
   const running = useMemo(
     () => [
@@ -180,5 +188,6 @@ export function useBoardNodes(
     replace,
     absorb,
     settle,
+    cancel,
   }
 }
