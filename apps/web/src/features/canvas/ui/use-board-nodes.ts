@@ -12,6 +12,7 @@ import {
 } from '../server/actions.ts'
 import { cancelGeneration } from '../server/cancel-generation.ts'
 import { reconcile } from './reconcile.ts'
+import { enqueue } from './write-queue.ts'
 
 type Position = { x: number; y: number }
 
@@ -76,15 +77,12 @@ export function useBoardNodes(
       const delta = from ? { x: position.x - from.x, y: position.y - from.y } : null
 
       if (!delta || anchored.current.size < 2) {
-        void repositionNode({ canvasId, nodeId: id, ...position })
+        void enqueue(id, () => repositionNode({ canvasId, nodeId: id, ...position }))
       } else {
         for (const [nodeId, start] of anchored.current) {
-          void repositionNode({
-            canvasId,
-            nodeId,
-            x: start.x + delta.x,
-            y: start.y + delta.y,
-          })
+          void enqueue(nodeId, () =>
+            repositionNode({ canvasId, nodeId, x: start.x + delta.x, y: start.y + delta.y }),
+          )
         }
       }
       anchored.current = new Map()
@@ -100,7 +98,7 @@ export function useBoardNodes(
   const sized = useCallback(
     (id: string, next: { width: number; height: number }) => {
       size(id, next)
-      void resizeNodeOnCanvas({ canvasId, nodeId: id, ...next })
+      void enqueue(id, () => resizeNodeOnCanvas({ canvasId, nodeId: id, ...next }))
     },
     [size, canvasId],
   )
@@ -108,7 +106,7 @@ export function useBoardNodes(
   const remove = useCallback(
     (id: string) => {
       setNodes((current) => current.filter((node) => node.id !== id))
-      void removeNode({ canvasId, nodeId: id })
+      void enqueue(id, () => removeNode({ canvasId, nodeId: id }))
     },
     [canvasId],
   )

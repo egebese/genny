@@ -12,6 +12,7 @@ import { EmptyHint } from './empty-hint.tsx'
 import { JobTracker } from './job-tracker.tsx'
 import { useAttachments } from './use-attachments.ts'
 import { useBoardActions } from './use-board-actions.ts'
+import { useBoardHistory } from './use-board-history.ts'
 import { useBoardNodes } from './use-board-nodes.ts'
 import { useCanvasGeneration } from './use-canvas-generation.ts'
 import { kindsOf, useComposer } from './use-composer.ts'
@@ -21,6 +22,7 @@ import { usePaintedRefs } from './use-painted-refs.ts'
 import { useSelection } from './use-selection.ts'
 import { useSize } from './use-size.ts'
 import { useSurfaces } from './use-surfaces.ts'
+import { useUndoKeys } from './use-undo-keys.ts'
 import { useViewport } from './use-viewport.ts'
 
 export function Canvas(props: CanvasPage) {
@@ -38,7 +40,7 @@ export function Canvas(props: CanvasPage) {
   )
   const view = useViewport({ initial: props.viewport, ...painted, onPersist: savePan })
   const handles = useMentionables(props.mentionables)
-  const board = useBoardNodes(canvasId, props.nodes, handles.learn)
+  const board = useBoardHistory(canvasId, useBoardNodes(canvasId, props.nodes, handles.learn))
   const { nodes, running, move, commit, size, sized, add, replace, settle } = board
   const pinned = useAttachments()
   const composer = useComposer(props.models, pinned.moveTo)
@@ -49,6 +51,7 @@ export function Canvas(props: CanvasPage) {
   // as having lost its work.
   // biome-ignore lint/correctness/useExhaustiveDependencies: on mount only
   useEffect(() => view.rescue(nodes), [])
+  useUndoKeys(board)
   const surfaces = useSurfaces()
   const boardSize = useSize(surface)
   const dockSize = useSize(dock)

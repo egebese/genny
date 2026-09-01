@@ -6,7 +6,7 @@ import type { PickableFamily } from '../family-list.ts'
 import type { CanvasNodeView } from '../node-view.ts'
 import type { ReuseRequest } from './node-panel.tsx'
 import type { Attachable, useAttachments } from './use-attachments.ts'
-import type { useBoardNodes } from './use-board-nodes.ts'
+import type { useBoardHistory } from './use-board-history.ts'
 import { useClipboard } from './use-clipboard.ts'
 import type { useComposer } from './use-composer.ts'
 import { overlaySlots } from './use-overlay-slots.ts'
@@ -23,7 +23,7 @@ type Deps = {
   surfaces: ReturnType<typeof useSurfaces>
   pinned: ReturnType<typeof useAttachments>
   composer: ReturnType<typeof useComposer>
-  board: ReturnType<typeof useBoardNodes>
+  board: ReturnType<typeof useBoardHistory>
 }
 
 /**
@@ -137,7 +137,9 @@ export function useBoardActions({
   }
 
   const removeNodes = (ids: string[]) => {
-    for (const id of ids) board.remove(id)
+    // One history entry for the whole selection: deleting six nodes and then
+    // pressing undo six times is not undo, it is bookkeeping.
+    board.removeMany(ids)
     pick.clear()
     surfaces.clear()
   }
@@ -147,7 +149,10 @@ export function useBoardActions({
     nodes,
     selected: pick.selected,
     view,
-    absorb: board.absorb,
+    // `paste`, not `absorb`: both take a whole board back from the server, and
+    // this is the seam that tells "a person pasted these" from "a generation
+    // finished". Only the first belongs in the history.
+    absorb: board.paste,
     remove: removeNodes,
   })
 

@@ -146,3 +146,19 @@ export type MoveNodeRequest = z.infer<typeof moveNodeRequest>
 export const newProjectRequest = z.object({ title: z.string().trim().min(1).max(120) })
 
 export const projectRef = z.object({ projectId: z.uuid() })
+
+/**
+ * Putting deleted nodes back where they were, under the ids they had.
+ *
+ * The id travels from the browser, which is unusual and deliberate: undo has to
+ * restore identity, not just geometry, because the selection and the history
+ * behind it name these nodes by id. Everything that makes it safe is on the
+ * server, in `restoreNodes`.
+ */
+export const restoreNodesRequest = z.object({
+  canvasId: z.uuid(),
+  nodes: z
+    .array(clippingSchema.extend({ nodeId: z.uuid() }))
+    .min(1)
+    .max(64),
+})

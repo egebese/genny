@@ -58,6 +58,9 @@ export async function listNodes(tx: Database, canvasId: string): Promise<NodeRec
 }
 
 export type NewNode = {
+  /** Chosen by the caller only when restoring a node that had this id before.
+   * Everywhere else the database mints it. */
+  id?: string
   canvasId: string
   ownerId: string
   x: number
@@ -80,6 +83,9 @@ export async function insertNode(tx: Database, input: NewNode): Promise<{ id: st
   const [row] = await tx
     .insert(canvasNodes)
     .values({
+      // Only undo supplies one, so a node it restores comes back as itself
+      // rather than as a stranger the selection and the history no longer know.
+      ...(input.id ? { id: input.id } : {}),
       canvasId: input.canvasId,
       ownerId: input.ownerId,
       x: input.x,

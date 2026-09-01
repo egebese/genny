@@ -6,7 +6,7 @@ import { clipboardContents } from '@genny/canvas/requests.ts'
 import type { NodeRecord } from '@genny/db/repositories/canvas-nodes.ts'
 import { useCallback, useEffect, useState } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
-import { pasteNodes } from '../server/actions.ts'
+import { pasteNodes } from '../server/node-actions.ts'
 import type { useViewport } from './use-viewport.ts'
 
 const KEY = 'genny:clipboard'
