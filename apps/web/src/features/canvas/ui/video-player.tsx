@@ -2,6 +2,7 @@
 
 import { Icon } from '@genny/ui/icon.tsx'
 import { useState } from 'react'
+import { MediaScrubber, clock as readClock } from './media-scrubber.tsx'
 import { useMediaClock } from './use-media-clock.ts'
 
 /**
@@ -74,19 +75,10 @@ export function VideoPlayer({ src }: { src: string }) {
             <Icon name={clock.playing ? 'pause' : 'play'} className="size-3.5" />
           </button>
 
-          <input
-            type="range"
-            min={0}
-            max={Math.max(clock.length, 0.01)}
-            step={0.01}
-            value={clock.at}
-            aria-label="Seek"
-            onChange={(event) => clock.seek(Number(event.target.value))}
-            className="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-ink/25 outline-none accent-ink focus-visible:ring-2 focus-visible:ring-accent"
-          />
+          <MediaScrubber at={clock.at} length={clock.length} onSeek={clock.seek} />
 
           <span className="shrink-0 font-mono text-[10px] text-ink tabular-nums">
-            {clock.clock(clock.at)} / {clock.clock(clock.length)}
+            {readClock(clock.at)} / {readClock(clock.length)}
           </span>
 
           <button

@@ -84,6 +84,15 @@ export function CanvasNode(props: CanvasNodeProps) {
         if (!selected) props.onSelect(false)
       }}
       onKeyDown={(event) => {
+        /*
+         * Only when the node itself has focus.
+         *
+         * The players live inside a node, and a scrubber is a range input: an
+         * arrow key on a focused scrubber bubbled up to here, was swallowed,
+         * and moved the node across the board instead of moving through the
+         * sound. Delete did the same from inside a control.
+         */
+        if (event.target !== event.currentTarget) return
         const step = event.shiftKey ? 40 : 8
         const nudge: Record<string, { x: number; y: number }> = {
           ArrowLeft: { x: -step, y: 0 },

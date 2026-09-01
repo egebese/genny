@@ -1,6 +1,9 @@
 'use client'
 
 import { Icon } from '@genny/ui/icon.tsx'
+import { useState } from 'react'
+import { AudioWaveform } from './audio-waveform.tsx'
+import { clock, MediaScrubber } from './media-scrubber.tsx'
 import { useMediaClock } from './use-media-clock.ts'
 
 /**
@@ -13,54 +16,52 @@ import { useMediaClock } from './use-media-clock.ts'
  * different products; and its overflow menu offers a download and a playback
  * rate, which are answers to questions the node panel asks better.
  *
- * A sound has nothing to look at, so unlike the video the controls are the
- * whole node rather than an overlay, and the waveform mark stands in for the
- * picture that is not there.
+ * A sound has nothing to look at, so the waveform is the picture: it fills the
+ * space a still would take and colours in as the track plays.
  */
 export function AudioPlayer({ src, label }: { src: string; label: string | null }) {
-  const clock = useMediaClock<HTMLAudioElement>()
+  const clockState = useMediaClock<HTMLAudioElement>()
+  const [muted, setMuted] = useState(false)
+  const played = clockState.length > 0 ? clockState.at / clockState.length : 0
 
   return (
     <div className="flex h-full w-full flex-col justify-between gap-2 bg-surface p-3">
-      <div className="flex min-h-0 flex-1 items-center justify-center">
-        <Icon
-          name="waveform"
-          aria-hidden
-          className="size-10 text-ink-faint transition-colors group-hover:text-ink-muted"
-        />
+      <div className="min-h-0 flex-1 py-1">
+        <AudioWaveform label={label ?? 'audio'} played={played} />
       </div>
 
       {/* biome-ignore lint/a11y/useMediaCaption: freshly generated audio has no transcript and an empty track claims otherwise */}
-      <audio ref={clock.media} src={src} preload="metadata" className="hidden" />
+      <audio ref={clockState.media} src={src} muted={muted} preload="metadata" className="hidden" />
 
       <span className="truncate font-mono text-[10px] text-ink-faint uppercase tracking-wider">
         {label ?? 'audio'}
       </span>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <button
           type="button"
-          onClick={clock.toggle}
-          aria-label={clock.playing ? 'Pause' : 'Play'}
+          onClick={clockState.toggle}
+          aria-label={clockState.playing ? 'Pause' : 'Play'}
           className="shrink-0 rounded-(--radius-media) p-1 text-ink outline-none hover:bg-control focus-visible:ring-2 focus-visible:ring-accent"
         >
-          <Icon name={clock.playing ? 'pause' : 'play'} className="size-3.5" />
+          <Icon name={clockState.playing ? 'pause' : 'play'} className="size-3.5" />
         </button>
 
-        <input
-          type="range"
-          min={0}
-          max={Math.max(clock.length, 0.01)}
-          step={0.01}
-          value={clock.at}
-          aria-label="Seek"
-          onChange={(event) => clock.seek(Number(event.target.value))}
-          className="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-ink/25 outline-none accent-accent focus-visible:ring-2 focus-visible:ring-accent"
-        />
+        <MediaScrubber at={clockState.at} length={clockState.length} onSeek={clockState.seek} />
 
         <span className="shrink-0 font-mono text-[10px] text-ink-muted tabular-nums">
-          {clock.clock(clock.at)} / {clock.clock(clock.length)}
+          {clock(clockState.at)} / {clock(clockState.length)}
         </span>
+
+        <button
+          type="button"
+          onClick={() => setMuted((was) => !was)}
+          aria-label={muted ? 'Unmute' : 'Mute'}
+          aria-pressed={muted}
+          className="shrink-0 rounded-(--radius-media) p-1 text-ink outline-none hover:bg-control focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <Icon name={muted ? 'muted' : 'speaker'} className="size-3.5" />
+        </button>
       </div>
     </div>
   )

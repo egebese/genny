@@ -82,6 +82,16 @@ export function Board(props: BoardProps) {
         aria-label="Canvas"
         tabIndex={-1}
         onKeyDown={(event) => {
+          /*
+           * Only keys aimed at the board itself.
+           *
+           * The arrows pan and were taken here whatever they were pressed on,
+           * so an arrow on a focused scrubber inside a node panned the board
+           * instead of moving through the sound, and the node's own nudge keys
+           * were reached only because they were prevented after the fact. A
+           * control inside the board keeps its own keys.
+           */
+          if (event.target !== event.currentTarget) return
           if (props.onKey(event.key)) event.preventDefault()
         }}
         // A node's own handler runs first and this one still sees the event, so

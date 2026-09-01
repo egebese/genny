@@ -10,6 +10,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
  * fires several times a second and the element is the only thing that knows,
  * so it reports rather than being told.
  */
+/** `HTMLMediaElement.HAVE_METADATA`, which is not on the type in a server build. */
+const HAVE_METADATA = 1
+
 export function useMediaClock<T extends HTMLMediaElement>() {
   const media = useRef<T>(null)
   const [playing, setPlaying] = useState(false)
@@ -21,6 +24,15 @@ export function useMediaClock<T extends HTMLMediaElement>() {
     if (!node) return
     const tick = () => setAt(node.currentTime)
     const loaded = () => setLength(node.duration || 0)
+    /*
+     * Read once before listening, because the event may already have happened.
+     * `preload="metadata"` starts the fetch as soon as the element exists and
+     * this effect runs after the commit, so a file already in the browser's
+     * cache resolves its duration first and the listener never fires: every
+     * player on the board read "0:00" for its length, and the scrubber had
+     * nothing to fill against.
+     */
+    if (node.readyState >= HAVE_METADATA) loaded()
     const stopped = () => setPlaying(false)
     const started = () => setPlaying(true)
     node.addEventListener('timeupdate', tick)
@@ -28,12 +40,15 @@ export function useMediaClock<T extends HTMLMediaElement>() {
     node.addEventListener('ended', stopped)
     node.addEventListener('pause', stopped)
     node.addEventListener('play', started)
+    // Some browsers only settle the duration here for a streamed file.
+    node.addEventListener('durationchange', loaded)
     return () => {
       node.removeEventListener('timeupdate', tick)
       node.removeEventListener('loadedmetadata', loaded)
       node.removeEventListener('ended', stopped)
       node.removeEventListener('pause', stopped)
       node.removeEventListener('play', started)
+      node.removeEventListener('durationchange', loaded)
     }
   }, [])
 
@@ -51,12 +66,5 @@ export function useMediaClock<T extends HTMLMediaElement>() {
     setAt(node.currentTime)
   }, [])
 
-  return { media, playing, at, length, toggle, seek, clock }
-}
-
-/** Minutes and seconds. Anything longer than an hour is not a generation. */
-function clock(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) return '0:00'
-  const whole = Math.floor(seconds)
-  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`
+  return { media, playing, at, length, toggle, seek }
 }
