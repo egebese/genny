@@ -2,6 +2,7 @@ import { buildStorageKey } from '@genny/assets/keys.ts'
 import { toLabelSlug, uniqueLabel } from '@genny/assets/labels.ts'
 import { isWithinSizeLimit, MAX_BYTES, SNIFF_BYTES, sniffMediaType } from '@genny/assets/media.ts'
 import { type AssetRecord, createAsset, takenLabels } from '@genny/assets/repository.ts'
+import { probeSize } from '@genny/assets/resize.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
 import { env } from '@genny/env/env.ts'
@@ -49,11 +50,16 @@ export async function uploadAsset(
   const key = buildStorageKey(actorId, type.extension)
   await storage().put(key, bytes, type.mime)
 
+  // Only pictures answer this. Video and audio would need ffprobe for one
+  // number, and the players read the duration off the media element anyway.
+  const size = type.kind === 'image' ? await probeSize(bytes) : null
+
   const asset = await withActor(db, actorId, (tx) =>
     createAsset(tx, {
       ownerId: actorId,
       kind: type.kind,
       label,
+      ...(size ?? {}),
       storageKey: key,
       mime: type.mime,
       bytes: bytes.byteLength,

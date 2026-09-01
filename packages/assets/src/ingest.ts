@@ -5,6 +5,7 @@ import { buildStorageKey } from './keys.ts'
 import { toLabelSlug, uniqueLabel } from './labels.ts'
 import { isWithinSizeLimit, MAX_BYTES, SNIFF_BYTES, sniffMediaType } from './media.ts'
 import { type AssetRecord, createAsset, takenLabels } from './repository.ts'
+import { probeSize } from './resize.ts'
 import type { Storage } from './storage.ts'
 
 /**
@@ -58,11 +59,14 @@ export async function ingestOutputs(request: IngestRequest): Promise<IngestOutco
       const key = buildStorageKey(ownerId, fetched.type.extension)
       await storage.put(key, fetched.bytes, fetched.type.mime)
 
+      const size = fetched.type.kind === 'image' ? await probeSize(fetched.bytes) : null
+
       const asset = await withActor(db, ownerId, (tx) =>
         createAsset(tx, {
           ownerId,
           kind: fetched.type.kind,
           label,
+          ...(size ?? {}),
           storageKey: key,
           mime: fetched.type.mime,
           bytes: fetched.bytes.byteLength,

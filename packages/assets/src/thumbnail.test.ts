@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resizeTo } from './resize.ts'
+import { probeSize, resizeTo } from './resize.ts'
 import {
   isThumbWidth,
   sourceFor,
@@ -85,5 +85,37 @@ describe('which copy a node is drawn from', () => {
       const width = widthForDisplay(shown, 2)
       if (width !== null) expect(width).toBeGreaterThanOrEqual(shown * 2)
     }
+  })
+})
+
+describe('probeSize', () => {
+  it('reads the real dimensions of a picture', async () => {
+    const sharp = (await import('sharp')).default
+    const wide = new Uint8Array(
+      await sharp({ create: { width: 640, height: 360, channels: 3, background: '#000' } })
+        .png()
+        .toBuffer(),
+    )
+    expect(await probeSize(wide)).toEqual({ width: 640, height: 360 })
+  })
+
+  /*
+   * The one that has to be right. These columns exist so a node can be drawn at
+   * the shape of the picture, and a portrait photograph stored as landscape
+   * pixels with an EXIF quarter turn would be drawn on its side.
+   */
+  it('reports what will be seen, not what is stored, for a rotated photograph', async () => {
+    const sharp = (await import('sharp')).default
+    const turned = new Uint8Array(
+      await sharp({ create: { width: 640, height: 360, channels: 3, background: '#000' } })
+        .withMetadata({ orientation: 6 })
+        .jpeg()
+        .toBuffer(),
+    )
+    expect(await probeSize(turned)).toEqual({ width: 360, height: 640 })
+  })
+
+  it('gives up quietly on something it cannot parse', async () => {
+    expect(await probeSize(new Uint8Array([1, 2, 3, 4]))).toBeNull()
   })
 })
