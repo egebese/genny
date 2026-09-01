@@ -114,7 +114,16 @@ export const canvasNodes = pgTable(
     jobId: uuid('job_id').references(() => jobs.id, { onDelete: 'set null' }),
     /** Which output of that job this node shows. One generation, many siblings. */
     outputIndex: integer('output_index').notNull().default(0),
-    /** Null while the generation is still running. */
+    /*
+     * Null while the generation is still running.
+     *
+     * The real constraint in the database is composite, `(asset_id, owner_id)`
+     * against `assets_id_owner`, written by hand in 0014. Drizzle spells only
+     * the single column here, the same way the group memberships do, and for
+     * the same reason: it has no way to say a two-column reference on a nullable
+     * column. A key check is not subject to RLS, so the second column is what
+     * stops a node naming somebody else's asset.
+     */
     assetId: uuid('asset_id').references(() => assets.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },

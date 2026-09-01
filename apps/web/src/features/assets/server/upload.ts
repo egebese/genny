@@ -42,8 +42,9 @@ export async function uploadAsset(
   }
 
   const db = appDb(env().DATABASE_URL)
-  const used = await withActor(db, actorId, (tx) => takenLabels(tx))
-  const label = uniqueLabel(desiredLabel ?? toLabelSlug(file.name), used)
+  const stem = toLabelSlug(desiredLabel ?? file.name)
+  const used = await withActor(db, actorId, (tx) => takenLabels(tx, stem))
+  const label = uniqueLabel(stem, used)
 
   const key = buildStorageKey(actorId, type.extension)
   await storage().put(key, bytes, type.mime)

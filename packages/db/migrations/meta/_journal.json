@@ -99,6 +99,13 @@
       "when": 1787915642374,
       "tag": "0013_asset_fal_url",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788000000000,
+      "tag": "0014_asset_deletion",
+      "breakpoints": true
     }
   ]
 }

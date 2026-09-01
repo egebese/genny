@@ -2,11 +2,14 @@
 
 import { cn } from '@genny/ui/cn.ts'
 import type { AssetView } from '../server/list.ts'
+import { AssetActions } from './asset-actions.tsx'
 
 type AssetCardProps = {
   asset: AssetView
   selected: boolean
   onToggle: (id: string) => void
+  onRenamed: (id: string, label: string) => void
+  onDeleted: (id: string) => void
 }
 
 /**
@@ -14,7 +17,7 @@ type AssetCardProps = {
  * label, so selecting works by clicking anywhere on it and the keyboard reaches
  * it through the input.
  */
-export function AssetCard({ asset, selected, onToggle }: AssetCardProps) {
+export function AssetCard({ asset, selected, onToggle, ...on }: AssetCardProps) {
   return (
     <li>
       <label
@@ -81,6 +84,15 @@ export function AssetCard({ asset, selected, onToggle }: AssetCardProps) {
           onChange={() => onToggle(asset.id)}
         />
       </label>
+
+      {/* Outside the label: a button inside it would select on the way to being
+          pressed, since the whole card is the checkbox's label. */}
+      <AssetActions
+        id={asset.id}
+        label={asset.label}
+        onRenamed={on.onRenamed}
+        onDeleted={on.onDeleted}
+      />
     </li>
   )
 }

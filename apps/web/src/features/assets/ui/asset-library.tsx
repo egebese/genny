@@ -114,6 +114,17 @@ export function AssetLibrary({ initialAssets, initialGroups }: AssetLibraryProps
               asset={asset}
               selected={selected.includes(asset.id)}
               onToggle={toggle}
+              onRenamed={(id, label) =>
+                setAssets((current) =>
+                  current.map((one) => (one.id === id ? { ...one, label } : one)),
+                )
+              }
+              onDeleted={(id) => {
+                setAssets((current) => current.filter((one) => one.id !== id))
+                // It cannot be part of a group being assembled either, and
+                // leaving it selected would send a dead id to the server.
+                setSelected((current) => current.filter((one) => one !== id))
+              }}
             />
           ))}
         </ul>

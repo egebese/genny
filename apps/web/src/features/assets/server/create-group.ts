@@ -5,6 +5,7 @@ import {
   takenGroupLabels,
 } from '@genny/assets/groups.ts'
 import { toLabelSlug, uniqueLabel } from '@genny/assets/labels.ts'
+import { takenLabels } from '@genny/assets/repository.ts'
 import { assetUrl } from '@genny/assets/urls.ts'
 import { withActor } from '@genny/db/actor.ts'
 import { appDb } from '@genny/db/connection.ts'
@@ -35,7 +36,21 @@ export async function createGroupFor(
 
   try {
     const group = await withActor(db, actorId, async (tx) => {
-      const label = uniqueLabel(toLabelSlug(input.label), await takenGroupLabels(tx))
+      /*
+       * One namespace, not two.
+       *
+       * A group label and an asset label are separate uniques in the database,
+       * so `@hoodie` could name both. The dock resolves a prompt through one
+       * map keyed by label and the assets are added last, so the group silently
+       * lost and a mention that looked like it named four angles of a product
+       * quietly named one photograph instead. Deduplicating at the point of
+       * naming is the only place that can actually prevent it.
+       */
+      const stem = toLabelSlug(input.label)
+      const label = uniqueLabel(stem, [
+        ...(await takenGroupLabels(tx)),
+        ...(await takenLabels(tx, stem)),
+      ])
       return createGroup(tx, {
         ownerId: actorId,
         label,

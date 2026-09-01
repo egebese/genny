@@ -202,6 +202,47 @@ describe('row level security', () => {
     )
   })
 
+  /*
+   * The last single-column reference to an asset anywhere. Every other table
+   * pointing at one was made composite when the groups were renamed; this one
+   * was missed, so a node could name a picture belonging to somebody else. A
+   * key check is not subject to RLS, which is why the policy does not catch it.
+   */
+  it('refuses to draw somebody else asset on your own board', async () => {
+    const [alicesAsset] = await withActor(database.app, alice, (tx) =>
+      tx.insert(assets).values(assetFixture(alice, 'alice-secret')).returning({ id: assets.id }),
+    )
+    const bobsBoard = await withActor(database.app, bob, async (tx) => {
+      const [project] = await tx
+        .insert(projects)
+        .values({ ownerId: bob, title: 'Bob' })
+        .returning({ id: projects.id })
+      if (!project) throw new Error('project insert returned no row')
+      const [canvas] = await tx
+        .insert(canvases)
+        .values({ ownerId: bob, projectId: project.id, title: 'Bob board' })
+        .returning({ id: canvases.id })
+      if (!canvas) throw new Error('canvas insert returned no row')
+      return canvas.id
+    })
+    if (!alicesAsset) throw new Error('fixtures failed')
+
+    await expectPgError(
+      withActor(database.app, bob, (tx) =>
+        tx.insert(canvasNodes).values({
+          canvasId: bobsBoard,
+          ownerId: bob,
+          x: 0,
+          y: 0,
+          width: 320,
+          height: 320,
+          assetId: alicesAsset.id,
+        }),
+      ),
+      /canvas_nodes_asset_owner_fk/,
+    )
+  })
+
   it('refuses to pin somebody else asset, or to somebody else project', async () => {
     /*
      * Two composite keys, not a policy. Both rows bob would be writing are

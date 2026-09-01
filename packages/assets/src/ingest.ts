@@ -41,7 +41,10 @@ export async function ingestOutputs(request: IngestRequest): Promise<IngestOutco
   const created: AssetRecord[] = []
   const failures: { url: string; reason: string }[] = []
 
-  const used = new Set(await withActor(db, ownerId, (tx) => takenLabels(tx)))
+  // Every label this call can produce is `<stem>`, `<stem>-2` and so on, so
+  // the stem is the only part of the library that can collide with it.
+  const stem = toLabelSlug(request.labelHint)
+  const used = new Set(await withActor(db, ownerId, (tx) => takenLabels(tx, stem)))
 
   for (const [index, url] of request.urls.entries()) {
     try {

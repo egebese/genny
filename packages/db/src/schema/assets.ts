@@ -29,10 +29,18 @@ export const assets = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     kind: assetKind('kind').notNull(),
-    /** The @mention handle. Unique per owner so `@hero-shot` is never ambiguous. */
+    /*
+     * The @mention handle.
+     *
+     * Unique per owner here, but that is not the whole story and the comment
+     * that used to sit here claimed it was: `asset_groups.label` has its own
+     * separate unique, so nothing in the database stops one name meaning both.
+     * The dock resolves a prompt through a single map keyed by label, so when
+     * that happened the group silently lost. The two write paths deduplicate
+     * across both tables; the database cannot.
+     */
     label: text('label').notNull(),
     storageKey: text('storage_key').notNull(),
-    thumbKey: text('thumb_key'),
     mime: text('mime').notNull(),
     bytes: integer('bytes').notNull(),
     width: integer('width'),
@@ -54,11 +62,22 @@ export const assets = pgTable(
     falUrlAt: timestamp('fal_url_at', { withTimezone: true }),
     jobId: uuid('job_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    /*
+     * Deleted, but still referenced.
+     *
+     * A canvas node points at the asset it drew, so a real DELETE cascades
+     * those nodes off somebody's board with no warning and no way back. The
+     * row stays as a tombstone and the bytes in the bucket do not, so the
+     * board can say the media is gone rather than silently losing the frame.
+     * Every read path filters on this.
+     */
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (t) => [
     unique('assets_owner_label').on(t.ownerId, t.label),
-    // Referenced by character_assets as a composite key, so a membership cannot
-    // name an asset owned by somebody else.
+    // Referenced as a composite key by group members and by canvas nodes, so
+    // neither can name an asset owned by somebody else. A key check is not
+    // subject to RLS, which is why the second column is load-bearing.
     unique('assets_id_owner').on(t.id, t.ownerId),
     index('assets_owner_created').on(t.ownerId, t.createdAt.desc()),
     ownerPolicy('assets'),
