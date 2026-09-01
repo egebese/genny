@@ -51,3 +51,41 @@ export async function hasUsableCredentials(): Promise<boolean> {
     return false
   }
 }
+
+export type FalKeyStatus =
+  | { mode: 'saas' }
+  | { mode: 'byok'; present: false }
+  | { mode: 'byok'; present: true; expiresAt: number; hint: string }
+
+/**
+ * What can honestly be said about the stored key without handing it over.
+ *
+ * The key itself never crosses to the browser and is never rendered, so this is
+ * everything a settings page is allowed to know: that there is one, roughly
+ * which one, and when the cookie stops working. Before this the only signal
+ * anywhere was a boolean, which is why the key could be pasted once and then
+ * neither seen nor replaced until the twelve hours ran out.
+ *
+ * The hint is the leading characters of the key id, never the secret half. A
+ * fal key is `<id>:<secret>` and the id is the part printed in fal's own
+ * dashboard, so it is what somebody compares against to answer "is this the
+ * right one".
+ */
+export async function falKeyStatus(): Promise<FalKeyStatus> {
+  if (env().GENNY_MODE === 'saas') return { mode: 'saas' }
+  try {
+    const credentials = await readCredentials()
+    if (credentials.kind !== 'user') return { mode: 'byok', present: false }
+    return {
+      mode: 'byok',
+      present: true,
+      expiresAt: credentials.expiresAt,
+      hint: `${credentials.key.split(':')[0]?.slice(0, 8) ?? ''}…`,
+    }
+  } catch {
+    // Missing, expired or tampered with all mean the same thing here: there is
+    // nothing usable, and a settings page saying which would be a hint to
+    // somebody who did the tampering.
+    return { mode: 'byok', present: false }
+  }
+}

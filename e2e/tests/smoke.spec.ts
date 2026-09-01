@@ -1420,6 +1420,51 @@ test.describe('usage page', () => {
   })
 })
 
+test.describe('settings', () => {
+  test('byok can see, replace and clear its fal key', async ({ page }) => {
+    test.skip(mode !== 'byok', 'saas ignores any key a visitor pastes')
+    await openCanvas(page)
+    // Get past the gate first, so there is a key to manage.
+    await page.getByLabel('Paste your fal key to start').fill('e2e-placeholder:not-a-real-key')
+    await page.getByRole('button', { name: 'Start generating' }).click()
+    await expect(page.getByLabel('Prompt', { exact: true })).toBeVisible()
+
+    await page.goto('/settings')
+    await expect(page.getByRole('heading', { name: 'fal key' })).toBeVisible()
+
+    /*
+     * The key must never come back to the browser. Only the leading characters
+     * of the key id, which is the half fal prints in its own dashboard.
+     */
+    expect(await page.content()).not.toContain('not-a-real-key')
+
+    // DELETE /api/session/fal-key has existed since the gate landed with no UI
+    // calling it, so a key could be pasted once and never replaced or removed.
+    await page.getByRole('button', { name: 'Clear' }).click()
+    await expect(page.getByText('No key stored.')).toBeVisible()
+  })
+
+  test('saas is not asked about a key it would ignore', async ({ page }) => {
+    test.skip(mode !== 'saas', 'byok is the mode with a visitor key')
+    await page.goto('/settings')
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'fal key' })).toHaveCount(0)
+  })
+
+  test('is reachable from the topbar rather than only by its address', async ({ page }) => {
+    const email = `settings-${Date.now()}@example.com`
+    await page.goto('/signup')
+    await page.getByLabel('Email').fill(email)
+    await page.getByLabel('Password').fill('a-long-enough-password')
+    await page.getByRole('button', { name: 'Create account' }).click()
+    await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible()
+
+    await page.getByRole('link', { name: email }).click()
+    await expect(page).toHaveURL(/\/settings$/)
+    await expect(page.getByRole('heading', { name: 'Account' })).toBeVisible()
+  })
+})
+
 test.describe('reconcile route', () => {
   test('refuses a request without the shared secret', async ({ request }) => {
     test.skip(mode !== 'saas', 'the suite only configures a cron secret in saas')

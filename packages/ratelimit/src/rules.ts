@@ -13,6 +13,9 @@ export const LIMITS = {
   // Per email, which is what protects one account from being guessed at. Ten in
   // a quarter of an hour is generous for a person and useless for a script.
   signIn: { limit: 10, windowSeconds: 900 },
+  /** Changing a password guesses the current one, so it is a guessing surface
+   * like signing in, and gets the same window. */
+  passwordChange: { limit: 10, windowSeconds: 900 },
   /*
    * Agent calls. Each one costs a fraction of a cent, so this is not about the
    * money: it is that an agent can ask for generations, and a loop between the

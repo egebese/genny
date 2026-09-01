@@ -22,17 +22,40 @@ export async function AccountMenu() {
     )
   }
 
+  const who = session.user.name ?? session.user.email ?? 'your account'
+
   return (
-    <form className="flex items-center gap-2" action={signOutToHome}>
-      {session.user.image ? (
-        <img src={session.user.image} alt="" className="size-7 rounded-full" />
-      ) : null}
-      <span className="hidden max-w-32 truncate text-ink-muted text-sm sm:block">
-        {session.user.name ?? session.user.email}
-      </span>
-      <Button type="submit" tone="ghost" size="sm">
-        Sign out
-      </Button>
-    </form>
+    <div className="flex items-center gap-2">
+      {/* The way into /settings. It is the only account affordance in the app,
+          so a settings route with nothing pointing at it would be a page you
+          could only reach by typing its address. */}
+      <Link
+        href="/settings"
+        aria-label={`Settings for ${who}`}
+        className="flex items-center gap-2 rounded-(--radius-control) px-2 py-1 text-ink-muted text-sm hover:bg-surface hover:text-ink"
+      >
+        {/*
+          The avatar is null for anyone who signed up with a password, and the
+          name is hidden below `sm`, so without a fallback this link is an empty
+          box on a phone: no accessible name and nothing to aim a thumb at.
+        */}
+        {session.user.image ? (
+          <img src={session.user.image} alt="" className="size-7 rounded-full" />
+        ) : (
+          <span
+            aria-hidden
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface font-medium text-ink-muted text-xs uppercase"
+          >
+            {who.slice(0, 1)}
+          </span>
+        )}
+        <span className="hidden max-w-32 truncate sm:block">{who}</span>
+      </Link>
+      <form action={signOutToHome}>
+        <Button type="submit" tone="ghost" size="sm">
+          Sign out
+        </Button>
+      </form>
+    </div>
   )
 }

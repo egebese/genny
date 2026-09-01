@@ -68,3 +68,16 @@ export async function registerWithPassword(
   await setPasswordHash(db, promotion.userId, await hashPassword(password))
   return { ok: true, userId: promotion.userId }
 }
+
+/**
+ * Changing a password.
+ *
+ * The current one travels with the request rather than being implied by the
+ * session: a browser left open on a shared machine should not be enough to lock
+ * somebody out of their own account. Bounded exactly as `credentialsSchema`
+ * bounds it, since the two write the same column.
+ */
+export const changePasswordRequest = z.object({
+  current: z.string().min(1).max(200),
+  next: z.string().min(8).max(200),
+})

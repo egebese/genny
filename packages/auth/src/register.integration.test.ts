@@ -1,9 +1,14 @@
-import { findCredentials } from '@genny/db/repositories/actors.ts'
+import {
+  deleteActor,
+  findCredentials,
+  findPasswordHash,
+  setPasswordHash,
+} from '@genny/db/repositories/actors.ts'
 import { users } from '@genny/db/schema/auth.ts'
 import { startTestDatabase, type TestDatabase } from '@genny/db/testing/container.ts'
 import { sql } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { verifyPassword } from './password.ts'
+import { hashPassword, verifyPassword } from './password.ts'
 import { registerWithPassword } from './register.ts'
 
 let database: TestDatabase
@@ -100,5 +105,61 @@ describe('registerWithPassword', () => {
       anonymousId: null,
     })
     expect(result.ok).toBe(false)
+  })
+})
+
+describe('the account primitives a settings page needs', () => {
+  /*
+   * `setPasswordHash` shipped with registration under a comment saying it was
+   * for a password change, and nothing called it for months. `findPasswordHash`
+   * is what makes checking the current one possible: by id, not by email, so a
+   * signed-in person cannot aim the check at somebody else's row.
+   */
+  it('reads back the hash it just wrote, and the new password verifies', async () => {
+    const id = await anonymous()
+    await registerWithPassword(database.owner, {
+      email: 'a@example.com',
+      password: PASSWORD,
+      anonymousId: id,
+    })
+
+    const before = await findPasswordHash(database.owner, id)
+    expect(before).not.toBeNull()
+    expect(await verifyPassword(PASSWORD, before ?? '')).toBe(true)
+
+    await setPasswordHash(database.owner, id, await hashPassword('an entirely different one'))
+
+    const after = await findPasswordHash(database.owner, id)
+    expect(await verifyPassword('an entirely different one', after ?? '')).toBe(true)
+    expect(await verifyPassword(PASSWORD, after ?? '')).toBe(false)
+  })
+
+  it('has nothing to check for an actor that signs in another way', async () => {
+    expect(await findPasswordHash(database.owner, await anonymous())).toBeNull()
+  })
+
+  /*
+   * Every table carrying an owner_id cascades from users, the credit ledger
+   * included, and a foreign key cascade runs as the table owner: it is subject
+   * to neither RLS nor the REVOKE that makes the ledger append-only. That is
+   * the whole of ADR 0013, and this is the test that says so out loud.
+   */
+  it('takes the credit ledger with it, despite the append-only grant', async () => {
+    const id = await anonymous()
+    await database.owner.execute(
+      sql`insert into credit_ledger (owner_id, delta, kind, idempotency_key)
+          values (${id}, 500, 'grant', 'test-grant')`,
+    )
+
+    expect(await deleteActor(database.owner, id)).toBe(true)
+
+    const [left] = await database.owner.execute(
+      sql`select count(*)::int as n from credit_ledger where owner_id = ${id}`,
+    )
+    expect((left as { n: number } | undefined)?.n).toBe(0)
+  })
+
+  it('reports that there was nothing to delete', async () => {
+    expect(await deleteActor(database.owner, '00000000-0000-4000-8000-000000000000')).toBe(false)
   })
 })

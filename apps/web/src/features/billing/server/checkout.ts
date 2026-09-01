@@ -64,7 +64,18 @@ export async function startCheckout(
   return session.url ? { ok: true, url: session.url } : failed()
 }
 
-async function findOrCreateCustomer(
+/**
+ * Exported because the billing portal needs the same customer this checkout
+ * would bill. There is no `stripe_customer_id` column anywhere: the customer is
+ * found by the `ownerId` in its metadata, so two ways of looking it up would be
+ * two ways of drifting apart.
+ *
+ * Stripe's search index is eventually consistent, so a customer created seconds
+ * ago may not be found and a second one gets created. That is Stripe's own
+ * documented behaviour and it is survivable here: both carry the same metadata
+ * and the ledger is ours, not theirs.
+ */
+export async function findOrCreateCustomer(
   stripe: ReturnType<typeof stripeClient>,
   actorId: string,
 ): Promise<string> {

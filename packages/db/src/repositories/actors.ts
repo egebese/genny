@@ -75,7 +75,41 @@ export async function findCredentials(db: Database, email: string): Promise<Cred
   return row?.email ? { ...row, email: row.email } : null
 }
 
-/** Writes a new hash. Used by registration and, later, by a password change. */
+/** Writes a new hash. Used by registration and by a password change. */
 export async function setPasswordHash(db: Database, id: string, hash: string): Promise<void> {
   await db.update(users).set({ passwordHash: hash }).where(eq(users.id, id))
+}
+
+/**
+ * The hash of one actor, so a password change can check the current one first.
+ *
+ * By id rather than by email, because at this point there is a session and the
+ * email is not what identifies them; asking by email would let a signed-in
+ * person aim the check at somebody else's row.
+ */
+export async function findPasswordHash(db: Database, id: string): Promise<string | null> {
+  const [row] = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1)
+  return row?.passwordHash ?? null
+}
+
+/**
+ * Removes an actor and, by cascade, everything they ever made.
+ *
+ * Every table that carries an `owner_id` cascades from here, so this is one
+ * statement. Two consequences are deliberate and are written down in
+ * ADR 0013: it takes the credit ledger with it despite the ledger being
+ * append-only by grant, because a foreign key cascade runs as the table owner
+ * and is subject to neither RLS nor that REVOKE; and it does not touch object
+ * storage, so the caller has to remove those separately.
+ *
+ * Elevated connection: `users` has a select-only policy for the app role, so
+ * nobody can delete their own row through it.
+ */
+export async function deleteActor(db: Database, id: string): Promise<boolean> {
+  const rows = await db.delete(users).where(eq(users.id, id)).returning({ id: users.id })
+  return rows.length > 0
 }
