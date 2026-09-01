@@ -13,17 +13,14 @@ import { JobTracker } from './job-tracker.tsx'
 import { useAttachments } from './use-attachments.ts'
 import { useBoardActions } from './use-board-actions.ts'
 import { useBoardNodes } from './use-board-nodes.ts'
+import { useCanvasGeneration } from './use-canvas-generation.ts'
 import { kindsOf, useComposer } from './use-composer.ts'
-import { useDirector } from './use-director.ts'
-import { useGenerate } from './use-generate.ts'
 import { useMentionables, useResolvedMentions } from './use-mentionables.ts'
 import { overlaySlots } from './use-overlay-slots.ts'
 import { usePaintedRefs } from './use-painted-refs.ts'
 import { useSelection } from './use-selection.ts'
 import { useSize } from './use-size.ts'
-import { useSubmit } from './use-submit.ts'
 import { useSurfaces } from './use-surfaces.ts'
-import { useVariants } from './use-variants.ts'
 import { useViewport } from './use-viewport.ts'
 
 export function Canvas(props: CanvasPage) {
@@ -64,22 +61,16 @@ export function Canvas(props: CanvasPage) {
   const carrying = kindsOf(pinned.attachments, mentions.chips.length)
   const model = composer.resolve(carrying)
 
-  const generate = useGenerate({
-    canvasId,
-    nodes,
-    mentionables: handles.mentionables,
-    visibleRect: view.visibleRect,
-  })
-  const variants = useVariants(canvasId, nodes, view.visibleRect)
-  const director = useDirector(canvasId)
-  const [directing, setDirecting] = useState(false)
-  const { pending, error, submit, runVariants } = useSubmit({
-    generate,
-    variants,
-    onPlaced: add,
-    onReveal: view.reveal,
-    onReplace: replace,
-  })
+  const { pending, error, submit, runVariants, director, directing, setDirecting } =
+    useCanvasGeneration({
+      canvasId,
+      nodes,
+      mentionables: handles.mentionables,
+      visibleRect: view.visibleRect,
+      reveal: view.reveal,
+      onPlaced: add,
+      onReplace: replace,
+    })
 
   const act = useBoardActions({
     canvasId,
