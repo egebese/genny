@@ -25,6 +25,7 @@ export function PanelActions(props: {
   onDelete: () => void
 }) {
   const { node, detail } = props
+  const failed = node.status === 'failed'
 
   return (
     <footer className="flex items-center gap-1 border-line border-t px-2 py-2">
@@ -49,8 +50,18 @@ export function PanelActions(props: {
       {detail ? (
         <button
           type="button"
-          title="Reuse settings"
-          aria-label="Reuse settings"
+          /*
+           * The same action either way: it loads the model, the prompt and the
+           * settings back into the dock. On a failed node that is a retry, and
+           * calling it "Reuse settings" there meant the one thing somebody
+           * wanted was hidden behind a name for something else.
+           *
+           * It stops at the dock rather than submitting. A failed generation
+           * cost nothing, but the next one will, and the price belongs in front
+           * of the person before the money moves.
+           */
+          title={failed ? 'Try again' : 'Reuse settings'}
+          aria-label={failed ? 'Try again' : 'Reuse settings'}
           className={ACTION}
           onClick={() =>
             props.onReuse({

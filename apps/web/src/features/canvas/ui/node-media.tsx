@@ -6,6 +6,7 @@ import { Spinner } from '@genny/ui/spinner.tsx'
 import { useState } from 'react'
 import type { CanvasNodeView } from '../node-view.ts'
 import { AudioPlayer } from './audio-player.tsx'
+import { Elapsed } from './elapsed.tsx'
 import { VideoPlayer } from './video-player.tsx'
 
 /** What fills a node's rectangle, which is a different thing per kind and per state. */
@@ -38,7 +39,7 @@ export function NodeMedia({ node, zoom }: { node: CanvasNodeView; zoom: number }
       <div className="relative h-full w-full">
         <Skeleton aspect="auto" className="h-full w-full" />
         <span className="absolute inset-0 flex items-center justify-center gap-2 text-ink-muted text-xs">
-          <Spinner /> Generating
+          <Spinner /> Generating <Elapsed since={node.startedAt} />
         </span>
       </div>
     )

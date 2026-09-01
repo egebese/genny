@@ -102,7 +102,14 @@ export default defineConfig({
             STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || 'whsec_e2e_placeholder',
             // Trial credits, so the suite can exercise the credit paths without
             // a payment provider.
-            CREDIT_SIGNUP_GRANT: process.env.CREDIT_SIGNUP_GRANT || '500',
+            //
+            // Five thousand, not five hundred: the dock now refuses a run the
+            // balance cannot cover, and one second of an H3 LoRA video is about
+            // twelve hundred credits. At the old figure the scenarios about
+            // controls and references were quietly measuring affordability
+            // instead of their own subject. What the refusal itself does is
+            // covered by unit tests over the real pricing functions.
+            CREDIT_SIGNUP_GRANT: process.env.CREDIT_SIGNUP_GRANT || '5000',
             // Turns the reconcile route on so the suite can check who it lets in.
             CRON_SECRET: 'e2e_cron_secret',
           }

@@ -30,6 +30,9 @@ export function reservedNode(rect: Rect): CanvasNodeView {
     url: null,
     durationMs: null,
     error: null,
+    // The clock starts when the rectangle appears, not when the row is written:
+    // the wait somebody is measuring began at the click.
+    startedAt: Date.now(),
   }
 }
 

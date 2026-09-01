@@ -7,8 +7,9 @@ import type { PickableFamily } from '../family-list.ts'
 import type { PickableModel } from '../model-list.ts'
 import { type Attachment, AttachmentStrip, type MentionChip } from './attachment-strip.tsx'
 import { DirectorPanel, type DirectorProps } from './director-panel.tsx'
+import { whyBlocked } from './dock-block.ts'
 import { DockControls } from './dock-controls.tsx'
-import { DockNotice, whyBlocked } from './dock-notice.tsx'
+import { DockNotice } from './dock-notice.tsx'
 import { placeholderFor } from './dock-placeholder.ts'
 import { MentionList } from './mention-list.tsx'
 import { PromptField } from './prompt-field.tsx'
@@ -33,7 +34,7 @@ type PromptDockProps = {
   pending: boolean
   error: string | null
   /** Credits when saas mode is on, dollars otherwise: the same number, priced. */
-  credits: { enabled: boolean; perUsd: number } | null
+  credits: { enabled: boolean; perUsd: number; balance: number } | null
   /** Composed text lives in the studio, so a result can append a mention to it. */
   prompt: string
   onPromptChange: (next: string) => void
@@ -100,18 +101,17 @@ export function PromptDock(props: PromptDockProps) {
     node.style.height = `${Math.min(node.scrollHeight, lineHeight * MAX_ROWS)}px`
   }
 
-  /*
-   * An editing model cannot run without an image. Blocking here beats letting
-   * fal answer 422 with a reason the person cannot see.
-   */
-
+  // Every reason this dock will not run, found before spending rather than
+  // from fal's 422 or a hold that refuses.
   const block = whyBlocked({
     family: props.family,
     model,
     mentionCount: mentionedLabels(prompt).length,
-    attachmentCount: props.attachments.length,
-    carrying: props.mentions.length > 0 || props.attachments.length > 0,
+    attachments: props.attachments.length,
+    mentions: props.mentions.length,
     settings,
+    credits: props.credits,
+    prompt,
   })
 
   return (

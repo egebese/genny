@@ -28,6 +28,10 @@ export type CanvasNodeView = {
   url: string | null
   durationMs: number | null
   error: string | null
+  /** When the row was written, so a running node can say how long it has been
+   * running. Epoch milliseconds rather than a Date: this crosses from a server
+   * component to a client one, and a Date does not survive that intact. */
+  startedAt: number
 }
 
 export function toNodeView(node: NodeRecord): CanvasNodeView {
@@ -53,6 +57,7 @@ export function toNodeView(node: NodeRecord): CanvasNodeView {
     url: media,
     durationMs: node.durationMs,
     error: node.error,
+    startedAt: node.createdAt.getTime(),
   }
 }
 

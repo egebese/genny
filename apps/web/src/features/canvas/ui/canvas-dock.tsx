@@ -61,7 +61,17 @@ export function CanvasDock(props: CanvasDockProps) {
             onSettingChange={props.onSettingChange}
             pending={props.pending}
             error={props.error}
-            credits={props.credits ? { enabled: true, perUsd: props.credits.perUsd } : null}
+            credits={
+              props.credits
+                ? {
+                    enabled: true,
+                    perUsd: props.credits.perUsd,
+                    // What is actually spendable: a hold is money already
+                    // committed to a generation still running.
+                    balance: Number(props.credits.balance) - Number(props.credits.holdBalance),
+                  }
+                : null
+            }
             prompt={props.prompt}
             onPromptChange={props.onPromptChange}
             onSubmit={props.onSubmit}
