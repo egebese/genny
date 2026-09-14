@@ -20,7 +20,7 @@ catalog:
   '@aws-sdk/s3-request-presigner': 3.1118.0
   '@fal-ai/client': 1.10.1
   '@fal-ai/server-proxy': 1.2.1
-  '@playwright/test': 1.62.1
+  '@playwright/test': 1.63.0
   '@testcontainers/postgresql': 12.1.0
   '@types/node': 26.3.0
   '@types/react': 19.2.18
@@ -47,7 +47,7 @@ catalog:
   'tailwind-merge': 3.6.0
   tailwindcss: 4.3.3
   typescript: 7.0.2
-  vitest: 4.1.11
+  vitest: 5.0.0
   zod: 4.4.3
 
 allowBuilds:
