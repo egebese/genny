@@ -23,8 +23,8 @@ catalog:
   '@playwright/test': 1.62.1
   '@testcontainers/postgresql': 12.1.0
   '@types/node': 26.3.0
-  '@types/react': 19.2.18
-  '@types/react-dom': 19.2.5
+  '@types/react': 19.3.0
+  '@types/react-dom': 19.3.0
   '@vitest/coverage-v8': 4.1.11
   'class-variance-authority': 0.7.1
   clsx: 2.1.1
@@ -36,13 +36,13 @@ catalog:
   # prerendering Next's own error page. See docs/adr/0009. We stay on the
   # security-patched release because no version avoids it. Run `pnpm build`
   # before bumping: that is the only signal.
-  next: 16.3.3
+  next: 16.3.4
   '@auth/drizzle-adapter': 1.11.3
   'next-auth': 5.0.0-beta.32
   postgres: 3.4.9
   'radix-ui': 1.6.7
-  react: 19.2.0
-  'react-dom': 19.2.0
+  react: 19.3.0
+  'react-dom': 19.3.0
   stripe: 22.5.0
   'tailwind-merge': 3.6.0
   tailwindcss: 4.3.3
