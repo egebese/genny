@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@genny/tsconfig": "workspace:*",
-    "@lobehub/icons-static-svg": "^1.94.0",
+    "@lobehub/icons-static-svg": "^1.95.1",
     "@types/node": "catalog:",
     "typescript": "catalog:"
   }
